@@ -33,6 +33,18 @@
           "data": {
             "pathName": "RightStationToC"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "ReefCToRightStation"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightStationToB"
+          }
         }
       ]
     }
