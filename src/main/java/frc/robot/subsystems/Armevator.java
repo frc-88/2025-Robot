@@ -27,49 +27,42 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class Armevator extends SubsystemBase {
   private TalonFX m_elevatorMain = new TalonFX(Constants.ELEVATOR_MAIN_MOTOR, Constants.RIO_CANBUS);
-  private TalonFX m_elevatorFollower =
-      new TalonFX(Constants.ELEVATOR_FOLLOWER_MOTOR, Constants.RIO_CANBUS);
+  private TalonFX m_elevatorFollower = new TalonFX(Constants.ELEVATOR_FOLLOWER_MOTOR, Constants.RIO_CANBUS);
   private TalonFX m_arm = new TalonFX(Constants.ELEVATOR_ARM_MOTOR, Constants.RIO_CANBUS);
-  private TalonFXS m_manipulator =
-      new TalonFXS(Constants.ELEVATOR_MANIPULATOR_MOTOR, Constants.RIO_CANBUS);
+  private TalonFXS m_manipulator = new TalonFXS(Constants.ELEVATOR_MANIPULATOR_MOTOR, Constants.RIO_CANBUS);
 
-  private final CANrange m_canRangeLeft =
-      new CANrange(Constants.ARM_LEFT_CANRANGE, Constants.RIO_CANBUS);
-  private final CANrange m_canRangeMiddle =
-      new CANrange(Constants.ARM_MIDDLE_CANRANGE, Constants.RIO_CANBUS);
-  private final CANrange m_canRangeRight =
-      new CANrange(Constants.ARM_RIGHT_CANRANGE, Constants.RIO_CANBUS);
+  private final CANrange m_canRangeLeft = new CANrange(Constants.ARM_LEFT_CANRANGE, Constants.RIO_CANBUS);
+  private final CANrange m_canRangeMiddle = new CANrange(Constants.ARM_MIDDLE_CANRANGE, Constants.RIO_CANBUS);
+  private final CANrange m_canRangeRight = new CANrange(Constants.ARM_RIGHT_CANRANGE, Constants.RIO_CANBUS);
 
   private final Debouncer elevatorDebouncer = new Debouncer(1.0);
 
   private PIDPreferenceConstants elevatorPID = new PIDPreferenceConstants("Armevator/Elevator/PID");
-  private DoublePreferenceConstant p_elevatorMaxVelocity =
-      new DoublePreferenceConstant("Armevator/Elevator/MotionMagicVelocity", 0.0);
-  private DoublePreferenceConstant p_elevatorMaxAcceleration =
-      new DoublePreferenceConstant("Armevator/Elevator/MotionMagicAcceleration", 0.0);
-  private DoublePreferenceConstant p_elevatorJerk =
-      new DoublePreferenceConstant("Armevator/Elevator/MotionMagicJerk", 0.0);
-  private DoublePreferenceConstant p_elevatorTargetInches =
-      new DoublePreferenceConstant("Armevator/Elevator/TargetPositionInches", 0.0);
+  private DoublePreferenceConstant p_elevatorMaxVelocity = new DoublePreferenceConstant(
+      "Armevator/Elevator/MotionMagicVelocity", 0.0);
+  private DoublePreferenceConstant p_elevatorMaxAcceleration = new DoublePreferenceConstant(
+      "Armevator/Elevator/MotionMagicAcceleration", 0.0);
+  private DoublePreferenceConstant p_elevatorJerk = new DoublePreferenceConstant("Armevator/Elevator/MotionMagicJerk",
+      0.0);
+  private DoublePreferenceConstant p_elevatorTargetInches = new DoublePreferenceConstant(
+      "Armevator/Elevator/TargetPositionInches", 0.0);
 
   private PIDPreferenceConstants armPID = new PIDPreferenceConstants("Armevator/Arm/PID");
-  private DoublePreferenceConstant p_armMaxVelocity =
-      new DoublePreferenceConstant("Armevator/Arm/MotionMagicVelocity", 0.0);
-  private DoublePreferenceConstant p_armMaxAcceleration =
-      new DoublePreferenceConstant("Armevator/Arm/MotionMagicAcceleration", 0.0);
-  private DoublePreferenceConstant p_armJerk =
-      new DoublePreferenceConstant("Armevator/Arm/MotionMagicJerk", 0.0);
-  private DoublePreferenceConstant p_armTargetDegrees =
-      new DoublePreferenceConstant("Armevator/Arm/TargetPositionDegrees", 0.0);
+  private DoublePreferenceConstant p_armMaxVelocity = new DoublePreferenceConstant("Armevator/Arm/MotionMagicVelocity",
+      0.0);
+  private DoublePreferenceConstant p_armMaxAcceleration = new DoublePreferenceConstant(
+      "Armevator/Arm/MotionMagicAcceleration", 0.0);
+  private DoublePreferenceConstant p_armJerk = new DoublePreferenceConstant("Armevator/Arm/MotionMagicJerk", 0.0);
+  private DoublePreferenceConstant p_armTargetDegrees = new DoublePreferenceConstant(
+      "Armevator/Arm/TargetPositionDegrees", 0.0);
 
-  private DoublePreferenceConstant p_manipulatorInSpeed =
-      new DoublePreferenceConstant("Armevator/Manipultor/InSpeed", 0.3);
-  private DoublePreferenceConstant p_manipulatorOutSpeed =
-      new DoublePreferenceConstant("Armevator/Manipultor/OutSpeed", 0.3);
-  private DoublePreferenceConstant p_manipulatorCurrentLimit =
-      new DoublePreferenceConstant("Armevator/Manipultor/CurrentLimit", 20);
-  private DoublePreferenceConstant p_armTiltAngle =
-      new DoublePreferenceConstant("Armevator/Arm/TiltAngle", 5.0);
+  private DoublePreferenceConstant p_manipulatorInSpeed = new DoublePreferenceConstant("Armevator/Manipultor/InSpeed",
+      0.3);
+  private DoublePreferenceConstant p_manipulatorOutSpeed = new DoublePreferenceConstant("Armevator/Manipultor/OutSpeed",
+      0.3);
+  private DoublePreferenceConstant p_manipulatorCurrentLimit = new DoublePreferenceConstant(
+      "Armevator/Manipultor/CurrentLimit", 20);
+  private DoublePreferenceConstant p_armTiltAngle = new DoublePreferenceConstant("Armevator/Arm/TiltAngle", 5.0);
 
   private MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
 
@@ -77,42 +70,19 @@ public class Armevator extends SubsystemBase {
 
   public Armevator() {
     configureTalons();
-
-    CANrangeConfiguration canRangemiddlecfg = new CANrangeConfiguration();
-    CANrangeConfiguration canRangeleftcfg = new CANrangeConfiguration();
-    CANrangeConfiguration canRangerightcfg = new CANrangeConfiguration();
-    canRangemiddlecfg.FovParams.FOVRangeX = 6.5;
-    canRangeleftcfg.FovParams.FOVRangeX = 6.5;
-    canRangerightcfg.FovParams.FOVRangeX = 6.5;
-    canRangemiddlecfg.FovParams.FOVRangeY = 27.0;
-    canRangeleftcfg.FovParams.FOVRangeY = 27.0;
-    canRangerightcfg.FovParams.FOVRangeY = 27.0;
-
-    canRangeleftcfg.ToFParams.UpdateFrequency = 50;
-    canRangerightcfg.ToFParams.UpdateFrequency = 50;
-    canRangemiddlecfg.ToFParams.UpdateFrequency = 50;
-
-    canRangeleftcfg.ProximityParams.ProximityThreshold = 0.5;
-    canRangemiddlecfg.ProximityParams.ProximityThreshold = 0.5;
-    canRangerightcfg.ProximityParams.ProximityThreshold = 0.5;
-
-    m_canRangeLeft.getConfigurator().apply(canRangeleftcfg);
-    m_canRangeRight.getConfigurator().apply(canRangerightcfg);
-    m_canRangeMiddle.getConfigurator().apply(canRangemiddlecfg);
+    configureCANrange();
   }
 
-  public void configureTalons() {
+  private void configureTalons() {
     TalonFXConfiguration maincfg = new TalonFXConfiguration();
     TalonFXConfiguration followercfg = new TalonFXConfiguration();
     TalonFXConfiguration armcfg = new TalonFXConfiguration();
 
     TalonFXSConfiguration manipulatorConfiguration = new TalonFXSConfiguration();
-    manipulatorConfiguration.CurrentLimits.SupplyCurrentLimit =
-        p_manipulatorCurrentLimit.getValue();
+    manipulatorConfiguration.CurrentLimits.SupplyCurrentLimit = p_manipulatorCurrentLimit.getValue();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
     manipulatorConfiguration.Commutation.MotorArrangement = MotorArrangementValue.Minion_JST;
-    manipulatorConfiguration.OpenLoopRamps =
-        new OpenLoopRampsConfigs().withDutyCycleOpenLoopRampPeriod(0);
+    manipulatorConfiguration.OpenLoopRamps = new OpenLoopRampsConfigs().withDutyCycleOpenLoopRampPeriod(0);
     m_manipulator.getConfigurator().apply(manipulatorConfiguration);
 
     maincfg.Slot0.kP = elevatorPID.getKP().getValue();
@@ -142,12 +112,32 @@ public class Armevator extends SubsystemBase {
     m_elevatorFollower.setControl(new Follower(Constants.ELEVATOR_MAIN_MOTOR, false));
   }
 
-  public double getElevatorPositionInches() {
-    return m_elevatorMain.getPosition().getValueAsDouble() * Constants.ELEVATOR_ROTATIONS_TO_INCHES;
+  private void configureCANrange() {
+    CANrangeConfiguration canRangemiddlecfg = new CANrangeConfiguration();
+    CANrangeConfiguration canRangeleftcfg = new CANrangeConfiguration();
+    CANrangeConfiguration canRangerightcfg = new CANrangeConfiguration();
+    canRangemiddlecfg.FovParams.FOVRangeX = 6.5;
+    canRangeleftcfg.FovParams.FOVRangeX = 6.5;
+    canRangerightcfg.FovParams.FOVRangeX = 6.5;
+    canRangemiddlecfg.FovParams.FOVRangeY = 27.0;
+    canRangeleftcfg.FovParams.FOVRangeY = 27.0;
+    canRangerightcfg.FovParams.FOVRangeY = 27.0;
+
+    canRangeleftcfg.ToFParams.UpdateFrequency = 50;
+    canRangerightcfg.ToFParams.UpdateFrequency = 50;
+    canRangemiddlecfg.ToFParams.UpdateFrequency = 50;
+
+    canRangeleftcfg.ProximityParams.ProximityThreshold = 0.5;
+    canRangemiddlecfg.ProximityParams.ProximityThreshold = 0.5;
+    canRangerightcfg.ProximityParams.ProximityThreshold = 0.5;
+
+    m_canRangeLeft.getConfigurator().apply(canRangeleftcfg);
+    m_canRangeRight.getConfigurator().apply(canRangerightcfg);
+    m_canRangeMiddle.getConfigurator().apply(canRangemiddlecfg);
   }
 
-  public void setAlgaePickup() {
-    m_arm.setControl(motionmagicrequest.withPosition(56. / Constants.ARM_ROTATIONS_TO_DEGREES));
+  public double getElevatorPositionInches() {
+    return m_elevatorMain.getPosition().getValueAsDouble() * Constants.ELEVATOR_ROTATIONS_TO_INCHES;
   }
 
   public void elevatorSetPosition(double position) {
@@ -157,49 +147,41 @@ public class Armevator extends SubsystemBase {
             .withFeedForward(0.056));
   }
 
-  public void armGoToTiltAngle() {
-    m_arm.setControl(
-        motionmagicrequest.withPosition(
-            p_armTiltAngle.getValue() / Constants.ARM_ROTATIONS_TO_DEGREES));
+  public void armSetAngle(double angle) {
+    m_arm.setControl(motionmagicrequest.withPosition(angle / Constants.ARM_ROTATIONS_TO_DEGREES));
   }
 
-  public void armSetPosition() {
-    m_arm.setControl(
-        motionmagicrequest.withPosition(
-            p_armTargetDegrees.getValue() / Constants.ARM_ROTATIONS_TO_DEGREES));
+  public void armGoToTiltAngle() {
+    armSetAngle(p_armTiltAngle.getValue());
+  }
+
+  public void armGotoAlgaePickup() {
+    armSetAngle(56.0);
+  }
+
+  public void armGotoPrefPosition() {
+    armSetAngle(p_armTargetDegrees.getValue());
   }
 
   public void armGoToZero() {
-    m_arm.setControl(motionmagicrequest.withPosition(0.0));
+    armSetAngle(0.0);
   }
 
   public void setL4() {
-    m_elevatorMain.setControl(
-        motionmagicrequest.withPosition(
-            Constants.ELEVATOR_L4_HEIGHT / Constants.ELEVATOR_ROTATIONS_TO_INCHES));
+    elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
-      m_arm.setControl(
-          motionmagicrequest.withPosition(
-              Constants.ARM_L4_ANGLE / Constants.ARM_ROTATIONS_TO_DEGREES));
+      armSetAngle(Constants.ARM_L4_ANGLE);
     }
   }
 
   public void setL3() {
-    m_elevatorMain.setControl(
-        motionmagicrequest.withPosition(
-            Constants.ELEVATOR_L3_HEIGHT / Constants.ELEVATOR_ROTATIONS_TO_INCHES));
-    m_arm.setControl(
-        motionmagicrequest.withPosition(
-            p_armTiltAngle.getValue() / Constants.ARM_ROTATIONS_TO_DEGREES));
+    elevatorSetPosition(Constants.ELEVATOR_L3_HEIGHT);
+    armGoToTiltAngle();
   }
 
   public void setL2() {
-    m_elevatorMain.setControl(
-        motionmagicrequest.withPosition(
-            Constants.ELEVATOR_L2_HEIGHT / Constants.ELEVATOR_ROTATIONS_TO_INCHES));
-    m_arm.setControl(
-        motionmagicrequest.withPosition(
-            p_armTiltAngle.getValue() / Constants.ARM_ROTATIONS_TO_DEGREES));
+    elevatorSetPosition(Constants.ELEVATOR_L3_HEIGHT);
+    armGoToTiltAngle();
   }
 
   public void elevatorStop() {
@@ -225,8 +207,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean isArmZero() {
-    return Math.abs((m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES))
-        < 0.1;
+    return Math.abs((m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES)) < 0.1;
   }
 
   public void backUp() {
@@ -239,8 +220,7 @@ public class Armevator extends SubsystemBase {
 
   public boolean isArmOnPosition() {
     return Math.abs(
-            m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES - 7.5)
-        < 1.0;
+        m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES - 7.5) < 1.0;
   }
 
   public void armCalibrate() {
@@ -260,13 +240,11 @@ public class Armevator extends SubsystemBase {
   }
 
   public void stowArm() {
-    m_arm.setControl(
-        motionmagicrequest.withPosition(
-            p_armTiltAngle.getValue() / Constants.ARM_ROTATIONS_TO_DEGREES));
+    armGoToTiltAngle();
   }
 
   public void stowElevator() {
-    m_elevatorMain.setControl(motionmagicrequest.withPosition(0.0));
+    elevatorSetPosition(0.0);
   }
 
   public void stowBoth() {
@@ -298,9 +276,8 @@ public class Armevator extends SubsystemBase {
               armGoToZero();
             })
         .until(
-            () ->
-                elevatorDebouncer.calculate(
-                    Math.abs(m_elevatorMain.getVelocity().getValueAsDouble()) < 0.02))
+            () -> elevatorDebouncer.calculate(
+                Math.abs(m_elevatorMain.getVelocity().getValueAsDouble()) < 0.02))
         .andThen(() -> elevatorStop())
         .andThen(new WaitCommand(0.25))
         .andThen(
@@ -325,11 +302,11 @@ public class Armevator extends SubsystemBase {
 
   public Command manipulatorInFactory() {
     return new RunCommand(
-            () -> {
-              manipulatorIn();
-              armGoToZero();
-            },
-            this)
+        () -> {
+          manipulatorIn();
+          armGoToZero();
+        },
+        this)
         .until(() -> m_canRangeMiddle.getIsDetected().getValue())
         .andThen(() -> manipulatorStop())
         .andThen(new WaitCommand(0.05));
@@ -338,7 +315,7 @@ public class Armevator extends SubsystemBase {
   public Command algaePickupFactory() {
     return new RunCommand(
         () -> {
-          setAlgaePickup();
+          armGotoAlgaePickup();
           m_manipulator.setControl(new DutyCycleOut(0.75));
         },
         this);
@@ -386,7 +363,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command setArmPostionFactory() {
-    return new RunCommand(() -> armSetPosition(), this);
+    return new RunCommand(() -> armGotoPrefPosition(), this);
   }
 
   public Command defaultCommand() {
