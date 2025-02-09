@@ -146,6 +146,10 @@ public class Armevator extends SubsystemBase {
     return m_elevatorMain.getPosition().getValueAsDouble() * Constants.ELEVATOR_ROTATIONS_TO_INCHES;
   }
 
+  public void setAlgaePickup() {
+    m_arm.setControl(motionmagicrequest.withPosition(56. / Constants.ARM_ROTATIONS_TO_DEGREES));
+  }
+
   public void elevatorSetPosition(double position) {
     m_elevatorMain.setControl(
         motionmagicrequest
@@ -329,6 +333,15 @@ public class Armevator extends SubsystemBase {
         .until(() -> m_canRangeMiddle.getIsDetected().getValue())
         .andThen(() -> manipulatorStop())
         .andThen(new WaitCommand(0.05));
+  }
+
+  public Command algaePickupFactory() {
+    return new RunCommand(
+        () -> {
+          setAlgaePickup();
+          m_manipulator.setControl(new DutyCycleOut(0.75));
+        },
+        this);
   }
 
   public Command goToOneInchFactory() {
