@@ -1,0 +1,43 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "StartToL1Right"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "L1RightToStation"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightStationToL1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "L1RightToStation"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightStationToL1"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
