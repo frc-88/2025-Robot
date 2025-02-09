@@ -8,7 +8,6 @@ import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -18,9 +17,13 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class Doghouse extends SubsystemBase {
   /** Creates a new Doghouse. */
-  private DoublePreferenceConstant p_funnelSlowSpeed = new DoublePreferenceConstant("Doghouse/FunnelSlowSpeed", 0.2);
-  private DoublePreferenceConstant p_funnelFastSpeed = new DoublePreferenceConstant("Doghouse/FunnelFastSpeed", 1);
-  private DoublePreferenceConstant p_funnelCurrentLimit = new DoublePreferenceConstant("Doghouse/FunnelCurrentLimit", 20);
+  private DoublePreferenceConstant p_funnelSlowSpeed =
+      new DoublePreferenceConstant("Doghouse/FunnelSlowSpeed", 0.2);
+
+  private DoublePreferenceConstant p_funnelFastSpeed =
+      new DoublePreferenceConstant("Doghouse/FunnelFastSpeed", 1);
+  private DoublePreferenceConstant p_funnelCurrentLimit =
+      new DoublePreferenceConstant("Doghouse/FunnelCurrentLimit", 20);
 
   private final DutyCycleOut m_funnelRequest = new DutyCycleOut(0.0);
 
@@ -30,9 +33,9 @@ public class Doghouse extends SubsystemBase {
     TalonFXConfiguration doghouseConfiguration = new TalonFXConfiguration();
     doghouseConfiguration.CurrentLimits.SupplyCurrentLimit = p_funnelCurrentLimit.getValue();
     doghouseConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
-    doghouseConfiguration.OpenLoopRamps = new OpenLoopRampsConfigs().withDutyCycleOpenLoopRampPeriod(0);
+    doghouseConfiguration.OpenLoopRamps =
+        new OpenLoopRampsConfigs().withDutyCycleOpenLoopRampPeriod(0);
     m_funnel.getConfigurator().apply(doghouseConfiguration);
-
   }
 
   public void stopMoving() {
@@ -62,6 +65,5 @@ public class Doghouse extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Doghouse/Current", m_funnel.getStatorCurrent().getValueAsDouble());
-
   }
 }
