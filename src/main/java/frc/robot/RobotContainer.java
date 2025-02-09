@@ -20,12 +20,16 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Armevator;
+import frc.robot.subsystems.Doghouse;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -56,6 +60,10 @@ public class RobotContainer {
   private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  public Armevator m_armevator = new Armevator();
+
+  public Doghouse m_doghouse = new Doghouse();
+
   public RobotContainer() {
     switch (Constants.currentMode) {
       case REAL:
@@ -127,6 +135,40 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+    configureDashboardButtons();
+  }
+
+  public void configureDashboardButtons() {
+    SmartDashboard.putData("Calibrate Elevator", m_armevator.calibrateElevatorFactory());
+    SmartDashboard.putData("Calibrate Arm", m_armevator.calibrateArmFactory());
+    SmartDashboard.putData("Set Position Elevator", m_armevator.setElevatorPostionFactory());
+    SmartDashboard.putData("Slow Speed Elevator", m_armevator.setElevatorSlowSpeedFactory());
+    SmartDashboard.putData("Stop Elevator", m_armevator.stopElevatorFactory());
+    SmartDashboard.putData("Set Position Arm", m_armevator.setArmPostionFactory());
+    SmartDashboard.putData("Arm Go To Zero", m_armevator.armGoToZeroFactory());
+    SmartDashboard.putData("Slow Speed Arm", m_armevator.setArmSlowSpeedFactory());
+    SmartDashboard.putData("Stop Arm", m_armevator.stopArmFactory());
+    SmartDashboard.putData("Out Manipulator", m_armevator.manipulatorOutFactory());
+    SmartDashboard.putData("In Manipulator", m_armevator.manipulatorInFactory());
+    SmartDashboard.putData("Stop Manipulator", m_armevator.manipulatorStopFactory());
+    SmartDashboard.putData("Go To One Inch", m_armevator.goToOneInchFactory());
+    SmartDashboard.putData("Go To Tilt Angle", m_armevator.goToTiltAngleFactory());
+    SmartDashboard.putData("Algae Pickup", m_armevator.algaePickupFactory());
+
+    SmartDashboard.putData("Stop Doghouse", m_doghouse.stopMovingFactory());
+    SmartDashboard.putData("Slow Doghouse", m_doghouse.moveSlowFactory());
+    SmartDashboard.putData(
+        "Fast Doghouse",
+        new ParallelCommandGroup(
+            m_doghouse.moveFastFactory(),
+            m_armevator
+                .manipulatorInFactory()
+                .andThen(m_armevator.goToTiltAngleFactory())
+                .andThen(m_armevator.backUpFactory())));
+
+    SmartDashboard.putData("L4", m_armevator.L4Factory());
+    SmartDashboard.putData("L3", m_armevator.L3Factory());
+    SmartDashboard.putData("L2", m_armevator.L2Factory());
   }
 
   /**
@@ -136,6 +178,8 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+    m_armevator.setDefaultCommand(m_armevator.defaultCommand());
+
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
