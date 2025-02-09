@@ -136,6 +136,14 @@ public class Armevator extends SubsystemBase {
     m_canRangeMiddle.getConfigurator().apply(canRangemiddlecfg);
   }
 
+  public void armCalibrate() {
+    m_arm.setPosition(0.0);
+  }
+
+  public void elevatorCalibrate() {
+    m_elevatorMain.setPosition(0.0);
+  }
+
   public double getElevatorPositionInches() {
     return m_elevatorMain.getPosition().getValueAsDouble() * Constants.ELEVATOR_ROTATIONS_TO_INCHES;
   }
@@ -206,25 +214,17 @@ public class Armevator extends SubsystemBase {
     m_manipulator.setControl(new DutyCycleOut(p_manipulatorOutSpeed.getValue()));
   }
 
-  public boolean isArmZero() {
-    return Math.abs((m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES)) < 0.1;
-  }
-
-  public void backUp() {
+  public void manipulatorReverse() {
     m_manipulator.setControl(new DutyCycleOut(0.1));
   }
 
-  public void elevatorCalibrate() {
-    m_elevatorMain.setPosition(0.0);
+  public boolean isArmZero() {
+    return Math.abs((m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES)) < 0.1;
   }
 
   public boolean isArmOnPosition() {
     return Math.abs(
         m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES - 7.5) < 1.0;
-  }
-
-  public void armCalibrate() {
-    m_arm.setPosition(0.0);
   }
 
   public void elevatorSetSlowSpeed() {
@@ -250,10 +250,6 @@ public class Armevator extends SubsystemBase {
   public void stowBoth() {
     stowArm();
     stowElevator();
-  }
-
-  public void armSetSpeed() {
-    m_arm.setControl(new DutyCycleOut(-0.09));
   }
 
   public Command stowArmFactory() {
@@ -295,7 +291,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command backUpFactory() {
-    return new RunCommand(() -> backUp(), this)
+    return new RunCommand(() -> manipulatorReverse(), this)
         .until(() -> !m_canRangeMiddle.getIsDetected().getValue())
         .andThen(() -> manipulatorStop());
   }
