@@ -197,7 +197,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public void setL2() {
-    elevatorSetPosition(Constants.ELEVATOR_L3_HEIGHT);
+    elevatorSetPosition(Constants.ELEVATOR_L2_HEIGHT);
     armGoToTiltAngle();
   }
 
