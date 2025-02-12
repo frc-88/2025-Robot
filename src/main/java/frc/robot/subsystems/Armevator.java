@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
-import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXSConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -90,8 +89,8 @@ public class Armevator extends SubsystemBase {
         p_manipulatorCurrentLimit.getValue();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
     manipulatorConfiguration.Commutation.MotorArrangement = MotorArrangementValue.Minion_JST;
-    manipulatorConfiguration.OpenLoopRamps =
-        new OpenLoopRampsConfigs().withDutyCycleOpenLoopRampPeriod(0);
+    // manipulatorConfiguration.OpenLoopRamps =
+    //    new OpenLoopRampsConfigs().withDutyCycleOpenLoopRampPeriod(0);
     m_manipulator.getConfigurator().apply(manipulatorConfiguration);
 
     maincfg.Slot0.kP = elevatorPID.getKP().getValue();
@@ -139,6 +138,8 @@ public class Armevator extends SubsystemBase {
     canRangeleftcfg.ProximityParams.ProximityThreshold = 0.5;
     canRangemiddlecfg.ProximityParams.ProximityThreshold = 0.5;
     canRangerightcfg.ProximityParams.ProximityThreshold = 0.5;
+
+    canRangemiddlecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 12000;
 
     m_canRangeLeft.getConfigurator().apply(canRangeleftcfg);
     m_canRangeRight.getConfigurator().apply(canRangerightcfg);
@@ -324,7 +325,7 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
         () -> {
           armGotoAlgaePickup();
-          m_manipulator.setControl(new DutyCycleOut(0.75));
+          m_manipulator.setControl(new DutyCycleOut(1.0));
         },
         this);
   }
@@ -413,5 +414,8 @@ public class Armevator extends SubsystemBase {
     SmartDashboard.putNumber("Armevator Velocity", m_elevatorMain.getVelocity().getValueAsDouble());
     SmartDashboard.putNumber("Arm Setpoint", m_arm.getClosedLoopReference().getValueAsDouble());
     SmartDashboard.putNumber("Arm Velocity", m_arm.getVelocity().getValueAsDouble());
+    SmartDashboard.putBoolean("Left CAN Range", m_canRangeLeft.getIsDetected().getValue());
+    SmartDashboard.putBoolean("Right CAN Range", m_canRangeRight.getIsDetected().getValue());
+    SmartDashboard.putBoolean("Middle Can Range", m_canRangeMiddle.getIsDetected().getValue());
   }
 }
