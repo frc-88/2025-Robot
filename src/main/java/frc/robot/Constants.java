@@ -38,7 +38,7 @@ public final class Constants {
   public static final String RIO_CANBUS = "rio";
 
   public static final double ARM_L4_ANGLE = 24.5;
-  public static final double ELEVATOR_L4_HEIGHT = 28.0;
+  public static final double ELEVATOR_L4_HEIGHT = 28.;
   public static final double ELEVATOR_L3_HEIGHT = 13.25;
   public static final double ELEVATOR_L2_HEIGHT = 5.3;
   // ARMEVATOR
