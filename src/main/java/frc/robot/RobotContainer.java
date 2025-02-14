@@ -16,6 +16,7 @@ package frc.robot;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -72,6 +73,15 @@ public class RobotContainer {
   public Doghouse m_doghouse = new Doghouse();
 
   public Climber climber = new Climber();
+
+  public Command coralMode() {
+    return new ParallelCommandGroup(
+        m_doghouse.moveFastFactory(),
+        m_armevator
+            .manipulatorInFactory()
+            .andThen(m_armevator.goToTiltAngleFactory())
+            .andThen(m_armevator.backUpFactory()));
+  }
 
   private Trigger onDisable =
       new Trigger(() -> RobotState.isDisabled() && climber.getPositionGasMotor() < 70.0);
@@ -148,11 +158,26 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // Configure the button bindings
+    registerNamedCommands();
     configureButtonBindings();
     configureDashboardButtons();
   }
 
+  public void registerNamedCommands() {
+    NamedCommands.registerCommand("Shoot", m_armevator.manipulatorOutFactory());
+    NamedCommands.registerCommand("Get Coral", coralMode());
+    NamedCommands.registerCommand(
+        "Arm Go To Zero", m_armevator.armGoToZeroFactory().withTimeout(0.5));
+  }
+
   public void configureDashboardButtons() {
+
+    climber
+        .shouldBrake()
+        .onTrue(climber.gasMotorBrakeModeFactory().ignoringDisable(true))
+        .onFalse(climber.setNeutralModeFactory().ignoringDisable(true));
+    climber.shouldGripperClose().onTrue(climber.pivotNeutralGrabberClosedFactory());
+
     SmartDashboard.putData("Calibrate Elevator", m_armevator.calibrateElevatorFactory());
     SmartDashboard.putData("Calibrate Arm", m_armevator.calibrateArmFactory());
     SmartDashboard.putData("Set Position Elevator", m_armevator.setElevatorPostionFactory());
@@ -170,14 +195,7 @@ public class RobotContainer {
 
     SmartDashboard.putData("Stop Doghouse", m_doghouse.stopMovingFactory());
     SmartDashboard.putData("Slow Doghouse", m_doghouse.moveSlowFactory());
-    SmartDashboard.putData(
-        "Fast Doghouse",
-        new ParallelCommandGroup(
-            m_doghouse.moveFastFactory(),
-            m_armevator
-                .manipulatorInFactory()
-                .andThen(m_armevator.goToTiltAngleFactory())
-                .andThen(m_armevator.backUpFactory())));
+    SmartDashboard.putData("Fast Doghouse", coralMode());
 
     SmartDashboard.putData("L4", m_armevator.L4Factory());
     SmartDashboard.putData("L3", m_armevator.L3Factory());
@@ -208,15 +226,7 @@ public class RobotContainer {
     buttons.button(3).onTrue(m_armevator.L4Factory());
     buttons.button(10).onTrue(m_armevator.manipulatorOutFactory());
     buttons.button(4).onTrue(m_armevator.stowFactory());
-    buttons
-        .button(5)
-        .onTrue(
-            new ParallelCommandGroup(
-                m_doghouse.moveFastFactory(),
-                m_armevator
-                    .manipulatorInFactory()
-                    .andThen(m_armevator.goToTiltAngleFactory())
-                    .andThen(m_armevator.backUpFactory())));
+    buttons.button(5).onTrue(coralMode());
     buttons.button(11).onTrue(m_armevator.algaePickupFactory());
     // buttons.button(6).onTrue(climb);
     // buttons.button(7).onTrue(prepclimb);
@@ -278,9 +288,7 @@ public class RobotContainer {
     }
   }
 
-  public void teleopInit() {
-    climber.shouldBrake().onTrue(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
-  }
+  public void teleopInit() {}
 
   public void disableInit() {}
 

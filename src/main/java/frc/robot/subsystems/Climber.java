@@ -196,16 +196,16 @@ public class Climber extends SubsystemBase {
 
   public boolean shouldClose() {
     return !input.get()
-        && Units.metersToInches(m_canRange.getDistance().getValueAsDouble()) > 16.0
-        && Units.metersToInches(m_canRange.getDistance().getValueAsDouble()) < 18.0;
+        && Units.metersToInches(m_canRange.getDistance().getValueAsDouble()) > 8.5
+        && Units.metersToInches(m_canRange.getDistance().getValueAsDouble()) < 9.5;
   }
 
   public boolean onTarget() {
     return Math.abs(
             getPositionGasMotor()
                 - ((p_gasmotorPositionInches.getValue() / Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH)
-                    * 1.615))
-        < 0.15;
+                    * 1.21))
+        < 0.5;
   }
 
   public boolean shouldEnableBrake() {
@@ -260,7 +260,7 @@ public class Climber extends SubsystemBase {
     m_gasmotor.setControl(
         position.withPosition(
             (p_gasmotorPositionInches.getValue() / Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH)
-                * 1.615));
+                * 1.21));
   }
 
   public void setGasMotorPositionRotations() {
@@ -271,7 +271,7 @@ public class Climber extends SubsystemBase {
     m_gasmotor.setControl(
         new PositionDutyCycle(
             (p_gasmotorPositionInches.getValue() / Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH)
-                * 1.615));
+                * 1.21));
     // m_pivot.setControl(new DutyCycleOut(0.0));
   }
 
@@ -392,7 +392,8 @@ public class Climber extends SubsystemBase {
     SmartDashboard.putNumber("Encoder position", m_climberEncoder.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Climber Angle", getAngleOfClimber());
     SmartDashboard.putNumber(
-        "CAN Range Distance", Units.metersToInches(m_canRange.getDistance().getValueAsDouble()));
+        "Climber CAN Range Distance",
+        Units.metersToInches(m_canRange.getDistance().getValueAsDouble()));
     SmartDashboard.putBoolean("Sensor ouput", input.get());
   }
 }
