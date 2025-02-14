@@ -29,6 +29,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Get Coral"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "RightStationToL1"
