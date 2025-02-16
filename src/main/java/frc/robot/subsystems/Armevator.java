@@ -153,11 +153,15 @@ public class Armevator extends SubsystemBase {
     m_canRangeMiddle.getConfigurator().apply(canRangemiddlecfg);
   }
 
-  public void armCalibrate() {
+  public double getArmAngle() {
+    return m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES;
+  }
+
+  private void armCalibrate() {
     m_arm.setPosition(0.0);
   }
 
-  public void elevatorCalibrate() {
+  private void elevatorCalibrate() {
     m_elevatorMain.setPosition(0.0);
   }
 
@@ -169,104 +173,104 @@ public class Armevator extends SubsystemBase {
     return m_elevatorMain.getPosition().getValueAsDouble() * Constants.ELEVATOR_ROTATIONS_TO_INCHES;
   }
 
-  public void elevatorSetPosition(double position) {
+  private void elevatorSetPosition(double position) {
     m_elevatorMain.setControl(
         motionmagicrequest
             .withPosition(position / Constants.ELEVATOR_ROTATIONS_TO_INCHES)
             .withFeedForward(0.056));
   }
 
-  public void armSetAngle(double angle) {
+  private void armSetAngle(double angle) {
     m_arm.setControl(motionmagicrequest.withPosition(angle / Constants.ARM_ROTATIONS_TO_DEGREES));
   }
 
-  public void armGoToTiltAngle() {
+  private void armGoToTiltAngle() {
     armSetAngle(p_armTiltAngle.getValue());
   }
 
-  public void armGotoAlgaePickup() {
+  private void armGotoAlgaePickup() {
     armSetAngle(56.0);
   }
 
-  public void armGotoPrefPosition() {
+  private void armGotoPrefPosition() {
     armSetAngle(p_armTargetDegrees.getValue());
   }
 
-  public void armGoToZero() {
+  private void armGoToZero() {
     armSetAngle(0.0);
   }
 
-  public void setL4() {
+  private void setL4() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
       armSetAngle(Constants.ARM_L4_ANGLE);
     }
   }
 
-  public void setL3() {
+  private void setL3() {
     elevatorSetPosition(Constants.ELEVATOR_L3_HEIGHT);
     armGoToTiltAngle();
   }
 
-  public void setL2() {
+  private void setL2() {
     elevatorSetPosition(Constants.ELEVATOR_L2_HEIGHT);
     armGoToTiltAngle();
   }
 
-  public void elevatorStop() {
+  private void elevatorStop() {
     m_elevatorMain.setControl(new DutyCycleOut(0.0));
   }
 
-  public void armStop() {
+  private void armStop() {
     m_arm.setControl(new DutyCycleOut(0.0));
   }
 
-  public void manipulatorStop() {
+  private void manipulatorStop() {
     m_manipulator.setControl(new DutyCycleOut(0.0));
   }
 
-  public void manipulatorIn() {
+  private void manipulatorIn() {
     if (!m_canRangeMiddle.getIsDetected().getValue()) {
       m_manipulator.setControl(new DutyCycleOut(p_manipulatorInSpeed.getValue()));
     }
   }
 
-  public void manipulatorOut() {
+  private void manipulatorOut() {
     m_manipulator.setControl(new DutyCycleOut(p_manipulatorOutSpeed.getValue()));
   }
 
-  public void manipulatorReverse() {
+  private void manipulatorReverse() {
     m_manipulator.setControl(new DutyCycleOut(0.1));
   }
 
   public boolean isArmZero() {
-    return Math.abs((m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES))
+    return Math.abs(getArmAngle())
         < 1.2;
   }
 
   public boolean isArmOnPosition() {
     return Math.abs(
-            m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES - 7.5)
+            getArmAngle() - 7.5)
         < 1.2;
   }
 
-  public void elevatorSetSlowSpeed() {
+  private void elevatorSetSlowSpeed() {
     m_elevatorMain.setControl(new DutyCycleOut(0.1));
   }
 
-  public void armSetSlowSpeed() {
+  private void armSetSlowSpeed() {
     m_arm.setControl(new DutyCycleOut(0.1));
   }
 
-  public void elevatorSetCalibrateSpeed() {
+  private void elevatorSetCalibrateSpeed() {
     m_elevatorMain.setControl(new DutyCycleOut(-0.09));
   }
 
-  public void stowArm() {
+  private void stowArm() {
     armGoToTiltAngle();
   }
 
-  public void stowElevator() {
+  private void stowElevator() {
     elevatorSetPosition(0.0);
   }
 
@@ -454,13 +458,9 @@ public class Armevator extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber(
-        "Elevator Positon",
-        m_elevatorMain.getPosition().getValueAsDouble() * Constants.ELEVATOR_ROTATIONS_TO_INCHES);
+    SmartDashboard.putNumber("Elevator Positon", getElevatorPositionInches());
     SmartDashboard.putBoolean("Is detected", m_canRangeMiddle.getIsDetected().getValue());
-    SmartDashboard.putNumber(
-        "Arm Position",
-        m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES);
+    SmartDashboard.putNumber("Arm Position", getArmAngle());
     SmartDashboard.putNumber(
         "CAN Range Left Distance",
         Units.metersToInches(m_canRangeLeft.getDistance().getValueAsDouble()));
@@ -470,11 +470,6 @@ public class Armevator extends SubsystemBase {
     SmartDashboard.putNumber(
         "CAN Range Right Distance",
         Units.metersToInches(m_canRangeRight.getDistance().getValueAsDouble()));
-    SmartDashboard.putNumber(
-        "Armevator Setpoint", m_elevatorMain.getClosedLoopReference().getValueAsDouble());
-    SmartDashboard.putNumber("Armevator Velocity", m_elevatorMain.getVelocity().getValueAsDouble());
-    SmartDashboard.putNumber("Arm Setpoint", m_arm.getClosedLoopReference().getValueAsDouble());
-    SmartDashboard.putNumber("Arm Velocity", m_arm.getVelocity().getValueAsDouble());
     SmartDashboard.putBoolean("Left CAN Range", m_canRangeLeft.getIsDetected().getValue());
     SmartDashboard.putBoolean("Right CAN Range", m_canRangeRight.getIsDetected().getValue());
     SmartDashboard.putBoolean("Middle Can Range", m_canRangeMiddle.getIsDetected().getValue());
