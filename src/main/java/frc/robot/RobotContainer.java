@@ -75,20 +75,19 @@ public class RobotContainer {
   public Climber climber = new Climber();
 
   public Command coralMode() {
+
     return new ParallelCommandGroup(
         m_doghouse.moveFastFactory(),
         m_armevator
             .manipulatorInFactory()
             .andThen(m_armevator.goToTiltAngleFactory())
-            .andThen(m_armevator.backUpFactory()));
+            .andThen(m_armevator.backUpFactory())); // .until(m_armevator.isIn());
   }
 
   private Trigger onDisable =
       new Trigger(() -> RobotState.isDisabled() && climber.getPositionGasMotor() < 70.0);
 
   public RobotContainer() {
-
-    configureButtonBox();
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -137,10 +136,12 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
-
+    registerNamedCommands();
+    configureButtonBox();
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
+    autoChooser.addDefaultOption("RightSideL1", getAutoPath("TripleL1Right"));
     // Set up SysId routines
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
@@ -158,7 +159,6 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // Configure the button bindings
-    registerNamedCommands();
     configureButtonBindings();
     configureDashboardButtons();
   }
@@ -228,7 +228,7 @@ public class RobotContainer {
     buttons.button(4).onTrue(m_armevator.stowFactory());
     buttons.button(5).onTrue(coralMode());
     buttons.button(11).onTrue(m_armevator.algaePickupFactory());
-    // buttons.button(6).onTrue(climb);
+    buttons.button(7).onTrue(climber.prepClimber());
     // buttons.button(7).onTrue(prepclimb);
 
     controller.rightBumper().onTrue(m_armevator.manipulatorOutFactory());
