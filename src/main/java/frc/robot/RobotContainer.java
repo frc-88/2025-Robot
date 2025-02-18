@@ -36,7 +36,7 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Armevator;
 import frc.robot.subsystems.Climber;
-import frc.robot.subsystems.Doghouse;
+import frc.robot.subsystems.doghouse.Doghouse;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
