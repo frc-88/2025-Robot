@@ -9,10 +9,8 @@ import edu.wpi.first.wpilibj.Preferences;
 public class Pref<T> {
     
     private final String key;
-    private final T defaultValue;
     private T currentValue;
     private final List<Consumer<T>> listeners = new LinkedList<>();
-    private static final List<Pref<?>> prefs = new LinkedList<>();
 
     public void set(T value) {
         if (value instanceof Integer) {
@@ -35,43 +33,45 @@ public class Pref<T> {
         return currentValue;
     }
 
+    public void applyAndListen(Consumer<T> listener) {
+        addChangeListener(listener);
+        update(true);
+    }
+
     public void addChangeListener(Consumer<T> listener) {
         listeners.add(listener);
     }
 
-    public static void updateAll() {
-        for (Pref<?> pref : prefs) {
-            pref.update(false);
-        }
-    }
-
     protected Pref(String key, T defaultValue) {
         this.key = key;
-        this.defaultValue = defaultValue;
+        this.currentValue = defaultValue;
 
         if (!Preferences.containsKey(key)) {
             init(defaultValue);
-            this.currentValue = defaultValue;
         } else {
             update(false);
         }
+    }
+
+    protected Class<?> getType() {
+        return currentValue.getClass();
     }
 
     @SuppressWarnings("unchecked")
     protected void update(boolean force) {
         T newValue;
 
-        if (defaultValue instanceof Integer) {
-            newValue = (T) Integer.valueOf(Preferences.getInt(key, (Integer) defaultValue));
-        } else if (defaultValue instanceof Double) {
-            newValue = (T) Double.valueOf(Preferences.getDouble(key, (Double) defaultValue));
-        } else if (defaultValue instanceof Boolean) {
-            newValue = (T) Boolean.valueOf(Preferences.getBoolean(key, (Boolean) defaultValue));
-        } else if (defaultValue instanceof String) {
-            newValue = (T) Preferences.getString(key, (String) defaultValue);
-        } else if (defaultValue instanceof Enum) {
-            String enumValue = Preferences.getString(key, ((Enum<?>) defaultValue).name());
-            newValue = (T) Enum.valueOf(((Enum<?>) defaultValue).getDeclaringClass(), enumValue);
+        if (currentValue instanceof Integer) {
+            newValue = (T) Integer.valueOf(Preferences.getInt(key, (Integer) currentValue));
+        } else if (currentValue instanceof Double) {
+            newValue = (T) Double.valueOf(Preferences.getDouble(key, (Double) currentValue));
+        } else if (currentValue instanceof Boolean) {
+            newValue = (T) Boolean.valueOf(Preferences.getBoolean(key, (Boolean) currentValue));
+        } else if (currentValue instanceof String) {
+            newValue = (T) Preferences.getString(key, (String) currentValue);
+        } else if (currentValue instanceof Enum) {
+            String enumValue = Preferences.getString(key, ((Enum<?>) currentValue).name());
+            newValue = (T) Enum.valueOf(((Enum<?>) currentValue).getDeclaringClass(), enumValue);
         } else {
             throw new IllegalArgumentException("Unsupported preference type");
         }
