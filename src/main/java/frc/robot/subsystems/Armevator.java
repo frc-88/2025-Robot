@@ -2,14 +2,11 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.configs.TalonFXSConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.hardware.TalonFXS;
-import com.ctre.phoenix6.signals.MotorArrangementValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.util.Units;
@@ -31,12 +28,12 @@ public class Armevator extends SubsystemBase {
   private TalonFX m_elevatorFollower =
       new TalonFX(Constants.ELEVATOR_FOLLOWER_MOTOR, Constants.RIO_CANBUS);
   private TalonFX m_arm = new TalonFX(Constants.ELEVATOR_ARM_MOTOR, Constants.RIO_CANBUS);
-  private TalonFXS m_manipulator =
-      new TalonFXS(Constants.ELEVATOR_MANIPULATOR_MOTOR, Constants.RIO_CANBUS);
+  private TalonFX m_manipulator =
+      new TalonFX(Constants.ELEVATOR_MANIPULATOR_MOTOR, Constants.RIO_CANBUS);
 
   private final CANrange m_canRangeLeft =
       new CANrange(Constants.ARM_LEFT_CANRANGE, Constants.RIO_CANBUS);
-  private final CANrange m_canRangeMiddle =
+  private final CANrange m_coralRange =
       new CANrange(Constants.ARM_MIDDLE_CANRANGE, Constants.RIO_CANBUS);
   private final CANrange m_canRangeRight =
       new CANrange(Constants.ARM_RIGHT_CANRANGE, Constants.RIO_CANBUS);
@@ -91,11 +88,10 @@ public class Armevator extends SubsystemBase {
     TalonFXConfiguration followercfg = new TalonFXConfiguration();
     TalonFXConfiguration armcfg = new TalonFXConfiguration();
 
-    TalonFXSConfiguration manipulatorConfiguration = new TalonFXSConfiguration();
+    TalonFXConfiguration manipulatorConfiguration = new TalonFXConfiguration();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimit =
         p_manipulatorCurrentLimit.getValue();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
-    manipulatorConfiguration.Commutation.MotorArrangement = MotorArrangementValue.Minion_JST;
     // manipulatorConfiguration.OpenLoopRamps =
     //    new OpenLoopRampsConfigs().withDutyCycleOpenLoopRampPeriod(0);
     m_manipulator.getConfigurator().apply(manipulatorConfiguration);
@@ -150,7 +146,7 @@ public class Armevator extends SubsystemBase {
 
     m_canRangeLeft.getConfigurator().apply(canRangeleftcfg);
     m_canRangeRight.getConfigurator().apply(canRangerightcfg);
-    m_canRangeMiddle.getConfigurator().apply(canRangemiddlecfg);
+    m_coralRange.getConfigurator().apply(canRangemiddlecfg);
   }
 
   public double getArmAngle() {
@@ -230,7 +226,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void manipulatorIn() {
-    if (!m_canRangeMiddle.getIsDetected().getValue()) {
+    if (!m_coralRange.getIsDetected().getValue()) {
       m_manipulator.setControl(new DutyCycleOut(p_manipulatorInSpeed.getValue()));
     }
   }
@@ -244,14 +240,11 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean isArmZero() {
-    return Math.abs(getArmAngle())
-        < 1.2;
+    return Math.abs(getArmAngle()) < 1.2;
   }
 
   public boolean isArmOnPosition() {
-    return Math.abs(
-            getArmAngle() - 7.5)
-        < 1.2;
+    return Math.abs(getArmAngle() - 7.5) < 1.2;
   }
 
   private void elevatorSetSlowSpeed() {
@@ -356,7 +349,7 @@ public class Armevator extends SubsystemBase {
 
   public Command backUpFactory() {
     return new RunCommand(() -> manipulatorReverse(), this)
-        .until(() -> !m_canRangeMiddle.getIsDetected().getValue())
+        .until(() -> !m_coralRange.getIsDetected().getValue())
         .andThen(
             () -> {
               manipulatorStop();
@@ -371,7 +364,7 @@ public class Armevator extends SubsystemBase {
               armGoToZero();
             },
             this)
-        .until(() -> m_canRangeMiddle.getIsDetected().getValue())
+        .until(() -> m_coralRange.getIsDetected().getValue())
         .andThen(
             () -> {
               hasCoral = true;
@@ -459,19 +452,19 @@ public class Armevator extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Elevator Positon", getElevatorPositionInches());
-    SmartDashboard.putBoolean("Is detected", m_canRangeMiddle.getIsDetected().getValue());
+    SmartDashboard.putBoolean("Is detected", m_coralRange.getIsDetected().getValue());
     SmartDashboard.putNumber("Arm Position", getArmAngle());
     SmartDashboard.putNumber(
         "CAN Range Left Distance",
         Units.metersToInches(m_canRangeLeft.getDistance().getValueAsDouble()));
     SmartDashboard.putNumber(
         "CAN Range Middle Distance",
-        Units.metersToInches(m_canRangeMiddle.getDistance().getValueAsDouble()));
+        Units.metersToInches(m_coralRange.getDistance().getValueAsDouble()));
     SmartDashboard.putNumber(
         "CAN Range Right Distance",
         Units.metersToInches(m_canRangeRight.getDistance().getValueAsDouble()));
     SmartDashboard.putBoolean("Left CAN Range", m_canRangeLeft.getIsDetected().getValue());
     SmartDashboard.putBoolean("Right CAN Range", m_canRangeRight.getIsDetected().getValue());
-    SmartDashboard.putBoolean("Middle Can Range", m_canRangeMiddle.getIsDetected().getValue());
+    SmartDashboard.putBoolean("Middle Can Range", m_coralRange.getIsDetected().getValue());
   }
 }

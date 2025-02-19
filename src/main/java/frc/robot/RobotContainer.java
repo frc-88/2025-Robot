@@ -172,7 +172,7 @@ public class RobotContainer {
         .onTrue(climber.gasMotorNeutralModeFactory().ignoringDisable(true))
         .onFalse(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
     climber.shouldGripperClose().onTrue(climber.closeGrabberFactory());
-    
+
     SmartDashboard.putData("Calibrate Elevator", m_armevator.calibrateElevatorFactory());
     SmartDashboard.putData("Calibrate Arm", m_armevator.calibrateArmFactory());
     SmartDashboard.putData("Set Position Elevator", m_armevator.setElevatorPostionFactory());
@@ -200,14 +200,15 @@ public class RobotContainer {
     SmartDashboard.putData("CloseGrabber", climber.closeGrabberFactory());
     SmartDashboard.putData("SetGasMotorRotations", climber.setGasMotorRotationsFactory());
     SmartDashboard.putData("StopGasMotor", climber.stopGasMotorFactory());
-    SmartDashboard.putData(
-        "CalibrateGasMotor", climber.calibrateGasMotorFactory().ignoringDisable(true));
+    // SmartDashboard.putData(
+    //     "CalibrateGasMotor", climber.calibrateGasMotorFactory().ignoringDisable(true));
     SmartDashboard.putData("SetPositionInches", climber.setGasMotorInchesFactory());
     SmartDashboard.putData(
         "Calibrate Encoder", climber.calibrateEncoderFactory().ignoringDisable(true));
     SmartDashboard.putData("Set Coast", climber.gasMotorNeutralModeFactory().ignoringDisable(true));
     SmartDashboard.putData("Set Brake", climber.gasMotorBrakeModeFactory().ignoringDisable(true));
     SmartDashboard.putData("Prep Climber", climber.prepClimber());
+    SmartDashboard.putData("Calibrate Gas Motor", climber.calibrateFactory());
 
     // Autos
     SmartDashboard.putData("TripleL1Right", getAutoPath("TripleL1Right"));
