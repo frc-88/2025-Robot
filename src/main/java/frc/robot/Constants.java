@@ -46,8 +46,8 @@ public final class Constants {
   public static final int ELEVATOR_FOLLOWER_MOTOR = 1;
   public static final int ELEVATOR_ARM_MOTOR = 7;
   public static final int ELEVATOR_MANIPULATOR_MOTOR = 5;
-  public static final int ARM_LEFT_CANRANGE = 0;
-  public static final int ARM_MIDDLE_CANRANGE = 10;
+  public static final int DOGHOUSE_CANRANGE = 10;
+  public static final int CORAL_CANRANGE = 3;
   public static final int ARM_RIGHT_CANRANGE = 3;
 
   public static final double ELEVATOR_ROTATIONS_TO_INCHES = ((2.256 * Math.PI) / 8.0);

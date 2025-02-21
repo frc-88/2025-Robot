@@ -31,12 +31,12 @@ public class Armevator extends SubsystemBase {
   private TalonFX m_manipulator =
       new TalonFX(Constants.ELEVATOR_MANIPULATOR_MOTOR, Constants.RIO_CANBUS);
 
-  private final CANrange m_canRangeLeft =
-      new CANrange(Constants.ARM_LEFT_CANRANGE, Constants.RIO_CANBUS);
+  private final CANrange m_doghousCANRange =
+      new CANrange(Constants.DOGHOUSE_CANRANGE, Constants.RIO_CANBUS);
   private final CANrange m_coralRange =
-      new CANrange(Constants.ARM_MIDDLE_CANRANGE, Constants.RIO_CANBUS);
-  private final CANrange m_canRangeRight =
-      new CANrange(Constants.ARM_RIGHT_CANRANGE, Constants.RIO_CANBUS);
+      new CANrange(Constants.CORAL_CANRANGE, Constants.RIO_CANBUS);
+  // private final CANrange m_canRangeRight =
+  //     new CANrange(Constants.ARM_RIGHT_CANRANGE, Constants.RIO_CANBUS);
 
   private final Debouncer elevatorDebouncer = new Debouncer(1.0);
 
@@ -124,29 +124,36 @@ public class Armevator extends SubsystemBase {
   }
 
   private void configureCANrange() {
-    CANrangeConfiguration canRangemiddlecfg = new CANrangeConfiguration();
-    CANrangeConfiguration canRangeleftcfg = new CANrangeConfiguration();
-    CANrangeConfiguration canRangerightcfg = new CANrangeConfiguration();
-    canRangemiddlecfg.FovParams.FOVRangeX = 6.5;
-    canRangeleftcfg.FovParams.FOVRangeX = 6.5;
-    canRangerightcfg.FovParams.FOVRangeX = 6.5;
-    canRangemiddlecfg.FovParams.FOVRangeY = 27.0;
-    canRangeleftcfg.FovParams.FOVRangeY = 27.0;
-    canRangerightcfg.FovParams.FOVRangeY = 27.0;
+    CANrangeConfiguration coralRangecfg = new CANrangeConfiguration();
+    CANrangeConfiguration doghouscfg = new CANrangeConfiguration();
+    // CANrangeConfiguration canRangerightcfg = new CANrangeConfiguration();
+    coralRangecfg.FovParams.FOVRangeX = 6.75;
+    doghouscfg.FovParams.FOVRangeX = 7.5;
+    coralRangecfg.FovParams.FOVRangeY = 6.75;
+    doghouscfg.FovParams.FOVRangeY = 27.0;
+    // canRangerightcfg.FovParams.FOVRangeY = 27.0;
 
-    canRangeleftcfg.ToFParams.UpdateFrequency = 50;
-    canRangerightcfg.ToFParams.UpdateFrequency = 50;
-    canRangemiddlecfg.ToFParams.UpdateFrequency = 50;
+    doghouscfg.ToFParams.UpdateFrequency = 50;
+    coralRangecfg.ToFParams.UpdateFrequency = 50;
 
-    canRangeleftcfg.ProximityParams.ProximityThreshold = 0.5;
-    canRangemiddlecfg.ProximityParams.ProximityThreshold = 0.5;
-    canRangerightcfg.ProximityParams.ProximityThreshold = 0.5;
+    doghouscfg.ProximityParams.ProximityThreshold = 0.5;
+    doghouscfg.ProximityParams.ProximityHysteresis = 0.03;
+    coralRangecfg.ProximityParams.ProximityThreshold = 0.5;
 
-    canRangemiddlecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 12000;
+    coralRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 40000;
+    doghouscfg.ProximityParams.MinSignalStrengthForValidMeasurement = 10000;
 
-    m_canRangeLeft.getConfigurator().apply(canRangeleftcfg);
-    m_canRangeRight.getConfigurator().apply(canRangerightcfg);
-    m_coralRange.getConfigurator().apply(canRangemiddlecfg);
+    m_doghousCANRange.getConfigurator().apply(doghouscfg);
+    // m_canRangeRight.getConfigurator().apply(canRangerightcfg);
+    m_coralRange.getConfigurator().apply(coralRangecfg);
+  }
+
+  public boolean isCoralDetected() {
+    return m_coralRange.getIsDetected().getValue();
+  }
+
+  public boolean isDoghouseDetected() {
+    return m_doghousCANRange.getIsDetected().getValue();
   }
 
   public double getArmAngle() {
@@ -226,9 +233,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void manipulatorIn() {
-    if (!m_coralRange.getIsDetected().getValue()) {
-      m_manipulator.setControl(new DutyCycleOut(p_manipulatorInSpeed.getValue()));
-    }
+    m_manipulator.setControl(new DutyCycleOut(p_manipulatorInSpeed.getValue()));
   }
 
   private void manipulatorOut() {
@@ -237,6 +242,10 @@ public class Armevator extends SubsystemBase {
 
   private void manipulatorReverse() {
     m_manipulator.setControl(new DutyCycleOut(0.1));
+  }
+
+  private void manipulatorSlow() {
+    m_manipulator.setControl(new DutyCycleOut(-0.1));
   }
 
   public boolean isArmZero() {
@@ -359,18 +368,20 @@ public class Armevator extends SubsystemBase {
 
   public Command manipulatorInFactory() {
     return new RunCommand(
-            () -> {
-              manipulatorIn();
-              armGoToZero();
-            },
-            this)
-        .until(() -> m_coralRange.getIsDetected().getValue())
-        .andThen(
-            () -> {
-              hasCoral = true;
-              manipulatorStop();
-            })
-        .andThen(new WaitCommand(0.05));
+        () -> {
+          if (!m_coralRange.getIsDetected().getValue()
+              && !m_doghousCANRange.getIsDetected().getValue()) {
+            manipulatorIn();
+          } else if (m_coralRange.getIsDetected().getValue()
+              && m_doghousCANRange.getIsDetected().getValue()) {
+            manipulatorSlow();
+          } else if (m_coralRange.getIsDetected().getValue()
+              && !m_doghousCANRange.getIsDetected().getValue()) {
+            manipulatorStop();
+          }
+          armGoToZero();
+        },
+        this);
   }
 
   public Command algaePickupFactory() {
@@ -456,15 +467,12 @@ public class Armevator extends SubsystemBase {
     SmartDashboard.putNumber("Arm Position", getArmAngle());
     SmartDashboard.putNumber(
         "CAN Range Left Distance",
-        Units.metersToInches(m_canRangeLeft.getDistance().getValueAsDouble()));
+        Units.metersToInches(m_doghousCANRange.getDistance().getValueAsDouble()));
     SmartDashboard.putNumber(
         "CAN Range Middle Distance",
         Units.metersToInches(m_coralRange.getDistance().getValueAsDouble()));
-    SmartDashboard.putNumber(
-        "CAN Range Right Distance",
-        Units.metersToInches(m_canRangeRight.getDistance().getValueAsDouble()));
-    SmartDashboard.putBoolean("Left CAN Range", m_canRangeLeft.getIsDetected().getValue());
-    SmartDashboard.putBoolean("Right CAN Range", m_canRangeRight.getIsDetected().getValue());
-    SmartDashboard.putBoolean("Middle Can Range", m_coralRange.getIsDetected().getValue());
+    SmartDashboard.putBoolean("Doghouse CANRange", m_doghousCANRange.getIsDetected().getValue());
+    // SmartDashboard.putBoolean("Right CAN Range", m_canRangeRight.getIsDetected().getValue());
+    SmartDashboard.putBoolean("Coral CANRange", m_coralRange.getIsDetected().getValue());
   }
 }

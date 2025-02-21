@@ -75,11 +75,8 @@ public class RobotContainer {
   public Command coralMode() {
 
     return new ParallelCommandGroup(
-        m_doghouse.moveFastFactory(),
-        m_armevator
-            .manipulatorInFactory()
-            .andThen(m_armevator.goToTiltAngleFactory())
-            .andThen(m_armevator.backUpFactory())); // .until(m_armevator.isIn());
+        m_doghouse.moveFastFactory(), m_armevator.manipulatorInFactory());
+    // .until(m_armevator.isIn());
   }
 
   public RobotContainer() {
