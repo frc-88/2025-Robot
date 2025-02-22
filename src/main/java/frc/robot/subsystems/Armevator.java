@@ -1,15 +1,12 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
@@ -18,7 +15,6 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
@@ -28,15 +24,6 @@ public class Armevator extends SubsystemBase {
   private TalonFX m_elevatorFollower =
       new TalonFX(Constants.ELEVATOR_FOLLOWER_MOTOR, Constants.RIO_CANBUS);
   private TalonFX m_arm = new TalonFX(Constants.ELEVATOR_ARM_MOTOR, Constants.RIO_CANBUS);
-  private TalonFX m_manipulator =
-      new TalonFX(Constants.ELEVATOR_MANIPULATOR_MOTOR, Constants.RIO_CANBUS);
-
-  private final CANrange m_doghousCANRange =
-      new CANrange(Constants.DOGHOUSE_CANRANGE, Constants.RIO_CANBUS);
-  private final CANrange m_coralRange =
-      new CANrange(Constants.CORAL_CANRANGE, Constants.RIO_CANBUS);
-  // private final CANrange m_canRangeRight =
-  //     new CANrange(Constants.ARM_RIGHT_CANRANGE, Constants.RIO_CANBUS);
 
   private final Debouncer elevatorDebouncer = new Debouncer(1.0);
 
@@ -60,43 +47,22 @@ public class Armevator extends SubsystemBase {
   private DoublePreferenceConstant p_armJerk =
       new DoublePreferenceConstant("Armevator/Arm/MotionMagicJerk", 0.0);
   private DoublePreferenceConstant p_armTargetDegrees =
-      new DoublePreferenceConstant("Armevator/Arm/TargetPositionDegrees", 45.0);
+      new DoublePreferenceConstant("Armevator/Arm/TargetPositionDegrees", 0.0);
   private DoublePreferenceConstant p_armTiltAngle =
-      new DoublePreferenceConstant("Armevator/Arm/TiltAngle", 7.5);
-
-  private DoublePreferenceConstant p_manipulatorInSpeed =
-      new DoublePreferenceConstant("Armevator/Manipultor/InSpeed", 0.2);
-  private DoublePreferenceConstant p_manipulatorOutSpeed =
-      new DoublePreferenceConstant("Armevator/Manipultor/OutSpeed", 0.3);
-  private DoublePreferenceConstant p_manipulatorCurrentLimit =
-      new DoublePreferenceConstant("Armevator/Manipultor/CurrentLimit", 120);
+      new DoublePreferenceConstant("Armevator/Arm/TiltAngle", 5.0);
 
   private MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
 
   private boolean m_calibrated = false;
-  private boolean hasCoral = false;
-  private boolean isIn = false;
-
-  public Trigger hasCoralTrigger = new Trigger(() -> hasCoral);
-  public Trigger isInTrigger = new Trigger(() -> isIn);
 
   public Armevator() {
     configureTalons();
-    configureCANrange();
   }
 
   private void configureTalons() {
     TalonFXConfiguration maincfg = new TalonFXConfiguration();
     TalonFXConfiguration followercfg = new TalonFXConfiguration();
     TalonFXConfiguration armcfg = new TalonFXConfiguration();
-
-    TalonFXConfiguration manipulatorConfiguration = new TalonFXConfiguration();
-    manipulatorConfiguration.CurrentLimits.SupplyCurrentLimit =
-        p_manipulatorCurrentLimit.getValue();
-    manipulatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
-    // manipulatorConfiguration.OpenLoopRamps =
-    //    new OpenLoopRampsConfigs().withDutyCycleOpenLoopRampPeriod(0);
-    m_manipulator.getConfigurator().apply(manipulatorConfiguration);
 
     maincfg.Slot0.kP = elevatorPID.getKP().getValue();
     maincfg.Slot0.kI = elevatorPID.getKI().getValue();
@@ -125,39 +91,6 @@ public class Armevator extends SubsystemBase {
     m_elevatorFollower.setControl(new Follower(Constants.ELEVATOR_MAIN_MOTOR, false));
   }
 
-  private void configureCANrange() {
-    CANrangeConfiguration coralRangecfg = new CANrangeConfiguration();
-    CANrangeConfiguration doghouscfg = new CANrangeConfiguration();
-    // CANrangeConfiguration canRangerightcfg = new CANrangeConfiguration();
-    coralRangecfg.FovParams.FOVRangeX = 6.75;
-    doghouscfg.FovParams.FOVRangeX = 7.5;
-    coralRangecfg.FovParams.FOVRangeY = 6.75;
-    doghouscfg.FovParams.FOVRangeY = 27.0;
-    // canRangerightcfg.FovParams.FOVRangeY = 27.0;
-
-    doghouscfg.ToFParams.UpdateFrequency = 50;
-    coralRangecfg.ToFParams.UpdateFrequency = 50;
-
-    doghouscfg.ProximityParams.ProximityThreshold = 0.5;
-    doghouscfg.ProximityParams.ProximityHysteresis = 0.03;
-    coralRangecfg.ProximityParams.ProximityThreshold = 0.5;
-
-    coralRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 40000;
-    doghouscfg.ProximityParams.MinSignalStrengthForValidMeasurement = 10000;
-
-    m_doghousCANRange.getConfigurator().apply(doghouscfg);
-    // m_canRangeRight.getConfigurator().apply(canRangerightcfg);
-    m_coralRange.getConfigurator().apply(coralRangecfg);
-  }
-
-  public boolean isCoralDetected() {
-    return m_coralRange.getIsDetected().getValue();
-  }
-
-  public boolean isDoghouseDetected() {
-    return m_doghousCANRange.getIsDetected().getValue();
-  }
-
   public double getArmAngle() {
     return m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES;
   }
@@ -168,10 +101,6 @@ public class Armevator extends SubsystemBase {
 
   private void elevatorCalibrate() {
     m_elevatorMain.setPosition(0.0);
-  }
-
-  public Trigger hasCoral() {
-    return hasCoralTrigger;
   }
 
   public double getElevatorPositionInches() {
@@ -230,26 +159,6 @@ public class Armevator extends SubsystemBase {
     m_arm.setControl(new DutyCycleOut(0.0));
   }
 
-  private void manipulatorStop() {
-    m_manipulator.setControl(new DutyCycleOut(0.0));
-  }
-
-  private void manipulatorIn() {
-    m_manipulator.setControl(new DutyCycleOut(p_manipulatorInSpeed.getValue()));
-  }
-
-  private void manipulatorOut() {
-    m_manipulator.setControl(new DutyCycleOut(p_manipulatorOutSpeed.getValue()));
-  }
-
-  private void manipulatorReverse() {
-    m_manipulator.setControl(new DutyCycleOut(0.1));
-  }
-
-  private void manipulatorSlow() {
-    m_manipulator.setControl(new DutyCycleOut(-0.1));
-  }
-
   public boolean isArmZero() {
     return Math.abs(getArmAngle()) < 1.2;
   }
@@ -281,10 +190,6 @@ public class Armevator extends SubsystemBase {
   public void stowBoth() {
     stowArm();
     stowElevator();
-  }
-
-  public Trigger isIn() {
-    return isInTrigger;
   }
 
   public Command stowArmFactory() {
@@ -347,60 +252,17 @@ public class Armevator extends SubsystemBase {
         .beforeStarting(() -> elevatorDebouncer.calculate(false));
   }
 
-  public Command manipulatorOutFactory() {
-    return new RunCommand(() -> manipulatorOut(), this)
-        .withTimeout(1.0)
-        .andThen(
-            () -> {
-              manipulatorStop();
-              hasCoral = false;
-              isIn = false;
-            });
-  }
-
-  public Command backUpFactory() {
-    return new RunCommand(() -> manipulatorReverse(), this)
-        .until(() -> !m_coralRange.getIsDetected().getValue())
-        .andThen(
-            () -> {
-              manipulatorStop();
-              isIn = true;
-            });
-  }
-
-  public Command manipulatorInFactory() {
-    return new RunCommand(
-        () -> {
-          if (!m_coralRange.getIsDetected().getValue()
-              && !m_doghousCANRange.getIsDetected().getValue()) {
-            manipulatorIn();
-          } else if (m_coralRange.getIsDetected().getValue()
-              && m_doghousCANRange.getIsDetected().getValue()) {
-            manipulatorSlow();
-          } else if (m_coralRange.getIsDetected().getValue()
-              && !m_doghousCANRange.getIsDetected().getValue()) {
-            manipulatorStop();
-          }
-          armGoToZero();
-        },
-        this);
-  }
-
   public Command algaePickupFactory() {
     return new RunCommand(
         () -> {
           armGotoAlgaePickup();
-          m_manipulator.setControl(new DutyCycleOut(1.0));
+          stowElevator();
         },
         this);
   }
 
   public Command goToOneInchFactory() {
     return new RunCommand(() -> elevatorSetPosition(1.0), this);
-  }
-
-  public Command manipulatorStopFactory() {
-    return new InstantCommand(() -> manipulatorStop(), this);
   }
 
   public Command stopElevatorFactory() {
@@ -420,7 +282,6 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
             () -> {
               armGoToTiltAngle();
-              manipulatorStop();
             },
             this)
         .until(this::isArmOnPosition);
@@ -465,16 +326,6 @@ public class Armevator extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Elevator Positon", getElevatorPositionInches());
-    SmartDashboard.putBoolean("Is detected", m_coralRange.getIsDetected().getValue());
     SmartDashboard.putNumber("Arm Position", getArmAngle());
-    SmartDashboard.putNumber(
-        "CAN Range Left Distance",
-        Units.metersToInches(m_doghousCANRange.getDistance().getValueAsDouble()));
-    SmartDashboard.putNumber(
-        "CAN Range Middle Distance",
-        Units.metersToInches(m_coralRange.getDistance().getValueAsDouble()));
-    SmartDashboard.putBoolean("Doghouse CANRange", m_doghousCANRange.getIsDetected().getValue());
-    // SmartDashboard.putBoolean("Right CAN Range", m_canRangeRight.getIsDetected().getValue());
-    SmartDashboard.putBoolean("Coral CANRange", m_coralRange.getIsDetected().getValue());
   }
 }
