@@ -355,6 +355,7 @@ public class Climber extends SubsystemBase {
     SmartDashboard.putNumber(
         "Climber CAN Range Distance",
         Units.metersToInches(m_canRange.getDistance().getValueAsDouble()));
+    SmartDashboard.putNumber("Gripper Position", getGripperPositionRotations());
     SmartDashboard.putBoolean("Sensor ouput", input.get());
   }
 }
