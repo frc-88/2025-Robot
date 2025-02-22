@@ -26,15 +26,20 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.POVButton;
+import frc.robot.commands.CANdleConfigCommands;
+import frc.robot.commands.CANdlePrintCommands;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Armevator;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Doghouse;
+import frc.robot.subsystems.Lights;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -60,6 +65,7 @@ public class RobotContainer {
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandXboxController testcontroller = new CommandXboxController(1);
   private CommandGenericHID buttons = new CommandGenericHID(1);
 
   // Dashboard inputs
@@ -71,6 +77,8 @@ public class RobotContainer {
   public Doghouse m_doghouse = new Doghouse();
 
   public Climber climber = new Climber();
+
+  public Lights m_lights = new Lights(testcontroller.getHID());
 
   public Command coralMode() {
 
@@ -133,22 +141,21 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
-    autoChooser.addDefaultOption("RightSideL1", getAutoPath("TripleL1Right"));
     // Set up SysId routines
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
     autoChooser.addOption(
         "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Forward)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Reverse)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption(
+    //     "Drive SysId (Quasistatic Forward)",
+    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    //     "Drive SysId (Quasistatic Reverse)",
+    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption(
+    //     "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // Configure the button bindings
     configureButtonBindings();
@@ -169,6 +176,10 @@ public class RobotContainer {
         .onTrue(climber.gasMotorNeutralModeFactory().ignoringDisable(true))
         .onFalse(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
     climber.shouldGripperClose().onTrue(climber.closeGrabberFactory());
+    climber
+        .forceCloseOnDisable()
+        .onTrue(climber.gripperMotorNeutralModeFactory().ignoringDisable(true))
+        .onFalse(climber.gripperMotorBrakeModeFactory().ignoringDisable(true));
 
     SmartDashboard.putData("Calibrate Elevator", m_armevator.calibrateElevatorFactory());
     SmartDashboard.putData("Calibrate Arm", m_armevator.calibrateArmFactory());
@@ -220,6 +231,7 @@ public class RobotContainer {
     buttons.button(5).onTrue(coralMode());
     buttons.button(11).onTrue(m_armevator.algaePickupFactory());
     buttons.button(7).onTrue(climber.prepClimber());
+    buttons.button(8).onTrue(climber.poweredClimbFactory());
 
     controller.rightBumper().onTrue(m_armevator.manipulatorOutFactory());
   }
@@ -232,6 +244,29 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     m_armevator.setDefaultCommand(m_armevator.defaultCommand());
+    // Configure test controller for lights
+    new JoystickButton(testcontroller.getHID(), Constants.BlockButton)
+        .onTrue(new RunCommand(m_lights::setColors, m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.IncrementAnimButton)
+        .onTrue(new RunCommand(m_lights::incrementAnimation, m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.DecrementAnimButton)
+        .onTrue(new RunCommand(m_lights::decrementAnimation, m_lights));
+
+    new POVButton(testcontroller.getHID(), Constants.MaxBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 1.0));
+    new POVButton(testcontroller.getHID(), Constants.MidBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 0.3));
+    new POVButton(testcontroller.getHID(), Constants.ZeroBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 0));
+
+    new JoystickButton(testcontroller.getHID(), Constants.VbatButton)
+        .onTrue(new CANdlePrintCommands.PrintVBat(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.V5Button)
+        .onTrue(new CANdlePrintCommands.Print5V(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.CurrentButton)
+        .onTrue(new CANdlePrintCommands.PrintCurrent(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.TemperatureButton)
+        .onTrue(new CANdlePrintCommands.PrintTemperature(m_lights));
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
