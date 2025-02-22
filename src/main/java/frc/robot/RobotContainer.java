@@ -271,6 +271,29 @@ public class RobotContainer {
     new JoystickButton(testcontroller.getHID(), Constants.TemperatureButton)
         .onTrue(new CANdlePrintCommands.PrintTemperature(m_lights));
     m_doghouse.setDefaultCommand(m_doghouse.coralIntakeFactory());
+    // Configure test controller for lights
+    new JoystickButton(testcontroller.getHID(), Constants.BlockButton)
+        .onTrue(new RunCommand(m_lights::setColors, m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.IncrementAnimButton)
+        .onTrue(new RunCommand(m_lights::incrementAnimation, m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.DecrementAnimButton)
+        .onTrue(new RunCommand(m_lights::decrementAnimation, m_lights));
+
+    new POVButton(testcontroller.getHID(), Constants.MaxBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 1.0));
+    new POVButton(testcontroller.getHID(), Constants.MidBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 0.3));
+    new POVButton(testcontroller.getHID(), Constants.ZeroBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 0));
+
+    new JoystickButton(testcontroller.getHID(), Constants.VbatButton)
+        .onTrue(new CANdlePrintCommands.PrintVBat(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.V5Button)
+        .onTrue(new CANdlePrintCommands.Print5V(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.CurrentButton)
+        .onTrue(new CANdlePrintCommands.PrintCurrent(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.TemperatureButton)
+        .onTrue(new CANdlePrintCommands.PrintTemperature(m_lights));
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
