@@ -36,30 +36,28 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class Climber extends SubsystemBase {
   private DoublePreferenceConstant p_grippermaxVelocity =
-      new DoublePreferenceConstant("Climber/gripperMotionMagicVelocity", 100);
+      new DoublePreferenceConstant("Climber/Gripper/MotionMagicVelocity", 40);
   private DoublePreferenceConstant p_grippermaxAcceleration =
-      new DoublePreferenceConstant("Climber/gripperMotionMagicAcceleration", 1000);
+      new DoublePreferenceConstant("Climber/Gripper/MotionMagicAcceleration", 1000);
   private DoublePreferenceConstant p_grippermaxJerk =
-      new DoublePreferenceConstant("Climber/gripperMotionMagicJerk", 100000);
+      new DoublePreferenceConstant("Climber/Gripper/MotionMagicJerk", 0);
   private PIDPreferenceConstants p_gripperPidPreferenceConstants =
-      new PIDPreferenceConstants("Climber/gripperPID", 0.0, 0.0, 0.0, 0.12, 0.0, 0.0, 0.0, 0.0);
+      new PIDPreferenceConstants("Climber/Gripper/PID", 3.0, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0, 0.0);
+  private DoublePreferenceConstant p_gripperLimit =
+      new DoublePreferenceConstant("Climber/Gripper/Limit", 100);
+  private DoublePreferenceConstant p_gripperPosition =
+      new DoublePreferenceConstant("Climber/Gripper/MotorAngle", 90.0);
+  private DoublePreferenceConstant p_gripperStowSpeed =
+      new DoublePreferenceConstant("Climber/Gripper/StowSpeed", 0.01);
 
   private PIDPreferenceConstants p_gasmotorPID =
-      new PIDPreferenceConstants("Climber/GasMotorPID", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-
-  private DoublePreferenceConstant p_gripperLimit =
-      new DoublePreferenceConstant("Climber/GripperLimit", 100);
-  private DoublePreferenceConstant p_gripperStowSpeed =
-      new DoublePreferenceConstant("Climber/GripperStowSpeed", 0.01);
+      new PIDPreferenceConstants("Climber/GasMotor/PID", 0.1, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0);
   private DoublePreferenceConstant p_gasmotorLimit =
-      new DoublePreferenceConstant("Climber/GasMotorLimit", 10.0);
-
+      new DoublePreferenceConstant("Climber/GasMotor/Limit", 10.0);
   private DoublePreferenceConstant p_gasmotorPositionInches =
-      new DoublePreferenceConstant("Climber/GasMotorPositionInches", 0.2);
+      new DoublePreferenceConstant("Climber/GasMotor/PositionInches", 7.0);
   private DoublePreferenceConstant p_gasmotorPositionRotations =
-      new DoublePreferenceConstant("Climber/GasMotorPositionRotations", 0.2);
-  private DoublePreferenceConstant p_gripperPosition =
-      new DoublePreferenceConstant("Climber/GripperMotorAngle", 0.0);
+      new DoublePreferenceConstant("Climber/GasMotor/PositionRotations", 0.22);
 
   private final TalonFX m_gripper =
       new TalonFX(Constants.CLIMBER_GRIPPER_MOTOR, Constants.RIO_CANBUS);
