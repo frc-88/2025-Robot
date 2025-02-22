@@ -46,8 +46,8 @@ public final class Constants {
   public static final int ELEVATOR_FOLLOWER_MOTOR = 1;
   public static final int ELEVATOR_ARM_MOTOR = 7;
   public static final int ELEVATOR_MANIPULATOR_MOTOR = 5;
-  public static final int ARM_LEFT_CANRANGE = 0;
-  public static final int ARM_MIDDLE_CANRANGE = 10;
+  public static final int DOGHOUSE_CANRANGE = 10;
+  public static final int CORAL_CANRANGE = 3;
   public static final int ARM_RIGHT_CANRANGE = 3;
 
   public static final double ELEVATOR_ROTATIONS_TO_INCHES = ((2.256 * Math.PI) / 8.0);
@@ -62,7 +62,7 @@ public final class Constants {
   public static final int CLIMBER_ENCODER = 3;
   public static final int CLIMBER_CANRANGE = 5;
   public static final double PIVOT_MOTOR_ROTATIONS_TO_CLIMBER_POSITION = (360.0 / 196.0);
-  public static final double GRIPPER_MOTOR_ROTATIONS_TO_POSITION = (360 / 49.0);
+  public static final double GRIPPER_MOTOR_ROTATIONS_TO_ANGLE = (360 / 49.0);
   public static final double GAS_MOTOR_ROTATIONS_TO_LENGTH = (1.39 / 28.0);
   public static final double CLIMBER_ENCODER_ROTATIONS_TO_ANGLE = 360;
 }
