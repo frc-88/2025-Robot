@@ -16,8 +16,6 @@ import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
-import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -334,8 +332,9 @@ public class Climber extends SubsystemBase {
   }
 
   public Command poweredClimbFactory() {
-    return gasMotorNeutralModeFactory().andThen(new WaitUntilCommand(() -> poweredClimb()))
-    .andThen(gasMotorBrakeModeFactory());
+    return gasMotorNeutralModeFactory()
+        .andThen(new WaitUntilCommand(() -> poweredClimb()))
+        .andThen(gasMotorBrakeModeFactory());
   }
 
   public Command prepClimber() {
