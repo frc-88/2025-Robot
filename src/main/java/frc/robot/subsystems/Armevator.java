@@ -40,7 +40,8 @@ public class Armevator extends SubsystemBase {
 
   private final Debouncer elevatorDebouncer = new Debouncer(1.0);
 
-  private PIDPreferenceConstants elevatorPID = new PIDPreferenceConstants("Armevator/Elevator/PID", 8,0,0,0.15,0,0,0,0);
+  private PIDPreferenceConstants elevatorPID =
+      new PIDPreferenceConstants("Armevator/Elevator/PID", 8, 0, 0, 0.15, 0, 0, 0, 0);
   private DoublePreferenceConstant p_elevatorMaxVelocity =
       new DoublePreferenceConstant("Armevator/Elevator/MotionMagicVelocity", 60.0);
   private DoublePreferenceConstant p_elevatorMaxAcceleration =
@@ -50,7 +51,8 @@ public class Armevator extends SubsystemBase {
   private DoublePreferenceConstant p_elevatorTargetInches =
       new DoublePreferenceConstant("Armevator/Elevator/TargetPositionInches", 6.0);
 
-  private PIDPreferenceConstants armPID = new PIDPreferenceConstants("Armevator/Arm/PID", 1,0,0,0.12,0,0,0,0);
+  private PIDPreferenceConstants armPID =
+      new PIDPreferenceConstants("Armevator/Arm/PID", 1, 0, 0, 0.12, 0, 0, 0, 0);
   private DoublePreferenceConstant p_armMaxVelocity =
       new DoublePreferenceConstant("Armevator/Arm/MotionMagicVelocity", 40.0);
   private DoublePreferenceConstant p_armMaxAcceleration =
