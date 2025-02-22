@@ -33,7 +33,6 @@ import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Armevator;
@@ -130,22 +129,21 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
-    autoChooser.addDefaultOption("RightSideL1", getAutoPath("TripleL1Right"));
     // Set up SysId routines
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
     autoChooser.addOption(
         "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Forward)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Reverse)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption(
+    //     "Drive SysId (Quasistatic Forward)",
+    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    //     "Drive SysId (Quasistatic Reverse)",
+    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption(
+    //     "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // Configure the button bindings
     configureButtonBindings();
@@ -165,7 +163,11 @@ public class RobotContainer {
         .shouldNeutral()
         .onTrue(climber.gasMotorNeutralModeFactory().ignoringDisable(true))
         .onFalse(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
-    climber.shouldGripperClose().onTrue(climber.closeGrabberFactory());
+    climber
+        .shouldGripperClose()
+        .onTrue(climber.closeGrabberFactory())
+        .onFalse(climber.setNotGrabbed());
+    climber.forceCloseOnDisable().onTrue(climber.climbOnDisable().ignoringDisable(true));
 
     SmartDashboard.putData("Calibrate Elevator", m_armevator.calibrateElevatorFactory());
     SmartDashboard.putData("Calibrate Arm", m_armevator.calibrateArmFactory());
@@ -217,6 +219,7 @@ public class RobotContainer {
     buttons.button(5).onTrue(getCoralFactory());
     buttons.button(11).onTrue(algaePickupFactory());
     buttons.button(7).onTrue(climber.prepClimber());
+    buttons.button(8).onTrue(climber.poweredClimbFactory());
 
     controller.rightBumper().onTrue(m_doghouse.manipulatorOutFactory());
   }

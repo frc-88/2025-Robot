@@ -10,6 +10,7 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.util.Units;
+import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -55,6 +56,7 @@ public class Doghouse extends SubsystemBase {
   public Doghouse() {
     // configure funnel
     TalonFXConfiguration doghouseConfiguration = new TalonFXConfiguration();
+    doghouseConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     doghouseConfiguration.CurrentLimits.SupplyCurrentLimit = p_funnelCurrentLimit.getValue();
     doghouseConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
     m_funnel.getConfigurator().apply(doghouseConfiguration);
