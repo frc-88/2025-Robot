@@ -65,4 +65,7 @@ public final class Constants {
   public static final double GRIPPER_MOTOR_ROTATIONS_TO_ANGLE = (360 / 49.0);
   public static final double GAS_MOTOR_ROTATIONS_TO_LENGTH = (1.39 / 28.0);
   public static final double CLIMBER_ENCODER_ROTATIONS_TO_ANGLE = 360;
+
+  // LIGHTS
+  public static final int CANdleID = 0;
 }
