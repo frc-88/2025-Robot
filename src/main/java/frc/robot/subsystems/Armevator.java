@@ -40,34 +40,34 @@ public class Armevator extends SubsystemBase {
 
   private final Debouncer elevatorDebouncer = new Debouncer(1.0);
 
-  private PIDPreferenceConstants elevatorPID = new PIDPreferenceConstants("Armevator/Elevator/PID");
+  private PIDPreferenceConstants elevatorPID = new PIDPreferenceConstants("Armevator/Elevator/PID", 8,0,0,0.15,0,0,0,0);
   private DoublePreferenceConstant p_elevatorMaxVelocity =
-      new DoublePreferenceConstant("Armevator/Elevator/MotionMagicVelocity", 0.0);
+      new DoublePreferenceConstant("Armevator/Elevator/MotionMagicVelocity", 60.0);
   private DoublePreferenceConstant p_elevatorMaxAcceleration =
-      new DoublePreferenceConstant("Armevator/Elevator/MotionMagicAcceleration", 0.0);
+      new DoublePreferenceConstant("Armevator/Elevator/MotionMagicAcceleration", 120.0);
   private DoublePreferenceConstant p_elevatorJerk =
-      new DoublePreferenceConstant("Armevator/Elevator/MotionMagicJerk", 0.0);
+      new DoublePreferenceConstant("Armevator/Elevator/MotionMagicJerk", 1200.0);
   private DoublePreferenceConstant p_elevatorTargetInches =
-      new DoublePreferenceConstant("Armevator/Elevator/TargetPositionInches", 0.0);
+      new DoublePreferenceConstant("Armevator/Elevator/TargetPositionInches", 6.0);
 
-  private PIDPreferenceConstants armPID = new PIDPreferenceConstants("Armevator/Arm/PID");
+  private PIDPreferenceConstants armPID = new PIDPreferenceConstants("Armevator/Arm/PID", 1,0,0,0.12,0,0,0,0);
   private DoublePreferenceConstant p_armMaxVelocity =
-      new DoublePreferenceConstant("Armevator/Arm/MotionMagicVelocity", 0.0);
+      new DoublePreferenceConstant("Armevator/Arm/MotionMagicVelocity", 40.0);
   private DoublePreferenceConstant p_armMaxAcceleration =
-      new DoublePreferenceConstant("Armevator/Arm/MotionMagicAcceleration", 0.0);
+      new DoublePreferenceConstant("Armevator/Arm/MotionMagicAcceleration", 80.0);
   private DoublePreferenceConstant p_armJerk =
       new DoublePreferenceConstant("Armevator/Arm/MotionMagicJerk", 0.0);
   private DoublePreferenceConstant p_armTargetDegrees =
-      new DoublePreferenceConstant("Armevator/Arm/TargetPositionDegrees", 0.0);
+      new DoublePreferenceConstant("Armevator/Arm/TargetPositionDegrees", 45.0);
+  private DoublePreferenceConstant p_armTiltAngle =
+      new DoublePreferenceConstant("Armevator/Arm/TiltAngle", 7.5);
 
   private DoublePreferenceConstant p_manipulatorInSpeed =
-      new DoublePreferenceConstant("Armevator/Manipultor/InSpeed", 0.3);
+      new DoublePreferenceConstant("Armevator/Manipultor/InSpeed", 0.2);
   private DoublePreferenceConstant p_manipulatorOutSpeed =
       new DoublePreferenceConstant("Armevator/Manipultor/OutSpeed", 0.3);
   private DoublePreferenceConstant p_manipulatorCurrentLimit =
-      new DoublePreferenceConstant("Armevator/Manipultor/CurrentLimit", 20);
-  private DoublePreferenceConstant p_armTiltAngle =
-      new DoublePreferenceConstant("Armevator/Arm/TiltAngle", 5.0);
+      new DoublePreferenceConstant("Armevator/Manipultor/CurrentLimit", 120);
 
   private MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
 
