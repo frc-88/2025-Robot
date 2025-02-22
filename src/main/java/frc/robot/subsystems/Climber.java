@@ -14,6 +14,7 @@ import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.ControlModeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
@@ -67,6 +68,7 @@ public class Climber extends SubsystemBase {
 
   private DigitalInput input = new DigitalInput(9);
   private boolean isCalibrated = false;
+  private boolean m_grabbed = false;
   private double kGripperMotorRotationsToAngle = Constants.GRIPPER_MOTOR_ROTATIONS_TO_ANGLE;
 
   private MotionMagicVoltage m_motionMagic = new MotionMagicVoltage(0.0);
@@ -75,6 +77,7 @@ public class Climber extends SubsystemBase {
   private boolean m_calibrated = false;
 
   private Debouncer climberDebouncer = new Debouncer(1.0);
+  private Debouncer gripperDebouncer = new Debouncer(0.33);
   public Trigger onDisable = new Trigger(() -> shouldEnableNeutralOnDisable());
   public Trigger shouldCloseTrigger = new Trigger(() -> shouldClose() && RobotState.isEnabled());
   public Trigger forceCloseTrigger = new Trigger(() -> forceClose());
@@ -152,12 +155,13 @@ public class Climber extends SubsystemBase {
 
   public boolean shouldClose() {
     return !input.get()
-        && Units.metersToInches(m_canRange.getDistance().getValueAsDouble()) > 8.5
-        && Units.metersToInches(m_canRange.getDistance().getValueAsDouble()) < 9.5;
+        && gripperDebouncer.calculate(
+            m_canRange.getDistance().getValueAsDouble() > 0.215
+                && m_canRange.getDistance().getValueAsDouble() < 0.225);
   }
 
   public boolean forceClose() {
-    return RobotState.isDisabled() && !isGripperZero();
+    return RobotState.isDisabled() && !m_grabbed;
   }
 
   public Trigger forceCloseOnDisable() {
@@ -193,7 +197,7 @@ public class Climber extends SubsystemBase {
   }
 
   public boolean shouldEnableNeutralOnDisable() {
-    return RobotState.isDisabled() && getPositionGasMotorRotations() > 40.0;
+    return RobotState.isDisabled() && getPositionGasMotorRotations() > 40.0 && m_grabbed;
   }
 
   public boolean poweredClimb() {
@@ -210,6 +214,7 @@ public class Climber extends SubsystemBase {
 
   private void openGrabber() {
     setGripperAngle(p_gripperPosition.getValue());
+    m_grabbed = false;
   }
 
   private void closeGrabber() {
@@ -268,10 +273,15 @@ public class Climber extends SubsystemBase {
   }
 
   public Command calibrateFactory() {
-    return new RunCommand(() -> setGasMotorCalibrateSpeed(), this)
-        .until(() -> m_gasmotor.getStatorCurrent().getValueAsDouble() > 3.0)
+    return new InstantCommand(() -> gasMotorNeutralMode(), this)
+        .andThen(new WaitCommand(1.0))
+        .andThen(() -> gasMotorBrakeMode())
+        .andThen(new WaitCommand(1.0))
+        .andThen(
+            new RunCommand(() -> setGasMotorCalibrateSpeed())
+                .until(() -> m_gasmotor.getStatorCurrent().getValueAsDouble() > 3.0))
         .andThen(() -> stopGasMotor())
-        .andThen(new WaitCommand(0.3))
+        .andThen(new WaitCommand(1.0))
         .andThen(() -> calibrateGasMotor())
         .beforeStarting(() -> climberDebouncer.calculate(false));
   }
@@ -289,8 +299,17 @@ public class Climber extends SubsystemBase {
     return new RunCommand(() -> openGrabber(), this);
   }
 
+  public Command setNotGrabbed() {
+    return new InstantCommand(() -> m_grabbed = false);
+  }
+
   public Command closeGrabberFactory() {
-    return new RunCommand(() -> closeGrabber(), this);
+    return new RunCommand(
+        () -> {
+          closeGrabber();
+          m_grabbed = true;
+        },
+        this);
   }
 
   public Command setGasMotorInchesFactory() {
@@ -337,6 +356,16 @@ public class Climber extends SubsystemBase {
         .andThen(gasMotorBrakeModeFactory());
   }
 
+  public Command climbOnDisable() {
+    return new InstantCommand(() -> m_gripper.setNeutralMode(NeutralModeValue.Coast))
+        .andThen(new WaitCommand(1.0))
+        .andThen(
+            () -> {
+              m_gripper.setNeutralMode(NeutralModeValue.Brake);
+              m_grabbed = true;
+            });
+  }
+
   public Command prepClimber() {
     return new RunCommand(
         () -> {
@@ -357,5 +386,8 @@ public class Climber extends SubsystemBase {
         Units.metersToInches(m_canRange.getDistance().getValueAsDouble()));
     SmartDashboard.putNumber("Gripper Position", getGripperPositionRotations());
     SmartDashboard.putBoolean("Sensor ouput", input.get());
+    SmartDashboard.putBoolean("Grabbed", m_grabbed);
+    SmartDashboard.putBoolean(
+        "Is braked", m_gripper.getControlMode().getValue() == ControlModeValue.StaticBrake);
   }
 }

@@ -179,11 +179,11 @@ public class RobotContainer {
         .shouldNeutral()
         .onTrue(climber.gasMotorNeutralModeFactory().ignoringDisable(true))
         .onFalse(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
-    climber.shouldGripperClose().onTrue(climber.closeGrabberFactory());
     climber
-        .forceCloseOnDisable()
-        .onTrue(climber.gripperMotorNeutralModeFactory().ignoringDisable(true))
-        .onFalse(climber.gripperMotorBrakeModeFactory().ignoringDisable(true));
+        .shouldGripperClose()
+        .onTrue(climber.closeGrabberFactory())
+        .onFalse(climber.setNotGrabbed());
+    climber.forceCloseOnDisable().onTrue(climber.climbOnDisable().ignoringDisable(true));
 
     SmartDashboard.putData("Calibrate Elevator", m_armevator.calibrateElevatorFactory());
     SmartDashboard.putData("Calibrate Arm", m_armevator.calibrateArmFactory());
