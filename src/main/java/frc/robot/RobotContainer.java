@@ -169,6 +169,8 @@ public class RobotContainer {
         .onTrue(climber.gasMotorNeutralModeFactory().ignoringDisable(true))
         .onFalse(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
     climber.shouldGripperClose().onTrue(climber.closeGrabberFactory());
+    climber.forceCloseOnDisable().onTrue(climber.gripperMotorNeutralModeFactory().ignoringDisable(true))
+    .onFalse(climber.gripperMotorBrakeModeFactory().ignoringDisable(true));
 
     SmartDashboard.putData("Calibrate Elevator", m_armevator.calibrateElevatorFactory());
     SmartDashboard.putData("Calibrate Arm", m_armevator.calibrateArmFactory());
@@ -220,6 +222,7 @@ public class RobotContainer {
     buttons.button(5).onTrue(coralMode());
     buttons.button(11).onTrue(m_armevator.algaePickupFactory());
     buttons.button(7).onTrue(climber.prepClimber());
+    buttons.button(8).onTrue(climber.poweredClimbFactory());
 
     controller.rightBumper().onTrue(m_armevator.manipulatorOutFactory());
   }

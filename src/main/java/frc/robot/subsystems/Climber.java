@@ -16,6 +16,8 @@ import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+
+import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -26,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
@@ -76,8 +79,9 @@ public class Climber extends SubsystemBase {
   private boolean m_calibrated = false;
 
   private Debouncer climberDebouncer = new Debouncer(1.0);
-  public Trigger onDisable = new Trigger(() -> shouldEnableNeutral());
-  public Trigger shouldCloseTrigger = new Trigger(() -> shouldClose() && isClimbing);
+  public Trigger onDisable = new Trigger(() -> shouldEnableNeutralOnDisable());
+  public Trigger shouldCloseTrigger = new Trigger(() -> shouldClose() && RobotState.isEnabled());
+  public Trigger forceCloseTrigger = new Trigger(() -> forceClose());
 
   /** Creates a new Climber. */
   public Climber() {
@@ -146,10 +150,22 @@ public class Climber extends SubsystemBase {
     return (inches / Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH) * 1.21;
   }
 
+  public double getGripperPositionRotations() {
+    return m_gripper.getPosition().getValueAsDouble();
+  }
+
   public boolean shouldClose() {
     return !input.get()
         && Units.metersToInches(m_canRange.getDistance().getValueAsDouble()) > 8.5
         && Units.metersToInches(m_canRange.getDistance().getValueAsDouble()) < 9.5;
+  }
+
+  public boolean forceClose() {
+    return RobotState.isDisabled() && !isGripperZero();
+  }
+
+  public Trigger forceCloseOnDisable() {
+    return forceCloseTrigger;
   }
 
   public boolean onTarget() {
@@ -161,6 +177,10 @@ public class Climber extends SubsystemBase {
 
   public boolean isStopped() {
     return Math.abs(getGasMotorVelocity()) < 1.0;
+  }
+
+  public boolean isGripperZero() {
+    return Math.abs(getGripperPositionRotations()) < 3.0;
   }
 
   public double getAngleOfClimber() {
@@ -176,8 +196,12 @@ public class Climber extends SubsystemBase {
     return m_gasmotor.getVelocity().getValueAsDouble();
   }
 
-  public boolean shouldEnableNeutral() {
+  public boolean shouldEnableNeutralOnDisable() {
     return RobotState.isDisabled() && getPositionGasMotorRotations() > 40.0;
+  }
+
+  public boolean poweredClimb() {
+    return getPositionGasMotorRotations() < 40.0;
   }
 
   private void gasMotorBrakeMode() {
@@ -295,12 +319,25 @@ public class Climber extends SubsystemBase {
     return new InstantCommand(() -> gasMotorNeutralMode(), this);
   }
 
+  public Command gripperMotorNeutralModeFactory() {
+    return new InstantCommand(() -> m_gripper.setNeutralMode(NeutralModeValue.Coast), this);
+  }
+
+  public Command gripperMotorBrakeModeFactory() {
+    return new InstantCommand(() -> m_gripper.setNeutralMode(NeutralModeValue.Brake), this);
+  }
+
   public Command calibrateGasMotorFactory() {
     return new InstantCommand(() -> calibrateGasMotor(), this);
   }
 
   public Command calibrateEncoderFactory() {
     return new InstantCommand(() -> calibrateEncoder(), this);
+  }
+
+  public Command poweredClimbFactory() {
+    return gasMotorNeutralModeFactory().andThen(new WaitUntilCommand(() -> poweredClimb()))
+    .andThen(gasMotorBrakeModeFactory());
   }
 
   public Command prepClimber() {
