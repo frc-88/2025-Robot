@@ -72,10 +72,13 @@ public class RobotContainer {
   public Climber climber = new Climber();
 
   public Command coralMode() {
-
     return new ParallelCommandGroup(
-        m_doghouse.moveFastFactory(), m_armevator.manipulatorInFactory());
-    // .until(m_armevator.isIn());
+        m_doghouse.getCoral(), m_armevator.getCoral());
+  }
+
+  public Command algaePickup() {
+    return new ParallelCommandGroup(
+        m_doghouse.algaePickupFactory(), m_armevator.algaePickupFactory());
   }
 
   public RobotContainer() {
@@ -154,7 +157,7 @@ public class RobotContainer {
   }
 
   public void registerNamedCommands() {
-    NamedCommands.registerCommand("Shoot", m_armevator.manipulatorOutFactory());
+    NamedCommands.registerCommand("Shoot", m_doghouse.manipulatorOutFactory());
     NamedCommands.registerCommand("Get Coral", coralMode());
     NamedCommands.registerCommand(
         "Arm Go To Zero", m_armevator.armGoToZeroFactory().withTimeout(0.5));
@@ -177,9 +180,9 @@ public class RobotContainer {
     SmartDashboard.putData("Set Position Arm", m_armevator.setArmPostionFactory());
     SmartDashboard.putData("Arm Go To Zero", m_armevator.armGoToZeroFactory());
     SmartDashboard.putData("Stop Arm", m_armevator.stopArmFactory());
-    SmartDashboard.putData("Out Manipulator", m_armevator.manipulatorOutFactory());
-    SmartDashboard.putData("In Manipulator", m_armevator.manipulatorInFactory());
-    SmartDashboard.putData("Stop Manipulator", m_armevator.manipulatorStopFactory());
+    SmartDashboard.putData("Out Manipulator", m_doghouse.manipulatorOutFactory());
+    SmartDashboard.putData("In Manipulator", coralMode());
+    SmartDashboard.putData("Stop Manipulator", m_doghouse.manipulatorStopFactory());
     SmartDashboard.putData("Go To One Inch", m_armevator.goToOneInchFactory());
     SmartDashboard.putData("Go To Tilt Angle", m_armevator.goToTiltAngleFactory());
     SmartDashboard.putData("Algae Pickup", m_armevator.algaePickupFactory());
@@ -215,14 +218,14 @@ public class RobotContainer {
     buttons.button(1).onTrue(m_armevator.L2Factory());
     buttons.button(2).onTrue(m_armevator.L3Factory());
     buttons.button(3).onTrue(m_armevator.L4Factory());
-    buttons.button(10).onTrue(m_armevator.manipulatorOutFactory());
+    buttons.button(10).onTrue(m_doghouse.manipulatorOutFactory());
     buttons.button(4).onTrue(m_armevator.stowFactory());
     buttons.button(5).onTrue(coralMode());
-    buttons.button(11).onTrue(m_armevator.algaePickupFactory());
+    buttons.button(11).onTrue(algaePickup());
     buttons.button(7).onTrue(climber.prepClimber());
     buttons.button(8).onTrue(climber.poweredClimbFactory());
 
-    controller.rightBumper().onTrue(m_armevator.manipulatorOutFactory());
+    controller.rightBumper().onTrue(m_doghouse.manipulatorOutFactory());
   }
 
   /**
