@@ -19,7 +19,14 @@ import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class Doghouse extends SubsystemBase {
-  /** Creates a new Doghouse. */
+  private TalonFX m_funnel = new TalonFX(Constants.DOGHOUSE_FUNNEL_MOTOR, "rio");
+  private TalonFX m_manipulator =
+      new TalonFX(Constants.ELEVATOR_MANIPULATOR_MOTOR, Constants.RIO_CANBUS);
+  private final CANrange m_doghousCANRange =
+      new CANrange(Constants.DOGHOUSE_CANRANGE, Constants.RIO_CANBUS);
+  private final CANrange m_coralRange =
+      new CANrange(Constants.CORAL_CANRANGE, Constants.RIO_CANBUS);
+
   private DoublePreferenceConstant p_funnelSpeed =
       new DoublePreferenceConstant("Doghouse/Funnel/Speed", 1);
   private DoublePreferenceConstant p_funnelCurrentLimit =
@@ -30,14 +37,6 @@ public class Doghouse extends SubsystemBase {
       new DoublePreferenceConstant("Doghouse/Manipulator/ShootSpeed", -0.3);
   private DoublePreferenceConstant p_manipulatorCurrentLimit =
       new DoublePreferenceConstant("Doghouse/Manipulator/CurrentLimit", 120);
-
-  private TalonFX m_funnel = new TalonFX(Constants.DOGHOUSE_FUNNEL_MOTOR, "rio");
-  private TalonFX m_manipulator =
-      new TalonFX(Constants.ELEVATOR_MANIPULATOR_MOTOR, Constants.RIO_CANBUS);
-  private final CANrange m_doghousCANRange =
-      new CANrange(Constants.DOGHOUSE_CANRANGE, Constants.RIO_CANBUS);
-  private final CANrange m_coralRange =
-      new CANrange(Constants.CORAL_CANRANGE, Constants.RIO_CANBUS);
 
   private final DutyCycleOut m_funnelRequest = new DutyCycleOut(0.0);
   private final DutyCycleOut m_manipulatorRequest = new DutyCycleOut(0.0);
