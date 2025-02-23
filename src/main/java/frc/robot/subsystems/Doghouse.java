@@ -19,23 +19,23 @@ import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class Doghouse extends SubsystemBase {
-  private TalonFX m_funnel = new TalonFX(Constants.DOGHOUSE_FUNNEL_MOTOR, "rio");
-  private TalonFX m_manipulator =
+  private final TalonFX m_funnel = new TalonFX(Constants.DOGHOUSE_FUNNEL_MOTOR, "rio");
+  private final TalonFX m_manipulator =
       new TalonFX(Constants.ELEVATOR_MANIPULATOR_MOTOR, Constants.RIO_CANBUS);
   private final CANrange m_doghousCANRange =
       new CANrange(Constants.DOGHOUSE_CANRANGE, Constants.RIO_CANBUS);
   private final CANrange m_coralRange =
       new CANrange(Constants.CORAL_CANRANGE, Constants.RIO_CANBUS);
 
-  private DoublePreferenceConstant p_funnelSpeed =
+  private final DoublePreferenceConstant p_funnelSpeed =
       new DoublePreferenceConstant("Doghouse/Funnel/Speed", 1);
-  private DoublePreferenceConstant p_funnelCurrentLimit =
+  private final DoublePreferenceConstant p_funnelCurrentLimit =
       new DoublePreferenceConstant("Doghouse/Funnel/CurrentLimit", 20);
-  private DoublePreferenceConstant p_manipulatorInSpeed =
+  private final DoublePreferenceConstant p_manipulatorInSpeed =
       new DoublePreferenceConstant("Doghouse/Manipulator/InSpeed", -0.2);
-  private DoublePreferenceConstant p_manipulatorShootSpeed =
+  private final DoublePreferenceConstant p_manipulatorShootSpeed =
       new DoublePreferenceConstant("Doghouse/Manipulator/ShootSpeed", -0.3);
-  private DoublePreferenceConstant p_manipulatorCurrentLimit =
+  private final DoublePreferenceConstant p_manipulatorCurrentLimit =
       new DoublePreferenceConstant("Doghouse/Manipulator/CurrentLimit", 120);
 
   private final DutyCycleOut m_funnelRequest = new DutyCycleOut(0.0);
@@ -89,7 +89,7 @@ public class Doghouse extends SubsystemBase {
     m_manipulator.setControl(m_manipulatorRequest.withOutput(output));
   }
 
-  private boolean hasCoral() {
+  public boolean hasCoral() {
     return m_coralRange.getIsDetected().getValue();
   }
 
