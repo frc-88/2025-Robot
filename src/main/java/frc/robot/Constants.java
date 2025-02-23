@@ -51,7 +51,7 @@ public final class Constants {
   public static final int ARM_RIGHT_CANRANGE = 5;
 
   public static final double ELEVATOR_ROTATIONS_TO_INCHES = ((2.256 * Math.PI) / 8.0);
-  public static final double ARM_ROTATIONS_TO_DEGREES = (360.0 / 112.0);
+  public static final double ARM_ROTATIONS_TO_DEGREES = (360.0 / 257.0);
 
   // DOGHOUSE
   public static final int DOGHOUSE_FUNNEL_MOTOR = 6;

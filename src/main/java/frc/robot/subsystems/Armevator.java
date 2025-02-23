@@ -163,7 +163,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean isArmOnPosition() {
-    return Math.abs(getArmAngle() - 7.5) < 1.2;
+    return Math.abs(getArmAngle()) < 1.2;
   }
 
   private void elevatorSetSlowSpeed() {
@@ -179,7 +179,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void stowArm() {
-    armGoToTiltAngle();
+    armGoToZero();
   }
 
   private void stowElevator() {
