@@ -14,6 +14,7 @@ import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.ControlModeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
@@ -26,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
@@ -33,30 +35,28 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class Climber extends SubsystemBase {
   private DoublePreferenceConstant p_grippermaxVelocity =
-      new DoublePreferenceConstant("Climber/gripperMotionMagicVelocity", 100);
+      new DoublePreferenceConstant("Climber/Gripper/MotionMagicVelocity", 40);
   private DoublePreferenceConstant p_grippermaxAcceleration =
-      new DoublePreferenceConstant("Climber/gripperMotionMagicAcceleration", 1000);
+      new DoublePreferenceConstant("Climber/Gripper/MotionMagicAcceleration", 1000);
   private DoublePreferenceConstant p_grippermaxJerk =
-      new DoublePreferenceConstant("Climber/gripperMotionMagicJerk", 100000);
+      new DoublePreferenceConstant("Climber/Gripper/MotionMagicJerk", 0);
   private PIDPreferenceConstants p_gripperPidPreferenceConstants =
-      new PIDPreferenceConstants("Climber/gripperPID", 0.0, 0.0, 0.0, 0.12, 0.0, 0.0, 0.0, 0.0);
+      new PIDPreferenceConstants("Climber/Gripper/PID", 3.0, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0, 0.0);
+  private DoublePreferenceConstant p_gripperLimit =
+      new DoublePreferenceConstant("Climber/Gripper/Limit", 100);
+  private DoublePreferenceConstant p_gripperPosition =
+      new DoublePreferenceConstant("Climber/Gripper/MotorAngle", 90.0);
+  private DoublePreferenceConstant p_gripperStowSpeed =
+      new DoublePreferenceConstant("Climber/Gripper/StowSpeed", 0.01);
 
   private PIDPreferenceConstants p_gasmotorPID =
-      new PIDPreferenceConstants("Climber/GasMotorPID", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-
-  private DoublePreferenceConstant p_gripperLimit =
-      new DoublePreferenceConstant("Climber/GripperLimit", 100);
-  private DoublePreferenceConstant p_gripperStowSpeed =
-      new DoublePreferenceConstant("Climber/GripperStowSpeed", 0.01);
+      new PIDPreferenceConstants("Climber/GasMotor/PID", 0.1, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0);
   private DoublePreferenceConstant p_gasmotorLimit =
-      new DoublePreferenceConstant("Climber/GasMotorLimit", 10.0);
-
+      new DoublePreferenceConstant("Climber/GasMotor/Limit", 10.0);
   private DoublePreferenceConstant p_gasmotorPositionInches =
-      new DoublePreferenceConstant("Climber/GasMotorPositionInches", 0.2);
+      new DoublePreferenceConstant("Climber/GasMotor/PositionInches", 7.0);
   private DoublePreferenceConstant p_gasmotorPositionRotations =
-      new DoublePreferenceConstant("Climber/GasMotorPositionRotations", 0.2);
-  private DoublePreferenceConstant p_gripperPosition =
-      new DoublePreferenceConstant("Climber/GripperMotorAngle", 0.0);
+      new DoublePreferenceConstant("Climber/GasMotor/PositionRotations", 0.22);
 
   private final TalonFX m_gripper =
       new TalonFX(Constants.CLIMBER_GRIPPER_MOTOR, Constants.RIO_CANBUS);
@@ -68,6 +68,7 @@ public class Climber extends SubsystemBase {
 
   private DigitalInput input = new DigitalInput(9);
   private boolean isCalibrated = false;
+  private boolean m_grabbed = false;
   private double kGripperMotorRotationsToAngle = Constants.GRIPPER_MOTOR_ROTATIONS_TO_ANGLE;
 
   private MotionMagicVoltage m_motionMagic = new MotionMagicVoltage(0.0);
@@ -76,8 +77,10 @@ public class Climber extends SubsystemBase {
   private boolean m_calibrated = false;
 
   private Debouncer climberDebouncer = new Debouncer(1.0);
-  public Trigger onDisable = new Trigger(() -> shouldEnableNeutral());
-  public Trigger shouldCloseTrigger = new Trigger(() -> shouldClose() && isClimbing);
+  private Debouncer gripperDebouncer = new Debouncer(0.33);
+  public Trigger onDisable = new Trigger(() -> shouldEnableNeutralOnDisable());
+  public Trigger shouldCloseTrigger = new Trigger(() -> shouldClose() && RobotState.isEnabled());
+  public Trigger forceCloseTrigger = new Trigger(() -> forceClose());
 
   /** Creates a new Climber. */
   public Climber() {
@@ -146,10 +149,23 @@ public class Climber extends SubsystemBase {
     return (inches / Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH) * 1.21;
   }
 
+  public double getGripperPositionRotations() {
+    return m_gripper.getPosition().getValueAsDouble();
+  }
+
   public boolean shouldClose() {
     return !input.get()
-        && Units.metersToInches(m_canRange.getDistance().getValueAsDouble()) > 8.5
-        && Units.metersToInches(m_canRange.getDistance().getValueAsDouble()) < 9.5;
+        && gripperDebouncer.calculate(
+            m_canRange.getDistance().getValueAsDouble() > 0.215
+                && m_canRange.getDistance().getValueAsDouble() < 0.225);
+  }
+
+  public boolean forceClose() {
+    return RobotState.isDisabled() && !m_grabbed;
+  }
+
+  public Trigger forceCloseOnDisable() {
+    return forceCloseTrigger;
   }
 
   public boolean onTarget() {
@@ -161,6 +177,10 @@ public class Climber extends SubsystemBase {
 
   public boolean isStopped() {
     return Math.abs(getGasMotorVelocity()) < 1.0;
+  }
+
+  public boolean isGripperZero() {
+    return Math.abs(getGripperPositionRotations()) < 3.0;
   }
 
   public double getAngleOfClimber() {
@@ -176,8 +196,12 @@ public class Climber extends SubsystemBase {
     return m_gasmotor.getVelocity().getValueAsDouble();
   }
 
-  public boolean shouldEnableNeutral() {
-    return RobotState.isDisabled() && getPositionGasMotorRotations() > 40.0;
+  public boolean shouldEnableNeutralOnDisable() {
+    return RobotState.isDisabled() && getPositionGasMotorRotations() > 40.0 && m_grabbed;
+  }
+
+  public boolean poweredClimb() {
+    return getPositionGasMotorRotations() < 40.0;
   }
 
   private void gasMotorBrakeMode() {
@@ -190,6 +214,7 @@ public class Climber extends SubsystemBase {
 
   private void openGrabber() {
     setGripperAngle(p_gripperPosition.getValue());
+    m_grabbed = false;
   }
 
   private void closeGrabber() {
@@ -248,10 +273,15 @@ public class Climber extends SubsystemBase {
   }
 
   public Command calibrateFactory() {
-    return new RunCommand(() -> setGasMotorCalibrateSpeed(), this)
-        .until(() -> m_gasmotor.getStatorCurrent().getValueAsDouble() > 3.0)
+    return new InstantCommand(() -> gasMotorNeutralMode(), this)
+        .andThen(new WaitCommand(1.0))
+        .andThen(() -> gasMotorBrakeMode())
+        .andThen(new WaitCommand(1.0))
+        .andThen(
+            new RunCommand(() -> setGasMotorCalibrateSpeed())
+                .until(() -> m_gasmotor.getStatorCurrent().getValueAsDouble() > 3.0))
         .andThen(() -> stopGasMotor())
-        .andThen(new WaitCommand(0.3))
+        .andThen(new WaitCommand(1.0))
         .andThen(() -> calibrateGasMotor())
         .beforeStarting(() -> climberDebouncer.calculate(false));
   }
@@ -269,8 +299,17 @@ public class Climber extends SubsystemBase {
     return new RunCommand(() -> openGrabber(), this);
   }
 
+  public Command setNotGrabbed() {
+    return new InstantCommand(() -> m_grabbed = false);
+  }
+
   public Command closeGrabberFactory() {
-    return new RunCommand(() -> closeGrabber(), this);
+    return new RunCommand(
+        () -> {
+          closeGrabber();
+          m_grabbed = true;
+        },
+        this);
   }
 
   public Command setGasMotorInchesFactory() {
@@ -295,12 +334,36 @@ public class Climber extends SubsystemBase {
     return new InstantCommand(() -> gasMotorNeutralMode(), this);
   }
 
+  public Command gripperMotorNeutralModeFactory() {
+    return new InstantCommand(() -> m_gripper.setNeutralMode(NeutralModeValue.Coast), this);
+  }
+
+  public Command gripperMotorBrakeModeFactory() {
+    return new InstantCommand(() -> m_gripper.setNeutralMode(NeutralModeValue.Brake), this);
+  }
+
   public Command calibrateGasMotorFactory() {
     return new InstantCommand(() -> calibrateGasMotor(), this);
   }
 
   public Command calibrateEncoderFactory() {
     return new InstantCommand(() -> calibrateEncoder(), this);
+  }
+
+  public Command poweredClimbFactory() {
+    return gasMotorNeutralModeFactory()
+        .andThen(new WaitUntilCommand(() -> poweredClimb()))
+        .andThen(gasMotorBrakeModeFactory());
+  }
+
+  public Command climbOnDisable() {
+    return new InstantCommand(() -> m_gripper.setNeutralMode(NeutralModeValue.Coast))
+        .andThen(new WaitCommand(1.0))
+        .andThen(
+            () -> {
+              m_gripper.setNeutralMode(NeutralModeValue.Brake);
+              m_grabbed = true;
+            });
   }
 
   public Command prepClimber() {
@@ -321,6 +384,10 @@ public class Climber extends SubsystemBase {
     SmartDashboard.putNumber(
         "Climber CAN Range Distance",
         Units.metersToInches(m_canRange.getDistance().getValueAsDouble()));
+    SmartDashboard.putNumber("Gripper Position", getGripperPositionRotations());
     SmartDashboard.putBoolean("Sensor ouput", input.get());
+    SmartDashboard.putBoolean("Grabbed", m_grabbed);
+    SmartDashboard.putBoolean(
+        "Is braked", m_gripper.getControlMode().getValue() == ControlModeValue.StaticBrake);
   }
 }
