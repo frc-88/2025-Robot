@@ -41,6 +41,8 @@ public class Doghouse extends SubsystemBase {
   private final DutyCycleOut m_funnelRequest = new DutyCycleOut(0.0);
   private final DutyCycleOut m_manipulatorRequest = new DutyCycleOut(0.0);
 
+  private boolean m_coralCaptured = false;
+
   public Doghouse() {
     // configure funnel
     TalonFXConfiguration doghouseConfiguration = new TalonFXConfiguration();
@@ -143,18 +145,23 @@ public class Doghouse extends SubsystemBase {
         this);
   }
 
-  public Command coralIntake() {
+  public Command coralIntakeFactory() {
     return new RunCommand(
         () -> {
           if (!hasCoral()) {
             manipulatorIn();
             funnelGo();
+            m_coralCaptured = false;
+          } else if (m_coralCaptured) {
+            manipulatorStop();
+            funnelStop();
           } else if (isBlocked()) {
             manipulatorSlow();
             funnelStop();
           } else if (!isBlocked()) {
             manipulatorStop();
             funnelStop();
+            m_coralCaptured = true;
           }
         },
         this);
