@@ -20,38 +20,39 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class Armevator extends SubsystemBase {
-  private TalonFX m_elevatorMain = new TalonFX(Constants.ELEVATOR_MAIN_MOTOR, Constants.RIO_CANBUS);
-  private TalonFX m_elevatorFollower =
+  private final TalonFX m_elevatorMain =
+      new TalonFX(Constants.ELEVATOR_MAIN_MOTOR, Constants.RIO_CANBUS);
+  private final TalonFX m_elevatorFollower =
       new TalonFX(Constants.ELEVATOR_FOLLOWER_MOTOR, Constants.RIO_CANBUS);
-  private TalonFX m_arm = new TalonFX(Constants.ELEVATOR_ARM_MOTOR, Constants.RIO_CANBUS);
+  private final TalonFX m_arm = new TalonFX(Constants.ELEVATOR_ARM_MOTOR, Constants.RIO_CANBUS);
 
-  private final Debouncer elevatorDebouncer = new Debouncer(1.0);
-
-  private PIDPreferenceConstants elevatorPID =
+  private final PIDPreferenceConstants elevatorPID =
       new PIDPreferenceConstants("Armevator/Elevator/PID", 8, 0, 0, 0.15, 0, 0, 0, 0);
-  private DoublePreferenceConstant p_elevatorMaxVelocity =
+  private final DoublePreferenceConstant p_elevatorMaxVelocity =
       new DoublePreferenceConstant("Armevator/Elevator/MotionMagicVelocity", 60.0);
-  private DoublePreferenceConstant p_elevatorMaxAcceleration =
+  private final DoublePreferenceConstant p_elevatorMaxAcceleration =
       new DoublePreferenceConstant("Armevator/Elevator/MotionMagicAcceleration", 120.0);
-  private DoublePreferenceConstant p_elevatorJerk =
+  private final DoublePreferenceConstant p_elevatorJerk =
       new DoublePreferenceConstant("Armevator/Elevator/MotionMagicJerk", 1200.0);
-  private DoublePreferenceConstant p_elevatorTargetInches =
+  private final DoublePreferenceConstant p_elevatorTargetInches =
       new DoublePreferenceConstant("Armevator/Elevator/TargetPositionInches", 6.0);
 
-  private PIDPreferenceConstants armPID =
+  private final PIDPreferenceConstants armPID =
       new PIDPreferenceConstants("Armevator/Arm/PID", 1, 0, 0, 0.12, 0, 0, 0, 0);
-  private DoublePreferenceConstant p_armMaxVelocity =
+  private final DoublePreferenceConstant p_armMaxVelocity =
       new DoublePreferenceConstant("Armevator/Arm/MotionMagicVelocity", 40.0);
-  private DoublePreferenceConstant p_armMaxAcceleration =
+  private final DoublePreferenceConstant p_armMaxAcceleration =
       new DoublePreferenceConstant("Armevator/Arm/MotionMagicAcceleration", 80.0);
-  private DoublePreferenceConstant p_armJerk =
+  private final DoublePreferenceConstant p_armJerk =
       new DoublePreferenceConstant("Armevator/Arm/MotionMagicJerk", 0.0);
-  private DoublePreferenceConstant p_armTargetDegrees =
+  private final DoublePreferenceConstant p_armTargetDegrees =
       new DoublePreferenceConstant("Armevator/Arm/TargetPositionDegrees", 0.0);
-  private DoublePreferenceConstant p_armTiltAngle =
+  private final DoublePreferenceConstant p_armTiltAngle =
       new DoublePreferenceConstant("Armevator/Arm/TiltAngle", 5.0);
 
-  private MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
+  private final MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
+
+  private final Debouncer elevatorDebouncer = new Debouncer(1.0);
 
   private boolean m_calibrated = false;
 
@@ -60,35 +61,33 @@ public class Armevator extends SubsystemBase {
   }
 
   private void configureTalons() {
-    TalonFXConfiguration maincfg = new TalonFXConfiguration();
-    TalonFXConfiguration followercfg = new TalonFXConfiguration();
-    TalonFXConfiguration armcfg = new TalonFXConfiguration();
+    TalonFXConfiguration elevatorCfg = new TalonFXConfiguration();
+    TalonFXConfiguration armCfg = new TalonFXConfiguration();
 
-    maincfg.Slot0.kP = elevatorPID.getKP().getValue();
-    maincfg.Slot0.kI = elevatorPID.getKI().getValue();
-    maincfg.Slot0.kD = elevatorPID.getKD().getValue();
-    maincfg.Slot0.kV = elevatorPID.getKF().getValue();
+    elevatorCfg.Slot0.kP = elevatorPID.getKP().getValue();
+    elevatorCfg.Slot0.kI = elevatorPID.getKI().getValue();
+    elevatorCfg.Slot0.kD = elevatorPID.getKD().getValue();
+    elevatorCfg.Slot0.kV = elevatorPID.getKF().getValue();
 
-    maincfg.MotionMagic.MotionMagicCruiseVelocity = p_elevatorMaxVelocity.getValue();
-    maincfg.MotionMagic.MotionMagicAcceleration = p_elevatorMaxAcceleration.getValue();
-    maincfg.MotionMagic.MotionMagicJerk = p_elevatorJerk.getValue();
+    elevatorCfg.MotionMagic.MotionMagicCruiseVelocity = p_elevatorMaxVelocity.getValue();
+    elevatorCfg.MotionMagic.MotionMagicAcceleration = p_elevatorMaxAcceleration.getValue();
+    elevatorCfg.MotionMagic.MotionMagicJerk = p_elevatorJerk.getValue();
 
-    armcfg.Slot0.kP = armPID.getKP().getValue();
-    armcfg.Slot0.kI = armPID.getKI().getValue();
-    armcfg.Slot0.kD = armPID.getKD().getValue();
-    armcfg.Slot0.kV = armPID.getKF().getValue();
+    armCfg.Slot0.kP = armPID.getKP().getValue();
+    armCfg.Slot0.kI = armPID.getKI().getValue();
+    armCfg.Slot0.kD = armPID.getKD().getValue();
+    armCfg.Slot0.kV = armPID.getKF().getValue();
 
-    armcfg.MotionMagic.MotionMagicCruiseVelocity = p_armMaxVelocity.getValue();
-    armcfg.MotionMagic.MotionMagicAcceleration = p_armMaxAcceleration.getValue();
-    armcfg.MotionMagic.MotionMagicJerk = p_armJerk.getValue();
+    armCfg.MotionMagic.MotionMagicCruiseVelocity = p_armMaxVelocity.getValue();
+    armCfg.MotionMagic.MotionMagicAcceleration = p_armMaxAcceleration.getValue();
+    armCfg.MotionMagic.MotionMagicJerk = p_armJerk.getValue();
 
-    m_elevatorMain.getConfigurator().apply(maincfg);
-    m_elevatorFollower.getConfigurator().apply(followercfg);
-    m_arm.getConfigurator().apply(armcfg);
-
-    m_arm.setNeutralMode(NeutralModeValue.Brake);
-
+    m_elevatorMain.getConfigurator().apply(elevatorCfg);
+    m_elevatorFollower.getConfigurator().apply(elevatorCfg);
     m_elevatorFollower.setControl(new Follower(Constants.ELEVATOR_MAIN_MOTOR, false));
+
+    m_arm.getConfigurator().apply(armCfg);
+    m_arm.setNeutralMode(NeutralModeValue.Brake);
   }
 
   public double getArmAngle() {
