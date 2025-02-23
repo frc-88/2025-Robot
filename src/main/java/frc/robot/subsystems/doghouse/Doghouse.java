@@ -16,7 +16,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preflib.PrefGroup;
+import frc.robot.util.preflib.PrefLib;
 
 public class Doghouse extends SubsystemBase {
   private final TalonFX m_funnel = new TalonFX(Constants.DOGHOUSE_FUNNEL_MOTOR, "rio");
@@ -27,16 +28,9 @@ public class Doghouse extends SubsystemBase {
   private final CANrange m_coralRange =
       new CANrange(Constants.CORAL_CANRANGE, Constants.RIO_CANBUS);
 
-  private final DoublePreferenceConstant p_funnelSpeed =
-      new DoublePreferenceConstant("Doghouse/Funnel/Speed", 1);
-  private final DoublePreferenceConstant p_funnelCurrentLimit =
-      new DoublePreferenceConstant("Doghouse/Funnel/CurrentLimit", 20);
-  private final DoublePreferenceConstant p_manipulatorInSpeed =
-      new DoublePreferenceConstant("Doghouse/Manipulator/InSpeed", -0.2);
-  private final DoublePreferenceConstant p_manipulatorShootSpeed =
-      new DoublePreferenceConstant("Doghouse/Manipulator/ShootSpeed", -0.3);
-  private final DoublePreferenceConstant p_manipulatorCurrentLimit =
-      new DoublePreferenceConstant("Doghouse/Manipulator/CurrentLimit", 120);
+  private final PrefGroup m_prefs = PrefLib.getGroup("Doghouse");
+  private final PrefGroup m_funnelPrefs = m_prefs.subgroup("Funnel");
+  private final PrefGroup m_manipulatorPrefs = m_prefs.subgroup("Manipulator");
 
   private final DutyCycleOut m_funnelRequest = new DutyCycleOut(0.0);
   private final DutyCycleOut m_manipulatorRequest = new DutyCycleOut(0.0);
@@ -47,16 +41,12 @@ public class Doghouse extends SubsystemBase {
     // configure funnel
     TalonFXConfiguration doghouseConfiguration = new TalonFXConfiguration();
     doghouseConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    doghouseConfiguration.CurrentLimits.SupplyCurrentLimit = p_funnelCurrentLimit.getValue();
-    doghouseConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
     m_funnel.getConfigurator().apply(doghouseConfiguration);
 
+    m_funnelPrefs.createCurrentLimitPrefs(m_funnel.getConfigurator()::apply);
+
     // configure manipulator
-    TalonFXConfiguration manipulatorConfiguration = new TalonFXConfiguration();
-    manipulatorConfiguration.CurrentLimits.SupplyCurrentLimit =
-        p_manipulatorCurrentLimit.getValue();
-    manipulatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
-    m_manipulator.getConfigurator().apply(manipulatorConfiguration);
+    m_manipulatorPrefs.createCurrentLimitPrefs(m_manipulator.getConfigurator()::apply);
 
     configureCANrange();
   }
@@ -104,7 +94,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void funnelGo() {
-    setFunnelSpeed(p_funnelSpeed.getValue());
+    setFunnelSpeed(m_funnelPrefs.getValue("Speed", 1));
   }
 
   private void manipulatorStop() {
@@ -112,11 +102,11 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorIn() {
-    setManipulatorSpeed(p_manipulatorInSpeed.getValue());
+    setManipulatorSpeed(m_manipulatorPrefs.getValue("InSpeed", -0.2));
   }
 
   private void manipulatorShoot() {
-    setManipulatorSpeed(p_manipulatorShootSpeed.getValue());
+    setManipulatorSpeed(m_manipulatorPrefs.getValue("ShootSpeed", -0.3));
   }
 
   private void manipulatorSlow() {
