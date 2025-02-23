@@ -57,7 +57,7 @@ public class Climber extends SubsystemBase {
       new DoublePreferenceConstant("Climber/GasMotor/PositionInches", 7.0);
   private DoublePreferenceConstant p_gasmotorPositionRotations =
       new DoublePreferenceConstant("Climber/GasMotor/PositionRotations", 0.22);
-
+  
   private final TalonFX m_gripper =
       new TalonFX(Constants.CLIMBER_GRIPPER_MOTOR, Constants.RIO_CANBUS);
   private final TalonFX m_gasmotor = new TalonFX(Constants.CLIMBER_GAS_MOTOR, Constants.RIO_CANBUS);
