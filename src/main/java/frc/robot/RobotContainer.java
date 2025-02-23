@@ -179,11 +179,9 @@ public class RobotContainer {
         .shouldNeutral()
         .onTrue(climber.gasMotorNeutralModeFactory().ignoringDisable(true))
         .onFalse(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
-    climber
-        .shouldGripperClose()
-        .onTrue(climber.closeGrabberFactory())
-        .onFalse(climber.setNotGrabbed());
-    climber.forceCloseOnDisable().onTrue(climber.climbOnDisable().ignoringDisable(true));
+    climber.shouldGripperClose().onTrue(climber.closeGrabberFactory());
+    // .onFalse(climber.setNotGrabbed());
+    // climber.forceCloseOnDisable().onTrue(climber.climbOnDisable().ignoringDisable(true));
 
     SmartDashboard.putData("Calibrate Elevator", m_armevator.calibrateElevatorFactory());
     SmartDashboard.putData("Calibrate Arm", m_armevator.calibrateArmFactory());
@@ -206,6 +204,8 @@ public class RobotContainer {
 
     // Climber
     SmartDashboard.putData("OpenGrabber", climber.openGrabberFactory());
+    SmartDashboard.putData("SoftClose", climber.softCloseFactory());
+    SmartDashboard.putData("Calibrate Gripper", climber.calibrateGripperFactory());
     SmartDashboard.putData("CloseGrabber", climber.closeGrabberFactory());
     SmartDashboard.putData("SetGasMotorRotations", climber.setGasMotorRotationsFactory());
     SmartDashboard.putData("StopGasMotor", climber.stopGasMotorFactory());
@@ -326,7 +326,8 @@ public class RobotContainer {
   }
 
   private Command getCoralFactory() {
-    return new ParallelDeadlineGroup(m_doghouse.coralIntakeFactory(), m_armevator.armGoToZeroFactory());
+    return new ParallelDeadlineGroup(
+        m_doghouse.coralIntakeFactory(), m_armevator.armGoToZeroFactory());
   }
 
   public void teleopInit() {}
