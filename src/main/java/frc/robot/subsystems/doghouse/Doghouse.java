@@ -38,16 +38,20 @@ public class Doghouse extends SubsystemBase {
     m_funnel.getConfigurator().apply(doghouseConfiguration);
   }
 
-  public void stopMoving() {
-    m_funnel.setControl(m_funnelRequest.withOutput(0));
+  private void setSpeed(double output) {
+    m_funnel.setControl(m_funnelRequest.withOutput(output));
   }
 
-  public void moveSlow() {
-    m_funnel.setControl(m_funnelRequest.withOutput(p_funnelSlowSpeed.getValue()));
+  private void stopMoving() {
+    setSpeed(0.0);
   }
 
-  public void moveFast() {
-    m_funnel.setControl(m_funnelRequest.withOutput(p_funnelFastSpeed.getValue()));
+  private void moveSlow() {
+    setSpeed(p_funnelSlowSpeed.getValue());
+  }
+
+  private void moveFast() {
+    setSpeed(p_funnelFastSpeed.getValue());
   }
 
   public Command stopMovingFactory() {
