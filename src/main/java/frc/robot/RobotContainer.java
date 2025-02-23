@@ -287,7 +287,8 @@ public class RobotContainer {
   }
 
   private Command getCoralFactory() {
-    return new ParallelDeadlineGroup(m_doghouse.coralIntakeFactory(), m_armevator.armGoToZeroFactory());
+    return new ParallelDeadlineGroup(
+        m_doghouse.coralIntakeFactory(), m_armevator.armGoToZeroFactory());
   }
 
   public void teleopInit() {}
