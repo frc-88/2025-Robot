@@ -173,10 +173,8 @@ public class RobotContainer {
         .onTrue(climber.gasMotorNeutralModeFactory().ignoringDisable(true))
         .onFalse(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
     climber.shouldGripperClose().onTrue(climber.closeGrabberFactory());
-    climber
-        .forceCloseOnDisable()
-        .onTrue(climber.gripperMotorNeutralModeFactory().ignoringDisable(true))
-        .onFalse(climber.gripperMotorBrakeModeFactory().ignoringDisable(true));
+    // .onFalse(climber.setNotGrabbed());
+    // climber.forceCloseOnDisable().onTrue(climber.climbOnDisable().ignoringDisable(true));
 
     SmartDashboard.putData("Calibrate Elevator", m_armevator.calibrateElevatorFactory());
     SmartDashboard.putData("Calibrate Arm", m_armevator.calibrateArmFactory());
@@ -240,6 +238,8 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     m_armevator.setDefaultCommand(m_armevator.defaultCommand());
+    m_doghouse.setDefaultCommand(m_doghouse.coralIntakeFactory());
+
     // Configure test controller for lights
     new JoystickButton(testcontroller.getHID(), Constants.BlockButton)
         .onTrue(new RunCommand(m_lights::setColors, m_lights));
@@ -263,7 +263,6 @@ public class RobotContainer {
         .onTrue(new CANdlePrintCommands.PrintCurrent(m_lights));
     new JoystickButton(testcontroller.getHID(), Constants.TemperatureButton)
         .onTrue(new CANdlePrintCommands.PrintTemperature(m_lights));
-    m_doghouse.setDefaultCommand(m_doghouse.coralIntakeFactory());
     // Configure test controller for lights
     new JoystickButton(testcontroller.getHID(), Constants.BlockButton)
         .onTrue(new RunCommand(m_lights::setColors, m_lights));

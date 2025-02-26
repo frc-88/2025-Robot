@@ -385,6 +385,16 @@ public class Climber extends SubsystemBase {
         .andThen(gasMotorBrakeModeFactory());
   }
 
+  public Command climbOnDisable() {
+    return new InstantCommand(() -> m_gripper.setNeutralMode(NeutralModeValue.Coast))
+        .andThen(new WaitCommand(1.0))
+        .andThen(
+            () -> {
+              m_gripper.setNeutralMode(NeutralModeValue.Brake);
+              m_grabbed = true;
+            });
+  }
+
   public Command prepClimber() {
     return new RunCommand(
         () -> {
