@@ -84,13 +84,6 @@ public class RobotContainer {
 
   public Lights m_lights = new Lights(testcontroller.getHID());
 
-  public Command coralMode() {
-
-    return new ParallelCommandGroup(
-        m_doghouse.moveFastFactory(), m_armevator.manipulatorInFactory());
-    // .until(m_armevator.isIn());
-  }
-
   public RobotContainer() {
     switch (Constants.currentMode) {
       case REAL:
