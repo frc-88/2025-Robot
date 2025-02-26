@@ -158,6 +158,10 @@ public class Drive extends SubsystemBase {
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
   }
 
+  public double getAngle() {
+    return getPose().getY() < 4.1148 ? 45.0 : -45.0;
+  }
+
   @Override
   public void periodic() {
     odometryLock.lock(); // Prevents odometry updates while reading data
