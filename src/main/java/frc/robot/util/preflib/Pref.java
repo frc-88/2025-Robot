@@ -83,7 +83,10 @@ public class Pref<T> {
         throw new IllegalArgumentException("Unsupported preference type");
       }
 
-      if (force || !newValue.equals(currentValue)) {
+      if (force
+          || (newValue instanceof Double
+              && Math.abs((Double) newValue - (Double) currentValue) > 0.001)
+          || (!(newValue instanceof Double) && !newValue.equals(currentValue))) {
         currentValue = newValue;
         for (Consumer<?> listener : listeners) {
           ((Consumer<T>) listener).accept(newValue);

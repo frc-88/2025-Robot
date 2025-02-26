@@ -70,36 +70,40 @@ public class PrefGroup {
 
   public void createCurrentLimitPrefs(Consumer<CurrentLimitsConfigs> configuratorApply) {
     PrefGroup currentLimitsGroup = subgroup("CurrentLimits");
+    class DefaultConfig extends CurrentLimitsConfigs {
+      public DefaultConfig() {
+        CurrentLimitsConfigs config = new CurrentLimitsConfigs();
+        config.StatorCurrentLimit = 40;
+        config.SupplyCurrentLimit = 40;
+        config.SupplyCurrentLowerLimit = 40;
+        config.SupplyCurrentLowerTime = 1;
+        config.SupplyCurrentLimitEnable = false;
+        config.StatorCurrentLimitEnable = true;
+      }
+    }
+    Supplier<CurrentLimitsConfigs> defaultConfig =
+        () -> {
+          CurrentLimitsConfigs config = new CurrentLimitsConfigs();
+          config.StatorCurrentLimit = 40;
+          config.SupplyCurrentLimit = 40;
+          config.SupplyCurrentLowerLimit = 40;
+          config.SupplyCurrentLowerTime = 1;
+          config.SupplyCurrentLimitEnable = false;
+          config.StatorCurrentLimitEnable = true;
+          return config;
+        };
     currentLimitsGroup.applyAndListenToConfig(
-        "StatorCurrentLimit",
-        CurrentLimitsConfigs::new,
-        configuratorApply,
-        CurrentLimitsConfigs.class);
+        "StatorCurrentLimit", defaultConfig, configuratorApply, CurrentLimitsConfigs.class);
     currentLimitsGroup.applyAndListenToConfig(
-        "SupplyCurrentLimit",
-        CurrentLimitsConfigs::new,
-        configuratorApply,
-        CurrentLimitsConfigs.class);
+        "SupplyCurrentLimit", defaultConfig, configuratorApply, CurrentLimitsConfigs.class);
     currentLimitsGroup.applyAndListenToConfig(
-        "SupplyCurrentLowerLimit",
-        CurrentLimitsConfigs::new,
-        configuratorApply,
-        CurrentLimitsConfigs.class);
+        "SupplyCurrentLowerLimit", defaultConfig, configuratorApply, CurrentLimitsConfigs.class);
     currentLimitsGroup.applyAndListenToConfig(
-        "SupplyCurrentLowerTime",
-        CurrentLimitsConfigs::new,
-        configuratorApply,
-        CurrentLimitsConfigs.class);
+        "SupplyCurrentLowerTime", defaultConfig, configuratorApply, CurrentLimitsConfigs.class);
     currentLimitsGroup.applyAndListenToConfig(
-        "SupplyCurrentLimitEnable",
-        CurrentLimitsConfigs::new,
-        configuratorApply,
-        CurrentLimitsConfigs.class);
+        "SupplyCurrentLimitEnable", defaultConfig, configuratorApply, CurrentLimitsConfigs.class);
     currentLimitsGroup.applyAndListenToConfig(
-        "StatorCurrentLimitEnable",
-        CurrentLimitsConfigs::new,
-        configuratorApply,
-        CurrentLimitsConfigs.class);
+        "StatorCurrentLimitEnable", defaultConfig, configuratorApply, CurrentLimitsConfigs.class);
   }
 
   protected static PrefGroup create(String... keys) {
@@ -112,7 +116,7 @@ public class PrefGroup {
 
   protected void update() {
     for (Pref<?> pref : prefs.values()) {
-      pref.update(true);
+      pref.update(false);
     }
     for (PrefGroup group : subGroups.values()) {
       group.update();
