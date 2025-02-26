@@ -31,7 +31,7 @@ public class PrefGroup {
     if (subGroups.containsKey(keys[0])) {
       childGroup = subGroups.get(keys[0]);
     } else {
-      childGroup = new PrefGroup(this.key + "/" + keys[0]);
+      childGroup = new PrefGroup(this.key + keys[0] + "/");
       subGroups.put(keys[0], childGroup);
     }
 
@@ -55,7 +55,7 @@ public class PrefGroup {
       }
     }
 
-    Pref<T> pref = new Pref<T>(key + "/" + name, defaultValue);
+    Pref<T> pref = new Pref<T>(key + name, defaultValue);
     prefs.put(name, pref);
     return pref;
   }
@@ -71,17 +71,17 @@ public class PrefGroup {
   public void createCurrentLimitPrefs(Consumer<CurrentLimitsConfigs> configuratorApply) {
     PrefGroup currentLimitsGroup = subgroup("CurrentLimits");
     currentLimitsGroup.applyAndListenToConfig(
-        "StatorCurrentLimt",
+        "StatorCurrentLimit",
         CurrentLimitsConfigs::new,
         configuratorApply,
         CurrentLimitsConfigs.class);
     currentLimitsGroup.applyAndListenToConfig(
-        "SupplyCurrentLimt",
+        "SupplyCurrentLimit",
         CurrentLimitsConfigs::new,
         configuratorApply,
         CurrentLimitsConfigs.class);
     currentLimitsGroup.applyAndListenToConfig(
-        "SupplyCurrentLowerLimt",
+        "SupplyCurrentLowerLimit",
         CurrentLimitsConfigs::new,
         configuratorApply,
         CurrentLimitsConfigs.class);
@@ -91,12 +91,12 @@ public class PrefGroup {
         configuratorApply,
         CurrentLimitsConfigs.class);
     currentLimitsGroup.applyAndListenToConfig(
-        "SupplyCurrentLimtEnable",
+        "SupplyCurrentLimitEnable",
         CurrentLimitsConfigs::new,
         configuratorApply,
         CurrentLimitsConfigs.class);
     currentLimitsGroup.applyAndListenToConfig(
-        "StatorCurrentLimtEnable",
+        "StatorCurrentLimitEnable",
         CurrentLimitsConfigs::new,
         configuratorApply,
         CurrentLimitsConfigs.class);

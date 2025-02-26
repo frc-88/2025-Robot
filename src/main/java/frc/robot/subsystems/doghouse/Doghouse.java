@@ -94,7 +94,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void funnelGo() {
-    setFunnelSpeed(m_funnelPrefs.getValue("Speed", 1));
+    setFunnelSpeed(m_funnelPrefs.getValue("Speed", 1.));
   }
 
   private void manipulatorStop() {
