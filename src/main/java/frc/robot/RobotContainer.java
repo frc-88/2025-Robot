@@ -30,14 +30,20 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.POVButton;
+import frc.robot.commands.CANdleConfigCommands;
+import frc.robot.commands.CANdlePrintCommands;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Armevator;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Doghouse;
+import frc.robot.subsystems.Lights;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -63,6 +69,7 @@ public class RobotContainer {
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandXboxController testcontroller = new CommandXboxController(1);
   private CommandGenericHID buttons = new CommandGenericHID(1);
 
   // Dashboard inputs
@@ -74,6 +81,8 @@ public class RobotContainer {
   public Doghouse m_doghouse = new Doghouse();
 
   public Climber climber = new Climber();
+
+  public Lights m_lights = new Lights(testcontroller.getHID());
 
   public RobotContainer() {
     switch (Constants.currentMode) {
@@ -230,6 +239,53 @@ public class RobotContainer {
   private void configureButtonBindings() {
     m_armevator.setDefaultCommand(m_armevator.defaultCommand());
     m_doghouse.setDefaultCommand(m_doghouse.coralIntakeFactory());
+
+    // Configure test controller for lights
+    new JoystickButton(testcontroller.getHID(), Constants.BlockButton)
+        .onTrue(new RunCommand(m_lights::setColors, m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.IncrementAnimButton)
+        .onTrue(new RunCommand(m_lights::incrementAnimation, m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.DecrementAnimButton)
+        .onTrue(new RunCommand(m_lights::decrementAnimation, m_lights));
+
+    new POVButton(testcontroller.getHID(), Constants.MaxBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 1.0));
+    new POVButton(testcontroller.getHID(), Constants.MidBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 0.3));
+    new POVButton(testcontroller.getHID(), Constants.ZeroBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 0));
+
+    new JoystickButton(testcontroller.getHID(), Constants.VbatButton)
+        .onTrue(new CANdlePrintCommands.PrintVBat(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.V5Button)
+        .onTrue(new CANdlePrintCommands.Print5V(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.CurrentButton)
+        .onTrue(new CANdlePrintCommands.PrintCurrent(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.TemperatureButton)
+        .onTrue(new CANdlePrintCommands.PrintTemperature(m_lights));
+    // Configure test controller for lights
+    new JoystickButton(testcontroller.getHID(), Constants.BlockButton)
+        .onTrue(new RunCommand(m_lights::setColors, m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.IncrementAnimButton)
+        .onTrue(new RunCommand(m_lights::incrementAnimation, m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.DecrementAnimButton)
+        .onTrue(new RunCommand(m_lights::decrementAnimation, m_lights));
+
+    new POVButton(testcontroller.getHID(), Constants.MaxBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 1.0));
+    new POVButton(testcontroller.getHID(), Constants.MidBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 0.3));
+    new POVButton(testcontroller.getHID(), Constants.ZeroBrightnessAngle)
+        .onTrue(new CANdleConfigCommands.ConfigBrightness(m_lights, 0));
+
+    new JoystickButton(testcontroller.getHID(), Constants.VbatButton)
+        .onTrue(new CANdlePrintCommands.PrintVBat(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.V5Button)
+        .onTrue(new CANdlePrintCommands.Print5V(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.CurrentButton)
+        .onTrue(new CANdlePrintCommands.PrintCurrent(m_lights));
+    new JoystickButton(testcontroller.getHID(), Constants.TemperatureButton)
+        .onTrue(new CANdlePrintCommands.PrintTemperature(m_lights));
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
