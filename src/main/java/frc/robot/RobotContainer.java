@@ -215,14 +215,14 @@ public class RobotContainer {
     buttons.button(1).onTrue(m_armevator.L2Factory());
     buttons.button(2).onTrue(m_armevator.L3Factory());
     buttons.button(3).onTrue(m_armevator.L4Factory());
-    buttons.button(10).onTrue(m_doghouse.shootFactory());
+    buttons.button(10).onTrue(m_doghouse.shootFullSpeedFactory());
     buttons.button(4).onTrue(m_armevator.stowFactory());
     buttons.button(5).onTrue(getCoralFactory());
     buttons.button(11).onTrue(algaePickupFactory());
     buttons.button(7).onTrue(climber.prepClimber());
     buttons.button(8).onTrue(climber.poweredClimbFactory());
 
-    controller.rightBumper().onTrue(m_doghouse.shootFactory());
+    controller.rightBumper().onTrue(m_doghouse.shootFullSpeedFactory());
   }
 
   /**
