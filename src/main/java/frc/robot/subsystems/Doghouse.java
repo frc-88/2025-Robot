@@ -10,6 +10,8 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,6 +44,7 @@ public class Doghouse extends SubsystemBase {
   private final DutyCycleOut m_manipulatorRequest = new DutyCycleOut(0.0);
 
   private boolean m_coralCaptured = false;
+  private Debouncer m_algaeDebouncer = new Debouncer(1.0);
 
   public Doghouse() {
     // configure funnel
@@ -57,7 +60,7 @@ public class Doghouse extends SubsystemBase {
         p_manipulatorCurrentLimit.getValue();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
     m_manipulator.getConfigurator().apply(manipulatorConfiguration);
-
+    m_manipulator.setNeutralMode(NeutralModeValue.Brake);
     configureCANrange();
   }
 
@@ -81,6 +84,10 @@ public class Doghouse extends SubsystemBase {
 
     m_doghousCANRange.getConfigurator().apply(doghouscfg);
     m_coralRange.getConfigurator().apply(coralRangecfg);
+  }
+
+  public boolean hasCoralDebounced() {
+    return m_algaeDebouncer.calculate(hasCoral());
   }
 
   private void setFunnelSpeed(double output) {
@@ -123,8 +130,16 @@ public class Doghouse extends SubsystemBase {
     setManipulatorSpeed(-0.1);
   }
 
+  private void manipulatorAlgaeSlow() {
+    setManipulatorSpeed(0.2);
+  }
+
   private void algaePickup() {
     setManipulatorSpeed(1.0);
+  }
+
+  private void manipulatorFullSpeed() {
+    setManipulatorSpeed(-1.0);
   }
 
   public Command stopAllFactory() {
@@ -138,11 +153,20 @@ public class Doghouse extends SubsystemBase {
 
   public Command algaePickupFactory() {
     return new RunCommand(
-        () -> {
-          funnelStop();
-          algaePickup();
-        },
-        this);
+            () -> {
+              funnelStop();
+              algaePickup();
+            },
+            this)
+        .until(() -> hasCoralDebounced())
+        .andThen(
+            () -> {
+              manipulatorAlgaeSlow();
+            });
+  }
+
+  public Command setAlgaeSlowFactory() {
+    return new RunCommand(() -> manipulatorAlgaeSlow(), this);
   }
 
   public Command coralIntakeFactory() {
@@ -169,6 +193,15 @@ public class Doghouse extends SubsystemBase {
 
   public Command shootFactory() {
     return new RunCommand(() -> manipulatorShoot(), this)
+        .withTimeout(1.0)
+        .andThen(
+            () -> {
+              manipulatorStop();
+            });
+  }
+
+  public Command shootFullSpeedFactory() {
+    return new RunCommand(() -> manipulatorFullSpeed(), this)
         .withTimeout(1.0)
         .andThen(
             () -> {

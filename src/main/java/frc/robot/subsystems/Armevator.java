@@ -140,6 +140,13 @@ public class Armevator extends SubsystemBase {
     }
   }
 
+  private void setL4Shoot() {
+    elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
+    if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
+      armSetAngle(-40.0);
+    }
+  }
+
   private void setL3() {
     elevatorSetPosition(Constants.ELEVATOR_L3_HEIGHT);
     armGoToTiltAngle();
@@ -201,6 +208,24 @@ public class Armevator extends SubsystemBase {
 
   public Command calibrateArmFactory() {
     return new InstantCommand(() -> armCalibrate(), this);
+  }
+
+  public Command L2Algae() {
+    return new RunCommand(
+        () -> {
+          armSetAngle(30.0);
+          elevatorSetPosition(8.5);
+        },
+        this);
+  }
+
+  public Command L3Algae() {
+    return new RunCommand(
+        () -> {
+          armSetAngle(30.0);
+          elevatorSetPosition(17.0);
+        },
+        this);
   }
 
   public Command calibrateElevatorFactory() {
@@ -308,6 +333,10 @@ public class Armevator extends SubsystemBase {
 
   public Command defaultCommand() {
     return new ConditionalCommand(stowFactory(), calibrateBothFactory(), () -> m_calibrated);
+  }
+
+  public Command shootInNetFactory() {
+    return new RunCommand(() -> setL4Shoot(), this);
   }
 
   public Command L4Factory() {

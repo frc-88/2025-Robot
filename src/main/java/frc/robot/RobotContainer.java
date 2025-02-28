@@ -178,6 +178,10 @@ public class RobotContainer {
     SmartDashboard.putData("L4", m_armevator.L4Factory());
     SmartDashboard.putData("L3", m_armevator.L3Factory());
     SmartDashboard.putData("L2", m_armevator.L2Factory());
+    SmartDashboard.putData("L2 Algae", L2AlgaePickupFactory());
+    SmartDashboard.putData("L3 Algae", L3AlgaePickupFactory());
+    SmartDashboard.putData("Shoot In Net", shootInNet());
+    SmartDashboard.putData("Shoot Full Speed", m_doghouse.shootFullSpeedFactory());
 
     SmartDashboard.putData("Stop Doghouse", m_doghouse.stopAllFactory());
     SmartDashboard.putData("Shoot", m_doghouse.shootFactory());
@@ -249,6 +253,15 @@ public class RobotContainer {
                 () -> -controller.getLeftX(),
                 () -> Rotation2d.fromDegrees(drive.getAngle())));
 
+    controller
+        .y()
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () -> Rotation2d.fromDegrees(drive.aimAtReef())));
+
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
@@ -278,7 +291,32 @@ public class RobotContainer {
 
   private Command algaePickupFactory() {
     return new ParallelCommandGroup(
-        m_armevator.algaePickupFactory(), m_doghouse.algaePickupFactory());
+        m_armevator
+            .algaePickupFactory()
+            .until(() -> m_doghouse.hasCoralDebounced())
+            .andThen(m_armevator.stowFactory()),
+        m_doghouse.algaePickupFactory());
+  }
+
+  private Command L2AlgaePickupFactory() {
+    return new ParallelCommandGroup(
+        m_armevator.L2Algae()
+            .until(() -> m_doghouse.hasCoralDebounced())
+            .andThen(m_armevator.stowFactory()),
+        m_doghouse.algaePickupFactory());
+  }
+
+  private Command L3AlgaePickupFactory() {
+    return new ParallelCommandGroup(
+        m_armevator.L3Algae()
+            .until(() -> m_doghouse.hasCoralDebounced())
+            .andThen(m_armevator.stowFactory()),
+        m_doghouse.algaePickupFactory());
+  }
+
+  public Command shootInNet() {
+    return new ParallelCommandGroup(
+        m_armevator.shootInNetFactory(), m_doghouse.setAlgaeSlowFactory());
   }
 
   private Command goToTiltAngleFactory() {
