@@ -48,6 +48,7 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.util.LocalADStarAK;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -74,6 +75,8 @@ public class RobotContainer {
   public Doghouse m_doghouse = new Doghouse();
 
   public Climber climber = new Climber();
+
+  public LocalADStarAK pathFinder = new LocalADStarAK();
 
   public RobotContainer() {
     switch (Constants.currentMode) {
@@ -164,6 +167,7 @@ public class RobotContainer {
         .onTrue(climber.gasMotorNeutralModeFactory().ignoringDisable(true))
         .onFalse(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
     climber.shouldGripperClose().onTrue(climber.closeGrabberFactory());
+    m_armevator.m_shouldCalibrate.onTrue(m_armevator.elevatorCalibrateFactory());
     // .onFalse(climber.setNotGrabbed());
     // climber.forceCloseOnDisable().onTrue(climber.climbOnDisable().ignoringDisable(true));
 
@@ -209,13 +213,15 @@ public class RobotContainer {
 
     // Autos
     SmartDashboard.putData("TripleL1Right", getAutoPath("TripleL1Right"));
+    // SmartDashboard.putData("TripleL1Right", pathFinder.setGoalPosition(new
+    // Translation2d(4.1148)));
   }
 
   public void configureButtonBox() {
     buttons.button(1).onTrue(m_armevator.L2Factory());
     buttons.button(2).onTrue(m_armevator.L3Factory());
     buttons.button(3).onTrue(m_armevator.L4Factory());
-    buttons.button(10).onTrue(m_doghouse.shootFullSpeedFactory());
+    buttons.button(10).onTrue(shootCommand());
     buttons.button(4).onTrue(m_armevator.stowFactory());
     buttons.button(5).onTrue(getCoralFactory());
     buttons.button(11).onTrue(algaePickupFactory());
@@ -287,6 +293,11 @@ public class RobotContainer {
       e.printStackTrace();
       return autoPath;
     }
+  }
+
+  private Command shootCommand() {
+    return new ParallelCommandGroup(
+        m_doghouse.shootFactory(), new WaitCommand(0.5).andThen(m_armevator.armGoToZeroFactory()));
   }
 
   private Command algaePickupFactory() {

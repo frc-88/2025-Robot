@@ -41,15 +41,16 @@ public final class Constants {
 
   public static final String RIO_CANBUS = "rio";
 
-  public static final double ARM_L4_ANGLE = 24.5;
-  public static final double ELEVATOR_L4_HEIGHT = 28.;
-  public static final double ELEVATOR_L3_HEIGHT = 13.25;
-  public static final double ELEVATOR_L2_HEIGHT = 5.3;
+  public static final double ARM_L4_ANGLE = 35.0;
+  public static final double ELEVATOR_L4_HEIGHT = 28.875;
+  public static final double ELEVATOR_L3_HEIGHT = 14;
+  public static final double ELEVATOR_L2_HEIGHT = 6.125;
   // ARMEVATOR
   public static final int ELEVATOR_MAIN_MOTOR = 2;
   public static final int ELEVATOR_FOLLOWER_MOTOR = 3;
   public static final int ELEVATOR_ARM_MOTOR = 15;
   public static final int ELEVATOR_MANIPULATOR_MOTOR = 16;
+  public static final int ELEVATOR_ENCODER = 15;
   public static final int DOGHOUSE_CANRANGE = 10;
   public static final int CORAL_CANRANGE = 3;
   public static final int ARM_RIGHT_CANRANGE = 5;
