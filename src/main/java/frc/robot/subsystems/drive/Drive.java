@@ -222,9 +222,10 @@ public class Drive extends SubsystemBase {
 
   public Command calibrateModuleOffsetsFactory() {
     return new SequentialCommandGroup(
-        new InstantCommand(() -> zeroOffsets()),
-        new WaitCommand(5),
-        new InstantCommand(() -> recalibrateOffsets())).ignoringDisable(true);
+            new InstantCommand(() -> zeroOffsets()),
+            new WaitCommand(5),
+            new InstantCommand(() -> recalibrateOffsets()))
+        .ignoringDisable(true);
   }
 
   @Override

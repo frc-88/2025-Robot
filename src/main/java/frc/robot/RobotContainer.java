@@ -209,7 +209,6 @@ public class RobotContainer {
 
     // Pitcrew
     SmartDashboard.putData("Calibrate Drive", drive.calibrateModuleOffsetsFactory());
-
   }
 
   public void configureButtonBox() {
