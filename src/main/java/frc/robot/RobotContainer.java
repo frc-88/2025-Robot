@@ -210,8 +210,6 @@ public class RobotContainer {
     // Pitcrew
     SmartDashboard.putData("Calibrate Drive", drive.calibrateModuleOffsetsFactory());
 
-    // Autos
-    SmartDashboard.putData("TripleL1Right", getAutoPath("TripleL1Right"));
   }
 
   public void configureButtonBox() {
