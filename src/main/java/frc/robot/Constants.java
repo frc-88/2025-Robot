@@ -13,6 +13,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -42,13 +46,13 @@ public final class Constants {
   public static final double ELEVATOR_L3_HEIGHT = 13.25;
   public static final double ELEVATOR_L2_HEIGHT = 5.3;
   // ARMEVATOR
-  public static final int ELEVATOR_MAIN_MOTOR = 3;
-  public static final int ELEVATOR_FOLLOWER_MOTOR = 1;
-  public static final int ELEVATOR_ARM_MOTOR = 7;
-  public static final int ELEVATOR_MANIPULATOR_MOTOR = 5;
+  public static final int ELEVATOR_MAIN_MOTOR = 2;
+  public static final int ELEVATOR_FOLLOWER_MOTOR = 3;
+  public static final int ELEVATOR_ARM_MOTOR = 15;
+  public static final int ELEVATOR_MANIPULATOR_MOTOR = 16;
   public static final int DOGHOUSE_CANRANGE = 10;
   public static final int CORAL_CANRANGE = 3;
-  public static final int ARM_RIGHT_CANRANGE = 3;
+  public static final int ARM_RIGHT_CANRANGE = 5;
 
   public static final double ELEVATOR_ROTATIONS_TO_INCHES = ((2.256 * Math.PI) / 8.0);
   public static final double ARM_ROTATIONS_TO_DEGREES = (360.0 / 112.0);
@@ -65,4 +69,9 @@ public final class Constants {
   public static final double GRIPPER_MOTOR_ROTATIONS_TO_ANGLE = (360 / 49.0);
   public static final double GAS_MOTOR_ROTATIONS_TO_LENGTH = (1.39 / 28.0);
   public static final double CLIMBER_ENCODER_ROTATIONS_TO_ANGLE = 360;
+
+  public static final Pose2d REEF_POSE =
+      new Pose2d(
+          new Translation2d(Units.inchesToMeters(176.75), Units.feetToMeters(13.5)),
+          Rotation2d.fromDegrees(0.0));
 }
