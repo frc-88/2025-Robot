@@ -224,7 +224,7 @@ public class Drive extends SubsystemBase {
     return new SequentialCommandGroup(
         new InstantCommand(() -> zeroOffsets()),
         new WaitCommand(5),
-        new InstantCommand(() -> recalibrateOffsets()));
+        new InstantCommand(() -> recalibrateOffsets())).ignoringDisable(true);
   }
 
   @Override
