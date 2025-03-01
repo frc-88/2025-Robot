@@ -154,11 +154,13 @@ public class RobotContainer {
   }
 
   public void registerNamedCommands() {
-    NamedCommands.registerCommand("Shoot", m_doghouse.shootFactory());
+    NamedCommands.registerCommand("Shoot", shootCommand());
     NamedCommands.registerCommand("Get Coral", getCoralFactory());
     NamedCommands.registerCommand(
         "Arm Go To Zero", m_armevator.armGoToZeroFactory().withTimeout(0.5));
-    NamedCommands.registerCommand("L4", m_armevator.L4Factory());
+    NamedCommands.registerCommand("L4", m_armevator.L4Factory().withTimeout(2.0));
+    NamedCommands.registerCommand("Stow", m_armevator.stowFactory().withTimeout(1.0));
+    NamedCommands.registerCommand("Armevator Calibration", m_armevator.calibrateBothFactory());
   }
 
   public void configureDashboardButtons() {
@@ -297,7 +299,7 @@ public class RobotContainer {
   }
 
   private Command shootCommand() {
-    return new ParallelCommandGroup(
+    return new ParallelDeadlineGroup(
         m_doghouse.shootFactory(), new WaitCommand(0.5).andThen(m_armevator.armGoToZeroFactory()));
   }
 

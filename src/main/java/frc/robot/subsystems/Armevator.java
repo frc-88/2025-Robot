@@ -103,6 +103,8 @@ public class Armevator extends SubsystemBase {
     m_elevatorMain.getConfigurator().apply(elevatorCfg);
     m_elevatorFollower.getConfigurator().apply(elevatorCfg);
     m_elevatorFollower.setControl(new Follower(Constants.ELEVATOR_MAIN_MOTOR, false));
+    m_elevatorMain.setNeutralMode(NeutralModeValue.Brake);
+    m_elevatorFollower.setNeutralMode(NeutralModeValue.Brake);
 
     m_arm.getConfigurator().apply(armCfg);
     m_encoder.getConfigurator().apply(cancg);

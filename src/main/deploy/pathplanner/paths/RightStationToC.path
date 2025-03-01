@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.6265360028263651,
-        "y": 0.7568731626959788
+        "x": 1.202054794520548,
+        "y": 0.8095034246575347
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.3622564685462946,
-        "y": 1.5990842113077015
+        "x": 1.9377752602404774,
+        "y": 1.6517144732692572
       },
       "isLocked": false,
       "linkedName": "RightCoralStation"
     },
     {
       "anchor": {
-        "x": 3.6290007425249637,
-        "y": 2.8663659470073197
+        "x": 3.92,
+        "y": 2.9
       },
       "prevControl": {
-        "x": 3.4005510915664834,
-        "y": 2.7648240493642846
+        "x": 3.6915497906327217,
+        "y": 2.7984593586781785
       },
       "nextControl": null,
       "isLocked": false,
@@ -47,7 +47,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": 59.75
   },
   "reversed": false,
   "folder": null,
