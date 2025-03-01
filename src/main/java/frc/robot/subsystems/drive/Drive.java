@@ -45,7 +45,10 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
@@ -196,6 +199,32 @@ public class Drive extends SubsystemBase {
 
     return new Pose2d(
         current.getX() + (x * 0.5), current.getY() + (y * 0.5), current.getRotation());
+  }
+
+  private void zeroOffsets() {
+    modules[0].configureEncoder(0);
+    modules[1].configureEncoder(0);
+    modules[2].configureEncoder(0);
+    modules[3].configureEncoder(0);
+  }
+
+  private void recalibrateOffsets() {
+    TunerConstants.p_frontLeftEncoderOffset.setValue(-modules[0].getEncoderPosition());
+    TunerConstants.p_frontRightEncoderOffset.setValue(-modules[1].getEncoderPosition());
+    TunerConstants.p_backLeftEncoderOffset.setValue(-modules[2].getEncoderPosition());
+    TunerConstants.p_backRightEncoderOffset.setValue(-modules[3].getEncoderPosition());
+
+    modules[0].configureEncoder(TunerConstants.p_frontLeftEncoderOffset.getValue());
+    modules[1].configureEncoder(TunerConstants.p_frontRightEncoderOffset.getValue());
+    modules[2].configureEncoder(TunerConstants.p_backLeftEncoderOffset.getValue());
+    modules[3].configureEncoder(TunerConstants.p_backRightEncoderOffset.getValue());
+  }
+
+  public Command calibrateModuleOffsetsFactory() {
+    return new SequentialCommandGroup(
+        new InstantCommand(() -> zeroOffsets()),
+        new WaitCommand(5),
+        new InstantCommand(() -> recalibrateOffsets()));
   }
 
   @Override

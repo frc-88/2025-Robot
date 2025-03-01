@@ -100,6 +100,14 @@ public class Module {
     io.setTurnOpenLoop(0.0);
   }
 
+  public void configureEncoder(double offset) {
+    io.configureEncoder(offset);
+  }
+
+  public double getEncoderPosition() {
+    return io.getEncoderPosition();
+  }
+
   /** Returns the current turn angle of the module. */
   public Rotation2d getAngle() {
     return inputs.turnPosition;
