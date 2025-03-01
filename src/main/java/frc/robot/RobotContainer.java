@@ -158,6 +158,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("Get Coral", getCoralFactory());
     NamedCommands.registerCommand(
         "Arm Go To Zero", m_armevator.armGoToZeroFactory().withTimeout(0.5));
+    NamedCommands.registerCommand("L4", m_armevator.L4Factory());
   }
 
   public void configureDashboardButtons() {
