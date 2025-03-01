@@ -39,6 +39,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -57,6 +58,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
+  public Pose2d nextPose = new Pose2d();
   static final double ODOMETRY_FREQUENCY =
       new CANBus(TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD() ? 250.0 : 100.0;
   public static final double DRIVE_BASE_RADIUS =
@@ -156,6 +158,44 @@ public class Drive extends SubsystemBase {
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+  }
+
+  public double getAngle() {
+    return getPose().getY() < 4.1148 ? 45.0 : -45.0;
+  }
+
+  public double getAngleToReef(Pose2d pose) {
+    Translation2d position = pose.relativeTo(Constants.REEF_POSE).getTranslation();
+    double x = position.getX();
+    double y = position.getY();
+    return Units.radiansToDegrees(Math.atan2(y, x));
+  }
+
+  public double aimAtReef() {
+    double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      angle = 180.0;
+    } else if (angle > 30.0 && angle < 90.0) {
+      angle = -120;
+    } else if (angle > 90.0 && angle < 150.0) {
+      angle = -60.0;
+    } else if (angle > 150.0 || angle < -150.0) {
+      angle = 0.0;
+    } else if (angle > -150.0 && angle < -90.0) {
+      angle = 60.0;
+    } else if (angle > -90.0 && angle < -30.0) {
+      angle = 120;
+    }
+    return angle;
+  }
+
+  public Pose2d nextPose() {
+    Pose2d current = getPose();
+    double x = getChassisSpeeds().vxMetersPerSecond;
+    double y = getChassisSpeeds().vyMetersPerSecond;
+
+    return new Pose2d(
+        current.getX() + (x * 0.5), current.getY() + (y * 0.5), current.getRotation());
   }
 
   @Override
