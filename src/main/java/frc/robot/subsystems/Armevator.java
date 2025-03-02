@@ -1,12 +1,16 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
@@ -14,7 +18,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
@@ -25,6 +29,7 @@ public class Armevator extends SubsystemBase {
   private final TalonFX m_elevatorFollower =
       new TalonFX(Constants.ELEVATOR_FOLLOWER_MOTOR, Constants.RIO_CANBUS);
   private final TalonFX m_arm = new TalonFX(Constants.ELEVATOR_ARM_MOTOR, Constants.RIO_CANBUS);
+  private final CANcoder m_encoder = new CANcoder(Constants.ELEVATOR_ENCODER, Constants.RIO_CANBUS);
 
   private final PIDPreferenceConstants elevatorPID =
       new PIDPreferenceConstants("Armevator/Elevator/PID", 8, 0, 0, 0.15, 0, 0, 0, 0);
@@ -50,9 +55,19 @@ public class Armevator extends SubsystemBase {
   private final DoublePreferenceConstant p_armTiltAngle =
       new DoublePreferenceConstant("Armevator/Arm/TiltAngle", 5.0);
 
+  private final DoublePreferenceConstant p_armEncoderOffset =
+      new DoublePreferenceConstant("Armevator/Arm/EncoderOffset", -0.154785);
+
   private final MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
 
   private final Debouncer elevatorDebouncer = new Debouncer(1.0);
+  private final DigitalInput m_magnetInput = new DigitalInput(7);
+  public final Trigger m_shouldCalibrate =
+      new Trigger(
+          () ->
+              !m_magnetInput.get()
+                  && elevatorDebouncer.calculate(
+                      Math.abs(m_elevatorMain.getVelocity().getValueAsDouble()) < 0.1));
 
   private boolean m_calibrated = false;
 
@@ -63,6 +78,9 @@ public class Armevator extends SubsystemBase {
   private void configureTalons() {
     TalonFXConfiguration elevatorCfg = new TalonFXConfiguration();
     TalonFXConfiguration armCfg = new TalonFXConfiguration();
+    CANcoderConfiguration cancg = new CANcoderConfiguration();
+    cancg.MagnetSensor.MagnetOffset = p_armEncoderOffset.getValue();
+    cancg.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
 
     elevatorCfg.Slot0.kP = elevatorPID.getKP().getValue();
     elevatorCfg.Slot0.kI = elevatorPID.getKI().getValue();
@@ -85,8 +103,11 @@ public class Armevator extends SubsystemBase {
     m_elevatorMain.getConfigurator().apply(elevatorCfg);
     m_elevatorFollower.getConfigurator().apply(elevatorCfg);
     m_elevatorFollower.setControl(new Follower(Constants.ELEVATOR_MAIN_MOTOR, false));
+    m_elevatorMain.setNeutralMode(NeutralModeValue.Brake);
+    m_elevatorFollower.setNeutralMode(NeutralModeValue.Brake);
 
     m_arm.getConfigurator().apply(armCfg);
+    m_encoder.getConfigurator().apply(cancg);
     m_arm.setNeutralMode(NeutralModeValue.Brake);
   }
 
@@ -94,8 +115,12 @@ public class Armevator extends SubsystemBase {
     return m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES;
   }
 
+  public boolean onTarget(double position) {
+    return Math.abs(getElevatorPositionInches() - position) < 0.2;
+  }
+
   private void armCalibrate() {
-    m_arm.setPosition(0.0);
+    m_arm.setPosition(m_encoder.getAbsolutePosition().getValueAsDouble() * 112.0);
   }
 
   private void elevatorCalibrate() {
@@ -182,7 +207,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void elevatorSetCalibrateSpeed() {
-    m_elevatorMain.setControl(new DutyCycleOut(-0.09));
+    m_elevatorMain.setControl(new DutyCycleOut(-0.1));
   }
 
   private void stowArm() {
@@ -191,6 +216,10 @@ public class Armevator extends SubsystemBase {
 
   private void stowElevator() {
     elevatorSetPosition(0.0);
+  }
+
+  private void goToOneInch() {
+    elevatorSetPosition(1.0);
   }
 
   public void stowBoth() {
@@ -208,6 +237,10 @@ public class Armevator extends SubsystemBase {
 
   public Command calibrateArmFactory() {
     return new InstantCommand(() -> armCalibrate(), this);
+  }
+
+  public Command elevatorCalibrateFactory() {
+    return new InstantCommand(() -> elevatorCalibrate(), this);
   }
 
   public Command L2Algae() {
@@ -229,51 +262,22 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command calibrateElevatorFactory() {
-    return new RunCommand(
-            () -> {
-              stowElevator();
-              stowArm();
-            },
-            this)
-        .until(
-            () ->
-                elevatorDebouncer.calculate(
-                        Math.abs(m_elevatorMain.getVelocity().getValueAsDouble()) < 0.02)
-                    && getElevatorPositionInches() < 1.0)
-        .andThen(
-            () -> {
-              elevatorStop();
-              stowArm();
-            })
-        .andThen(new WaitCommand(0.25))
-        .andThen((() -> elevatorCalibrate()))
-        .andThen(
-            new RunCommand(
-                () -> {
-                  stowElevator();
-                  stowArm();
-                }));
+    return new ConditionalCommand(
+        goToOneInchFactory()
+            .until(() -> onTarget(1.0))
+            .andThen(new RunCommand(() -> stowElevator())),
+        new RunCommand(() -> stowElevator(), this),
+        () -> getElevatorPositionInches() > 1.0);
   }
 
   public Command calibrateBothFactory() {
-    return new InstantCommand(() -> armCalibrate(), this)
-        .andThen(
-            () -> {
-              elevatorSetCalibrateSpeed();
-              armGoToZero();
-            })
-        .until(
-            () ->
-                elevatorDebouncer.calculate(
-                    Math.abs(m_elevatorMain.getVelocity().getValueAsDouble()) < 0.02))
-        .andThen(() -> elevatorStop())
-        .andThen(new WaitCommand(0.25))
-        .andThen(
-            () -> {
-              elevatorCalibrate();
-              m_calibrated = true;
-            })
-        .beforeStarting(() -> elevatorDebouncer.calculate(false));
+    return new InstantCommand(
+        () -> {
+          armCalibrate();
+          elevatorCalibrate();
+          m_calibrated = true;
+        },
+        this);
   }
 
   public Command algaePickupFactory() {
@@ -286,7 +290,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command goToOneInchFactory() {
-    return new RunCommand(() -> elevatorSetPosition(1.0), this);
+    return new RunCommand(() -> goToOneInch(), this);
   }
 
   public Command stopElevatorFactory() {

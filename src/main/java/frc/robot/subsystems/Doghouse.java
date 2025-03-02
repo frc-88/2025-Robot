@@ -28,6 +28,7 @@ public class Doghouse extends SubsystemBase {
       new CANrange(Constants.DOGHOUSE_CANRANGE, Constants.RIO_CANBUS);
   private final CANrange m_coralRange =
       new CANrange(Constants.CORAL_CANRANGE, Constants.RIO_CANBUS);
+  private final CANrange m_reefRange = new CANrange(Constants.REEF_CANRANGE, Constants.RIO_CANBUS);
 
   private final DoublePreferenceConstant p_funnelSpeed =
       new DoublePreferenceConstant("Doghouse/Funnel/Speed", 1);
@@ -221,5 +222,6 @@ public class Doghouse extends SubsystemBase {
         "Doghouse/Coral Distance",
         Units.metersToInches(m_coralRange.getDistance().getValueAsDouble()));
     SmartDashboard.putBoolean("Doghouse/Is Blocked", isBlocked());
+    SmartDashboard.putBoolean("Doghouse/Reef", m_reefRange.getIsDetected().getValue());
   }
 }
