@@ -53,6 +53,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -160,18 +161,18 @@ public class Drive extends SubsystemBase {
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
   }
 
-  public double getAngle() {
+  private double aimAtStation() {
     return getPose().getY() < 4.1148 ? 45.0 : -45.0;
   }
 
-  public double getAngleToReef(Pose2d pose) {
+  private double getAngleToReef(Pose2d pose) {
     Translation2d position = pose.relativeTo(Constants.REEF_POSE).getTranslation();
     double x = position.getX();
     double y = position.getY();
     return Units.radiansToDegrees(Math.atan2(y, x));
   }
 
-  public double aimAtReef() {
+  private double aimAtReef() {
     double angle = getAngleToReef(nextPose());
     if (angle < 30.0 && angle > -30.0) {
       angle = 180.0;
@@ -187,6 +188,14 @@ public class Drive extends SubsystemBase {
       angle = 120;
     }
     return angle;
+  }
+
+  public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
+    if (hasCoral.getAsBoolean()) {
+      return aimAtReef();
+    } else {
+      return aimAtStation();
+    }
   }
 
   public Pose2d nextPose() {
