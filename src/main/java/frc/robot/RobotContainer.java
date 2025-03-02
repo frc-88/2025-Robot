@@ -214,10 +214,8 @@ public class RobotContainer {
     SmartDashboard.putData("Prep Climber", climber.prepClimber());
     SmartDashboard.putData("Calibrate Gas Motor", climber.calibrateFactory());
 
-    // Autos
-    SmartDashboard.putData("TripleL1Right", getAutoPath("TripleL1Right"));
-    // SmartDashboard.putData("TripleL1Right", pathFinder.setGoalPosition(new
-    // Translation2d(4.1148)));
+    // Pitcrew
+    SmartDashboard.putData("Calibrate Drive", drive.calibrateModuleOffsetsFactory());
   }
 
   public void configureButtonBox() {
