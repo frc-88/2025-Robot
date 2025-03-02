@@ -54,6 +54,7 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.util.LocalADStarAK;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -83,6 +84,8 @@ public class RobotContainer {
   public Climber climber = new Climber();
 
   public Lights m_lights = new Lights(testcontroller.getHID());
+
+  public LocalADStarAK pathFinder = new LocalADStarAK();
 
   public RobotContainer() {
     switch (Constants.currentMode) {
@@ -160,10 +163,13 @@ public class RobotContainer {
   }
 
   public void registerNamedCommands() {
-    NamedCommands.registerCommand("Shoot", m_doghouse.shootFactory());
+    NamedCommands.registerCommand("Shoot", shootCommand());
     NamedCommands.registerCommand("Get Coral", getCoralFactory());
     NamedCommands.registerCommand(
         "Arm Go To Zero", m_armevator.armGoToZeroFactory().withTimeout(0.5));
+    NamedCommands.registerCommand("L4", m_armevator.L4Factory().withTimeout(2.0));
+    NamedCommands.registerCommand("Stow", m_armevator.stowFactory().withTimeout(1.0));
+    NamedCommands.registerCommand("Armevator Calibration", m_armevator.calibrateBothFactory());
   }
 
   public void configureDashboardButtons() {
@@ -173,6 +179,7 @@ public class RobotContainer {
         .onTrue(climber.gasMotorNeutralModeFactory().ignoringDisable(true))
         .onFalse(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
     climber.shouldGripperClose().onTrue(climber.closeGrabberFactory());
+    m_armevator.m_shouldCalibrate.onTrue(m_armevator.elevatorCalibrateFactory());
     // .onFalse(climber.setNotGrabbed());
     // climber.forceCloseOnDisable().onTrue(climber.climbOnDisable().ignoringDisable(true));
 
@@ -187,6 +194,10 @@ public class RobotContainer {
     SmartDashboard.putData("L4", m_armevator.L4Factory());
     SmartDashboard.putData("L3", m_armevator.L3Factory());
     SmartDashboard.putData("L2", m_armevator.L2Factory());
+    SmartDashboard.putData("L2 Algae", L2AlgaePickupFactory());
+    SmartDashboard.putData("L3 Algae", L3AlgaePickupFactory());
+    SmartDashboard.putData("Shoot In Net", shootInNet());
+    SmartDashboard.putData("Shoot Full Speed", m_doghouse.shootFullSpeedFactory());
 
     SmartDashboard.putData("Stop Doghouse", m_doghouse.stopAllFactory());
     SmartDashboard.putData("Shoot", m_doghouse.shootFactory());
@@ -214,20 +225,22 @@ public class RobotContainer {
 
     // Autos
     SmartDashboard.putData("TripleL1Right", getAutoPath("TripleL1Right"));
+    // SmartDashboard.putData("TripleL1Right", pathFinder.setGoalPosition(new
+    // Translation2d(4.1148)));
   }
 
   public void configureButtonBox() {
     buttons.button(1).onTrue(m_armevator.L2Factory());
     buttons.button(2).onTrue(m_armevator.L3Factory());
     buttons.button(3).onTrue(m_armevator.L4Factory());
-    buttons.button(10).onTrue(m_doghouse.shootFactory());
+    buttons.button(10).onTrue(shootCommand());
     buttons.button(4).onTrue(m_armevator.stowFactory());
     buttons.button(5).onTrue(getCoralFactory());
     buttons.button(11).onTrue(algaePickupFactory());
     buttons.button(7).onTrue(climber.prepClimber());
     buttons.button(8).onTrue(climber.poweredClimbFactory());
 
-    controller.rightBumper().onTrue(m_doghouse.shootFactory());
+    controller.rightBumper().onTrue(m_doghouse.shootFullSpeedFactory());
   }
 
   /**
@@ -303,7 +316,16 @@ public class RobotContainer {
                 drive,
                 () -> -controller.getLeftY(),
                 () -> -controller.getLeftX(),
-                () -> new Rotation2d()));
+                () -> Rotation2d.fromDegrees(drive.getAngle())));
+
+    controller
+        .y()
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () -> Rotation2d.fromDegrees(drive.aimAtReef())));
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -332,9 +354,39 @@ public class RobotContainer {
     }
   }
 
+  private Command shootCommand() {
+    return new ParallelDeadlineGroup(
+        m_doghouse.shootFactory(), new WaitCommand(0.5).andThen(m_armevator.armGoToZeroFactory()));
+  }
+
   private Command algaePickupFactory() {
     return new ParallelCommandGroup(
-        m_armevator.algaePickupFactory(), m_doghouse.algaePickupFactory());
+        m_armevator
+            .algaePickupFactory()
+            .until(() -> m_doghouse.hasCoralDebounced())
+            .andThen(m_armevator.stowFactory()),
+        m_doghouse.algaePickupFactory());
+  }
+
+  private Command L2AlgaePickupFactory() {
+    return new ParallelCommandGroup(
+        m_armevator.L2Algae()
+            .until(() -> m_doghouse.hasCoralDebounced())
+            .andThen(m_armevator.stowFactory()),
+        m_doghouse.algaePickupFactory());
+  }
+
+  private Command L3AlgaePickupFactory() {
+    return new ParallelCommandGroup(
+        m_armevator.L3Algae()
+            .until(() -> m_doghouse.hasCoralDebounced())
+            .andThen(m_armevator.stowFactory()),
+        m_doghouse.algaePickupFactory());
+  }
+
+  public Command shootInNet() {
+    return new ParallelCommandGroup(
+        m_armevator.shootInNetFactory(), m_doghouse.setAlgaeSlowFactory());
   }
 
   private Command goToTiltAngleFactory() {
