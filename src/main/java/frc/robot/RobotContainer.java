@@ -242,7 +242,7 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     m_armevator.setDefaultCommand(m_armevator.defaultCommand());
-    m_doghouse.setDefaultCommand(m_doghouse.coralIntakeFactory());
+    m_doghouse.setDefaultCommand(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()));
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
@@ -340,7 +340,7 @@ public class RobotContainer {
 
   private Command getCoralFactory() {
     return new ParallelDeadlineGroup(
-        m_doghouse.coralIntakeFactory(), m_armevator.armGoToZeroFactory());
+        m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()), m_armevator.armGoToZeroFactory());
   }
 
   public void teleopInit() {}
