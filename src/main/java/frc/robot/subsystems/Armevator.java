@@ -211,6 +211,10 @@ public class Armevator extends SubsystemBase {
     return Math.abs(getArmAngle()) < 1.2;
   }
 
+ public boolean isElevatorDown() {
+  return m_magnetInput.get();
+}
+
   private void elevatorSetSlowSpeed() {
     m_elevatorMain.setControl(new DutyCycleOut(0.1));
   }

@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import java.util.function.BooleanSupplier;
+
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -174,10 +176,13 @@ public class Doghouse extends SubsystemBase {
     return new RunCommand(() -> manipulatorAlgaeSlow(), this);
   }
 
-  public Command coralIntakeFactory() {
+  public Command coralIntakeFactory(BooleanSupplier elevatorDown) {
     return new RunCommand(
         () -> {
-          if (!hasCoral()) {
+          if (!elevatorDown.getAsBoolean()) {
+            manipulatorStop();
+            funnelStop();
+          } else if (!hasCoral()) {
             manipulatorIn();
             funnelGo();
             m_coralCaptured = false;
