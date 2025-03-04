@@ -19,7 +19,6 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -58,7 +57,7 @@ public class Climber extends SubsystemBase {
   private DoublePreferenceConstant p_gasmotorPositionInches =
       new DoublePreferenceConstant("Climber/GasMotor/PositionInches", 7.0);
   private DoublePreferenceConstant p_gasmotorPositionRotations =
-      new DoublePreferenceConstant("Climber/GasMotor/PositionRotations", 0.22);
+      new DoublePreferenceConstant("Climber/GasMotor/PositionRotations", 184.0);
   private DoublePreferenceConstant p_gripperSoftClose =
       new DoublePreferenceConstant("Climber/Gripper/GripperSoftCloseAngle", 10);
 
@@ -85,6 +84,8 @@ public class Climber extends SubsystemBase {
   private Debouncer gripperDebouncer = new Debouncer(0.33);
   public Trigger onDisable = new Trigger(() -> shouldEnableNeutralOnDisable());
   public Trigger shouldCloseTrigger = new Trigger(() -> shouldClose() && RobotState.isEnabled());
+  public Trigger shouldSoftCloseTrigger =
+      new Trigger(() -> shouldSoftClose() && RobotState.isEnabled());
   // public Trigger forceCloseTrigger = new Trigger(() -> forceClose());
 
   /** Creates a new Climber. */
@@ -129,7 +130,8 @@ public class Climber extends SubsystemBase {
     gasmotorsoftlimtis.ForwardSoftLimitEnable = true;
     gasmotorsoftlimtis.ForwardSoftLimitThreshold =
         (p_gasmotorLimit.getValue() / Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH);
-    gasmotorcfg.CurrentLimits.StatorCurrentLimitEnable = false;
+    gasmotorcfg.CurrentLimits.StatorCurrentLimitEnable = true;
+    gasmotorcfg.CurrentLimits.StatorCurrentLimit = 75.0;
     gasmotorcfg.CurrentLimits.SupplyCurrentLimitEnable = false;
     grippercfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
@@ -161,8 +163,12 @@ public class Climber extends SubsystemBase {
   public boolean shouldClose() {
     return !input.get()
         && gripperDebouncer.calculate(
-            m_canRange.getDistance().getValueAsDouble() > 0.21
-                && m_canRange.getDistance().getValueAsDouble() < 0.23);
+            m_canRange.getDistance().getValueAsDouble() > 0.19
+                && m_canRange.getDistance().getValueAsDouble() < 0.20);
+  }
+
+  public boolean shouldSoftClose() {
+    return !input.get() && m_canRange.getDistance().getValueAsDouble() > 0.24;
   }
 
   public boolean forceClose() {
@@ -398,7 +404,7 @@ public class Climber extends SubsystemBase {
   public Command prepClimber() {
     return new RunCommand(
         () -> {
-          setGasMotorPostionInches(p_gasmotorPositionInches.getValue());
+          setGasMotorPositionRotations(p_gasmotorPositionRotations.getValue());
           openGrabber();
         },
         this);
@@ -413,8 +419,7 @@ public class Climber extends SubsystemBase {
     SmartDashboard.putNumber("Encoder position", m_climberEncoder.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Climber Angle", getAngleOfClimber());
     SmartDashboard.putNumber(
-        "Climber CAN Range Distance",
-        Units.metersToInches(m_canRange.getDistance().getValueAsDouble()));
+        "Climber CAN Range Distance", m_canRange.getDistance().getValueAsDouble() * 100.0);
     SmartDashboard.putNumber("Gripper Position", getGripperPositionRotations());
     SmartDashboard.putBoolean("Sensor ouput", input.get());
     SmartDashboard.putBoolean("Grabbed", m_grabbed);

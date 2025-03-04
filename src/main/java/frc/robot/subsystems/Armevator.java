@@ -182,6 +182,19 @@ public class Armevator extends SubsystemBase {
     armGoToTiltAngle();
   }
 
+  public boolean atL2() {
+    return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L2_HEIGHT) < 0.2;
+  }
+
+  public boolean atL3() {
+    return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L3_HEIGHT) < 0.2;
+  }
+
+  public boolean atL4() {
+    return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L4_HEIGHT) < 0.2
+        && Math.abs(getArmAngle() - Constants.ARM_L4_ANGLE) < 1.0;
+  }
+
   private void elevatorStop() {
     m_elevatorMain.setControl(new DutyCycleOut(0.0));
   }

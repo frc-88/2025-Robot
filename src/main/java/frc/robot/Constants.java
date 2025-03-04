@@ -41,10 +41,10 @@ public final class Constants {
 
   public static final String RIO_CANBUS = "rio";
 
-  public static final double ARM_L4_ANGLE = 33.0;
+  public static final double ARM_L4_ANGLE = 37.0;
   public static final double ELEVATOR_L4_HEIGHT = 28.875;
-  public static final double ELEVATOR_L3_HEIGHT = 14;
-  public static final double ELEVATOR_L2_HEIGHT = 6.375;
+  public static final double ELEVATOR_L3_HEIGHT = 14.0 - 0.125;
+  public static final double ELEVATOR_L2_HEIGHT = 5.375 + 0.25;
   // ARMEVATOR
   public static final int ELEVATOR_MAIN_MOTOR = 2;
   public static final int ELEVATOR_FOLLOWER_MOTOR = 3;
@@ -63,12 +63,12 @@ public final class Constants {
 
   // CLIMBER
   public static final int CLIMBER_GRIPPER_MOTOR = 17;
-  public static final int CLIMBER_GAS_MOTOR = 12;
-  public static final int CLIMBER_ENCODER = 3;
-  public static final int CLIMBER_CANRANGE = 5;
+  public static final int CLIMBER_GAS_MOTOR = 5;
+  public static final int CLIMBER_ENCODER = 12;
+  public static final int CLIMBER_CANRANGE = 17;
   public static final double PIVOT_MOTOR_ROTATIONS_TO_CLIMBER_POSITION = (360.0 / 196.0);
-  public static final double GRIPPER_MOTOR_ROTATIONS_TO_ANGLE = (360 / 49.0);
-  public static final double GAS_MOTOR_ROTATIONS_TO_LENGTH = (1.39 / 28.0);
+  public static final double GRIPPER_MOTOR_ROTATIONS_TO_ANGLE = (360 / 21.0);
+  public static final double GAS_MOTOR_ROTATIONS_TO_LENGTH = (8.0 / 180.0);
   public static final double CLIMBER_ENCODER_ROTATIONS_TO_ANGLE = 360;
 
   public static final Pose2d REEF_POSE =

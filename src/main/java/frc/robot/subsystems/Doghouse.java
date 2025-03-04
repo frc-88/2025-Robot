@@ -87,6 +87,10 @@ public class Doghouse extends SubsystemBase {
     m_coralRange.getConfigurator().apply(coralRangecfg);
   }
 
+  public boolean getIsReefDetected() {
+    return m_reefRange.getIsDetected().getValue();
+  }
+
   public boolean hasCoralDebounced() {
     return m_algaeDebouncer.calculate(hasCoral());
   }

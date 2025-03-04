@@ -189,6 +189,44 @@ public class Drive extends SubsystemBase {
     return angle;
   }
 
+  public String getPathOdd() {
+    String name = "Score ";
+    double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      name += 11;
+    } else if (angle > 30.0 && angle < 90.0) {
+      name += 9;
+    } else if (angle > 90.0 && angle < 150.0) {
+      name += 7;
+    } else if (angle > 150.0 || angle < -150.0) {
+      name += 5;
+    } else if (angle > -150.0 && angle < -90.0) {
+      name += 3;
+    } else if (angle > -90.0 && angle < -30.0) {
+      name += 1;
+    }
+    return name;
+  }
+
+  public String getPathEven() {
+    String name = "Score ";
+    double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      name += 12;
+    } else if (angle > 30.0 && angle < 90.0) {
+      name += 10;
+    } else if (angle > 90.0 && angle < 150.0) {
+      name += 8;
+    } else if (angle > 150.0 || angle < -150.0) {
+      name += 6;
+    } else if (angle > -150.0 && angle < -90.0) {
+      name += 4;
+    } else if (angle > -90.0 && angle < -30.0) {
+      name += 2;
+    }
+    return name;
+  }
+
   public Pose2d nextPose() {
     Pose2d current = getPose();
     double x = getChassisSpeeds().vxMetersPerSecond;
