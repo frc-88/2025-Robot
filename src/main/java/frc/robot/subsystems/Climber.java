@@ -81,7 +81,7 @@ public class Climber extends SubsystemBase {
   VisionIOLimelight vision = new VisionIOLimelight("", () -> new Rotation2d());
 
   private Debouncer climberDebouncer = new Debouncer(1.0);
-  private Debouncer gripperDebouncer = new Debouncer(0.33);
+  private Debouncer gripperDebouncer = new Debouncer(0.1);
   public Trigger onDisable = new Trigger(() -> shouldEnableNeutralOnDisable());
   public Trigger shouldCloseTrigger = new Trigger(() -> shouldClose() && RobotState.isEnabled());
   public Trigger shouldSoftCloseTrigger =

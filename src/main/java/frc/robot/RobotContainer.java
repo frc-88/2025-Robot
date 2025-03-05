@@ -32,7 +32,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
@@ -57,6 +56,7 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.LocalADStarAK;
+import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -88,7 +88,9 @@ public class RobotContainer {
 
   public Trigger driveOnCoral = new Trigger(() -> hasCoralDebounced());
   Timer timer = new Timer();
-  
+  private DoublePreferenceConstant p_amplitude = new DoublePreferenceConstant("Aplitude", 0);
+  private DoublePreferenceConstant p_frequency = new DoublePreferenceConstant("Wavelength", 0);
+
   // public Trigger atL4 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL4());
   // public Trigger atL3 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL3());
   // public Trigger atL2 =
@@ -96,6 +98,7 @@ public class RobotContainer {
   //         () -> hasCoralDebounced() && m_armevator.atL2() && m_doghouse.getIsReefDetected());
 
   public RobotContainer() {
+    timer.start();
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -272,7 +275,7 @@ public class RobotContainer {
     buttons.button(8).onTrue(L3AlgaePickupFactory());
     buttons.button(9).onTrue(L2AlgaePickupFactory());
 
-    controller.rightBumper().onTrue(m_doghouse.shootFullSpeedFactory());
+    controller.rightBumper().onTrue(shootCommand());
   }
 
   /**
@@ -287,21 +290,32 @@ public class RobotContainer {
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
-        new ConditionalCommand(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> Rotation2d.fromDegrees(drive.aimAtReef())),
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> Rotation2d.fromDegrees(drive.getAngle())),
-            () -> hasCoralDebounced()));
+        DriveCommands.joystickDriveAtAngle(
+            drive,
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> Rotation2d.fromDegrees(drive.aimAtExpectedTarget(() -> m_doghouse.hasCoral()))));
+
+    // Switch to X pattern when X button is pressed
+    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+
+    // Reset gyro to 0° when B button is pressed
 
     controller
         .a()
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () ->
+                    Rotation2d.fromDegrees(
+                        (p_amplitude.getValue()
+                                * Math.sin((p_frequency.getValue() * 2.0) * Math.PI * timer.get()))
+                            + 90.0)));
+
+    controller
+        .y()
         .onTrue(
             DriveCommands.joystickDrive(
                 drive,
@@ -309,29 +323,6 @@ public class RobotContainer {
                 () -> -controller.getLeftX(),
                 () -> -controller.getRightX()));
 
-    // Lock to 0° when A button is held
-    // controller
-    //     .a()
-    //     .whileTrue(
-    //         DriveCommands.joystickDriveAtAngle(
-    //             drive,
-    //             () -> -controller.getLeftY(),
-    //             () -> -controller.getLeftX(),
-    //             () -> Rotation2d.fromDegrees(drive.getAngle())));
-
-    controller
-        .y()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> Rotation2d.fromDegrees(1.0 * Math.sin(2.0 * Math.PI * timer.get()))));
-
-    // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
-
-    // Reset gyro to 0° when B button is pressed
     controller
         .b()
         .onTrue(
@@ -409,7 +400,8 @@ public class RobotContainer {
 
   private Command getCoralFactory() {
     return new ParallelDeadlineGroup(
-        m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()), m_armevator.armGoToZeroFactory());
+        m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()),
+        m_armevator.armGoToZeroFactory());
   }
 
   private boolean hasCoralDebounced() {
