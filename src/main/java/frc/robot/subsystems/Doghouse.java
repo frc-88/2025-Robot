@@ -21,6 +21,8 @@ import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import java.util.function.BooleanSupplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 public class Doghouse extends SubsystemBase {
   private final TalonFX m_funnel = new TalonFX(Constants.DOGHOUSE_FUNNEL_MOTOR, "rio");
   private final TalonFX m_manipulator =
@@ -88,6 +90,7 @@ public class Doghouse extends SubsystemBase {
     m_coralRange.getConfigurator().apply(coralRangecfg);
   }
 
+  @AutoLogOutput(key = "DogHouse/reefDetected")
   public boolean getIsReefDetected() {
     return m_reefRange.getIsDetected().getValue();
   }
@@ -104,10 +107,12 @@ public class Doghouse extends SubsystemBase {
     m_manipulator.setControl(m_manipulatorRequest.withOutput(output));
   }
 
+  @AutoLogOutput(key = "DogHouse/hasCoral")
   public boolean hasCoral() {
     return m_coralRange.getIsDetected().getValue();
   }
 
+  @AutoLogOutput(key = "DogHouse/isBlocked")
   private boolean isBlocked() {
     return m_doghousCANRange.getIsDetected().getValue();
   }
