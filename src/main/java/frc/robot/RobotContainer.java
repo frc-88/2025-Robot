@@ -148,7 +148,6 @@ public class RobotContainer {
         break;
     }
     registerNamedCommands();
-    configureButtonBox();
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -171,6 +170,7 @@ public class RobotContainer {
     // Configure the button bindings
     configureButtonBindings();
     configureDashboardButtons();
+    configureButtonBox();
   }
 
   public void registerNamedCommands() {
@@ -277,7 +277,9 @@ public class RobotContainer {
     buttons.button(8).onTrue(L3AlgaePickupFactory());
     buttons.button(9).onTrue(L2AlgaePickupFactory());
 
-    controller.rightBumper().onTrue(shootCommand());
+    controller.rightTrigger().onTrue(shootCommand());
+    controller.rightBumper().whileTrue(drive.getPathEven()).onFalse(drive.getDefaultCommand());
+    controller.leftBumper().whileTrue(drive.getPathOdd()).onFalse(drive.getDefaultCommand());
   }
 
   /**

@@ -13,6 +13,7 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -70,6 +71,8 @@ public final class Constants {
   public static final double GRIPPER_MOTOR_ROTATIONS_TO_ANGLE = (360 / 21.0);
   public static final double GAS_MOTOR_ROTATIONS_TO_LENGTH = (8.0 / 180.0);
   public static final double CLIMBER_ENCODER_ROTATIONS_TO_ANGLE = 360;
+
+  public static final PathConstraints CONSTRAINTS = new PathConstraints(3.0, 3.0, 8.0, 20.0);
 
   public static final Pose2d REEF_POSE =
       new Pose2d(

@@ -21,6 +21,7 @@ import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
@@ -46,11 +47,13 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
+import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
@@ -59,6 +62,9 @@ import org.littletonrobotics.junction.Logger;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
+
+  private ArrayList<Command> m_paths = new ArrayList<>();
+
   public Pose2d nextPose = new Pose2d();
   static final double ODOMETRY_FREQUENCY =
       new CANBus(TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD() ? 250.0 : 100.0;
@@ -159,6 +165,18 @@ public class Drive extends SubsystemBase {
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+
+    for (int i = 1; i < 13; i++) {
+      try {
+        PathPlannerPath path = PathPlannerPath.fromPathFile("Score " + i);
+        m_paths.add(AutoBuilder.pathfindThenFollowPath(path, Constants.CONSTRAINTS));
+      } catch (Exception e) {
+        Command autoPath = new WaitCommand(1.0);
+        m_paths.add(autoPath);
+        System.err.println("Exception loading auto path");
+        e.printStackTrace();
+      }
+    }
   }
 
   private double aimAtStation() {
@@ -190,42 +208,42 @@ public class Drive extends SubsystemBase {
     return angle;
   }
 
-  public String getPathOdd() {
-    String name = "Score ";
+  public Command getPathOdd() {
+    int path = 0;
     double angle = getAngleToReef(nextPose());
     if (angle < 30.0 && angle > -30.0) {
-      name += 11;
+      path = 11;
     } else if (angle > 30.0 && angle < 90.0) {
-      name += 9;
+      path = 9;
     } else if (angle > 90.0 && angle < 150.0) {
-      name += 7;
+      path = 7;
     } else if (angle > 150.0 || angle < -150.0) {
-      name += 5;
+      path = 5;
     } else if (angle > -150.0 && angle < -90.0) {
-      name += 3;
+      path = 3;
     } else if (angle > -90.0 && angle < -30.0) {
-      name += 1;
+      path = 1;
     }
-    return name;
+    return m_paths.get(path - 1);
   }
 
-  public String getPathEven() {
-    String name = "Score ";
+  public Command getPathEven() {
+    int path = 0;
     double angle = getAngleToReef(nextPose());
     if (angle < 30.0 && angle > -30.0) {
-      name += 12;
+      path += 12;
     } else if (angle > 30.0 && angle < 90.0) {
-      name += 10;
+      path += 10;
     } else if (angle > 90.0 && angle < 150.0) {
-      name += 8;
+      path += 8;
     } else if (angle > 150.0 || angle < -150.0) {
-      name += 6;
+      path += 6;
     } else if (angle > -150.0 && angle < -90.0) {
-      name += 4;
+      path += 4;
     } else if (angle > -90.0 && angle < -30.0) {
-      name += 2;
+      path += 2;
     }
-    return name;
+    return m_paths.get(path - 1);
   }
 
   public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
