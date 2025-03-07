@@ -45,6 +45,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Armevator;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Doghouse;
+import frc.robot.subsystems.Lights;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -69,6 +70,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Vision vision;
+  private final Lights lights;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -79,9 +81,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public Armevator m_armevator = new Armevator();
-
   public Doghouse m_doghouse = new Doghouse();
-
   public Climber climber = new Climber();
 
   public LocalADStarAK pathFinder = new LocalADStarAK();
@@ -147,9 +147,13 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
+
     registerNamedCommands();
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+
+    // ready functions replaced with lambdas returning true for now...need to be implemented in each subsystem
+    lights = new Lights(() -> true, () -> true, () -> true, () -> true, () -> true, m_doghouse::hasCoral, m_armevator::isElevatorDown, () -> autoChooser.get().getName() );
 
     // Set up SysId routines
     autoChooser.addOption(
