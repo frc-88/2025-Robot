@@ -57,6 +57,7 @@ import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.LocalADStarAK;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -366,7 +367,9 @@ public class RobotContainer {
 
   private Command shootCommand() {
     return new ParallelDeadlineGroup(
-        m_doghouse.shootFactory(), new WaitCommand(0.5).andThen(m_armevator.armGoToZeroFactory()));
+        m_doghouse.shootFactory(),
+        new WaitCommand(0.5).andThen(m_armevator.armGoToZeroFactory()),
+        new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
   }
 
   private Command netflingCommand() {
