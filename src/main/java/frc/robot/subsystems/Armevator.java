@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -113,6 +115,7 @@ public class Armevator extends SubsystemBase {
     m_arm.setNeutralMode(NeutralModeValue.Brake);
   }
 
+  @AutoLogOutput(key = "Armevator/armAngle")
   public double getArmAngle() {
     return m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES;
   }
@@ -129,6 +132,7 @@ public class Armevator extends SubsystemBase {
     m_elevatorMain.setPosition(0.0);
   }
 
+  @AutoLogOutput(key = "Armevator/elevatorPosition")
   public double getElevatorPositionInches() {
     return m_elevatorMain.getPosition().getValueAsDouble() * Constants.ELEVATOR_ROTATIONS_TO_INCHES;
   }
