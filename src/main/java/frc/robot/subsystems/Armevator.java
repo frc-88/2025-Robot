@@ -57,6 +57,8 @@ public class Armevator extends SubsystemBase {
 
   private final DoublePreferenceConstant p_armEncoderOffset =
       new DoublePreferenceConstant("Armevator/Arm/EncoderOffset", -0.154785);
+  private final DoublePreferenceConstant p_armAngleNet =
+      new DoublePreferenceConstant("Armevator/Arm/NetAngle", -40.0);
 
   private final MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
 
@@ -168,7 +170,7 @@ public class Armevator extends SubsystemBase {
   private void setL4Shoot() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
-      armSetAngle(-40.0);
+      armSetAngle(p_armAngleNet.getValue());
     }
   }
 
@@ -180,6 +182,19 @@ public class Armevator extends SubsystemBase {
   private void setL2() {
     elevatorSetPosition(Constants.ELEVATOR_L2_HEIGHT);
     armGoToTiltAngle();
+  }
+
+  public boolean atL2() {
+    return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L2_HEIGHT) < 0.2;
+  }
+
+  public boolean atL3() {
+    return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L3_HEIGHT) < 0.2;
+  }
+
+  public boolean atL4() {
+    return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L4_HEIGHT) < 0.2
+        && Math.abs(getArmAngle() - Constants.ARM_L4_ANGLE) < 1.0;
   }
 
   private void elevatorStop() {
@@ -196,6 +211,10 @@ public class Armevator extends SubsystemBase {
 
   public boolean isArmOnPosition() {
     return Math.abs(getArmAngle()) < 1.2;
+  }
+
+  public boolean isElevatorDown() {
+    return !m_magnetInput.get();
   }
 
   private void elevatorSetSlowSpeed() {

@@ -21,6 +21,7 @@ import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
@@ -44,6 +45,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -54,13 +56,21 @@ import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
+import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
+import java.util.function.IntSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
+
+  private ArrayList<PathPlannerPath> m_paths = new ArrayList<>();
+
+  public int m_currentPathEven = 10;
+  public int m_currentPathOdd = 10;
   public Pose2d nextPose = new Pose2d();
   static final double ODOMETRY_FREQUENCY =
       new CANBus(TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD() ? 250.0 : 100.0;
@@ -161,20 +171,41 @@ public class Drive extends SubsystemBase {
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+
+    for (int i = 1; i < 13; i++) {
+      try {
+        PathPlannerPath path = PathPlannerPath.fromPathFile("Score " + i);
+        m_paths.add(path);
+        System.out.println("Loaded path " + i);
+      } catch (Exception e) {
+        Command autoPath = new WaitCommand(1.0);
+        // m_paths.add(autoPath);
+        System.err.println("Exception loading auto path");
+        e.printStackTrace();
+      }
+    }
   }
 
-  public double getAngle() {
+  private double aimAtStation() {
     return getPose().getY() < 4.1148 ? 45.0 : -45.0;
   }
 
-  public double getAngleToReef(Pose2d pose) {
+  private double getAngleToReef(Pose2d pose) {
     Translation2d position = pose.relativeTo(Constants.REEF_POSE).getTranslation();
     double x = position.getX();
     double y = position.getY();
     return Units.radiansToDegrees(Math.atan2(y, x));
   }
 
-  public double aimAtReef() {
+  private Command getPath(IntSupplier i) {
+    try {
+      return AutoBuilder.pathfindThenFollowPath(m_paths.get(i.getAsInt()), Constants.CONSTRAINTS);
+    } catch (IndexOutOfBoundsException e) {
+      return new WaitCommand(1.0);
+    }
+  }
+
+  private double aimAtReef() {
     double angle = getAngleToReef(nextPose());
     if (angle < 30.0 && angle > -30.0) {
       angle = 180.0;
@@ -190,6 +221,43 @@ public class Drive extends SubsystemBase {
       angle = 120;
     }
     return angle;
+  }
+
+  public Command getPathOdd() {
+    return getPath(() -> m_currentPathOdd);
+  }
+
+  public Command getPathEven() {
+
+    return new SequentialCommandGroup(
+        new InstantCommand(
+            () -> {
+              double angle = getAngleToReef(nextPose());
+              if (angle < 30.0 && angle > -30.0) {
+                m_currentPathEven = 12;
+              } else if (angle > 30.0 && angle < 90.0) {
+                m_currentPathEven = 10;
+              } else if (angle > 90.0 && angle < 150.0) {
+                m_currentPathEven = 8;
+              } else if (angle > 150.0 || angle < -150.0) {
+                m_currentPathEven = 6;
+              } else if (angle > -150.0 && angle < -90.0) {
+                m_currentPathEven = 4;
+              } else if (angle > -90.0 && angle < -30.0) {
+                m_currentPathEven = 2;
+              } else {
+                m_currentPathEven = 2;
+              }
+            }),
+        getPath(() -> m_currentPathEven));
+  }
+
+  public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
+    if (hasCoral.getAsBoolean()) {
+      return aimAtReef();
+    } else {
+      return aimAtStation();
+    }
   }
 
   public Pose2d nextPose() {
@@ -285,6 +353,23 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
+    double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      m_currentPathOdd = 11;
+    } else if (angle > 30.0 && angle < 90.0) {
+      m_currentPathOdd = 9;
+    } else if (angle > 90.0 && angle < 150.0) {
+      m_currentPathOdd = 7;
+    } else if (angle > 150.0 || angle < -150.0) {
+      m_currentPathOdd = 5;
+    } else if (angle > -150.0 && angle < -90.0) {
+      m_currentPathOdd = 3;
+    } else if (angle > -90.0 && angle < -30.0) {
+      m_currentPathOdd = 1;
+    } else {
+      m_currentPathOdd = 2;
+    }
+    SmartDashboard.putNumber("CurrentPathOdd", m_currentPathOdd);
   }
 
   /**

@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import java.util.function.BooleanSupplier;
 
 public class Doghouse extends SubsystemBase {
   private final TalonFX m_funnel = new TalonFX(Constants.DOGHOUSE_FUNNEL_MOTOR, "rio");
@@ -85,6 +86,10 @@ public class Doghouse extends SubsystemBase {
 
     m_doghousCANRange.getConfigurator().apply(doghouscfg);
     m_coralRange.getConfigurator().apply(coralRangecfg);
+  }
+
+  public boolean getIsReefDetected() {
+    return m_reefRange.getIsDetected().getValue();
   }
 
   public boolean hasCoralDebounced() {
@@ -170,10 +175,13 @@ public class Doghouse extends SubsystemBase {
     return new RunCommand(() -> manipulatorAlgaeSlow(), this);
   }
 
-  public Command coralIntakeFactory() {
+  public Command coralIntakeFactory(BooleanSupplier elevatorDown) {
     return new RunCommand(
         () -> {
-          if (!hasCoral()) {
+          if (!elevatorDown.getAsBoolean()) {
+            manipulatorStop();
+            funnelStop();
+          } else if (!hasCoral()) {
             manipulatorIn();
             funnelGo();
             m_coralCaptured = false;

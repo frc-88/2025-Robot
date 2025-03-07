@@ -21,18 +21,25 @@ import static frc.robot.subsystems.vision.VisionConstants.robotToCamera1;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Armevator;
@@ -49,6 +56,7 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.LocalADStarAK;
+import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -78,7 +86,19 @@ public class RobotContainer {
 
   public LocalADStarAK pathFinder = new LocalADStarAK();
 
+  public Trigger driveOnCoral = new Trigger(() -> hasCoralDebounced());
+  Timer timer = new Timer();
+  private DoublePreferenceConstant p_amplitude = new DoublePreferenceConstant("Aplitude", 0);
+  private DoublePreferenceConstant p_frequency = new DoublePreferenceConstant("Wavelength", 0);
+
+  // public Trigger atL4 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL4());
+  // public Trigger atL3 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL3());
+  // public Trigger atL2 =
+  //     new Trigger(
+  //         () -> hasCoralDebounced() && m_armevator.atL2() && m_doghouse.getIsReefDetected());
+
   public RobotContainer() {
+    timer.start();
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -128,7 +148,6 @@ public class RobotContainer {
         break;
     }
     registerNamedCommands();
-    configureButtonBox();
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -151,10 +170,12 @@ public class RobotContainer {
     // Configure the button bindings
     configureButtonBindings();
     configureDashboardButtons();
+    configureButtonBox();
   }
 
   public void registerNamedCommands() {
     NamedCommands.registerCommand("Shoot", shootCommand());
+    NamedCommands.registerCommand("NetFling", netflingCommand());
     NamedCommands.registerCommand("Get Coral", getCoralFactory());
     NamedCommands.registerCommand(
         "Arm Go To Zero", m_armevator.armGoToZeroFactory().withTimeout(0.5));
@@ -165,12 +186,23 @@ public class RobotContainer {
 
   public void configureDashboardButtons() {
 
+    climber.shouldNeutral().onTrue(climber.gasMotorNeutralModeFactory().ignoringDisable(true));
+    // .onFalse(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
     climber
-        .shouldNeutral()
-        .onTrue(climber.gasMotorNeutralModeFactory().ignoringDisable(true))
-        .onFalse(climber.gasMotorBrakeModeFactory().ignoringDisable(true));
-    climber.shouldGripperClose().onTrue(climber.closeGrabberFactory());
+        .shouldGripperClose()
+        .onTrue(
+            climber
+                .closeGrabberFactory()
+                .alongWith(
+                    new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, 1))
+                        .andThen(new WaitCommand(2.0))
+                        .andThen(
+                            new InstantCommand(
+                                () -> controller.setRumble(RumbleType.kBothRumble, 0)))));
+
+    climber.shouldSoftCloseTrigger.onTrue(climber.softCloseFactory());
     m_armevator.m_shouldCalibrate.onTrue(m_armevator.elevatorCalibrateFactory());
+    // atL2.onTrue(m_doghouse.shootFactory());
     // .onFalse(climber.setNotGrabbed());
     // climber.forceCloseOnDisable().onTrue(climber.climbOnDisable().ignoringDisable(true));
 
@@ -188,6 +220,7 @@ public class RobotContainer {
     SmartDashboard.putData("L2 Algae", L2AlgaePickupFactory());
     SmartDashboard.putData("L3 Algae", L3AlgaePickupFactory());
     SmartDashboard.putData("Shoot In Net", shootInNet());
+    SmartDashboard.putData("Fling In Net", netflingCommand());
     SmartDashboard.putData("Shoot Full Speed", m_doghouse.shootFullSpeedFactory());
 
     SmartDashboard.putData("Stop Doghouse", m_doghouse.stopAllFactory());
@@ -216,6 +249,23 @@ public class RobotContainer {
 
     // Pitcrew
     SmartDashboard.putData("Calibrate Drive", drive.calibrateModuleOffsetsFactory());
+    
+    // Autos
+    SmartDashboard.putData("TripleL1Right", getAutoPath("TripleL1Right"));
+    SmartDashboard.putData("Score 5", scoreAuto(5));
+    SmartDashboard.putData("Score 6", scoreAuto(6));
+    SmartDashboard.putData("Score 7", scoreAuto(7));
+    SmartDashboard.putData("Score 8", scoreAuto(8));
+    SmartDashboard.putData("Score 9", scoreAuto(9));
+    SmartDashboard.putData("Score 10", scoreAuto(10));
+    SmartDashboard.putData("Score 11", scoreAuto(11));
+    SmartDashboard.putData("Score 12", scoreAuto(12));
+    SmartDashboard.putData("Score 1", scoreAuto(1));
+    SmartDashboard.putData("Score 2", scoreAuto(2));
+    SmartDashboard.putData("Score 3", scoreAuto(3));
+    SmartDashboard.putData("Score 4", scoreAuto(4));
+    // SmartDashboard.putData("TripleL1Right", pathFinder.setGoalPosition(new
+    // Translation2d(4.1148)));
   }
 
   public void configureButtonBox() {
@@ -227,9 +277,12 @@ public class RobotContainer {
     buttons.button(5).onTrue(getCoralFactory());
     buttons.button(11).onTrue(algaePickupFactory());
     buttons.button(7).onTrue(climber.prepClimber());
-    buttons.button(8).onTrue(climber.poweredClimbFactory());
+    buttons.button(8).onTrue(L3AlgaePickupFactory());
+    buttons.button(9).onTrue(L2AlgaePickupFactory());
 
-    controller.rightBumper().onTrue(m_doghouse.shootFullSpeedFactory());
+    controller.rightTrigger().onTrue(shootCommand());
+    controller.rightBumper().onTrue(drive.getPathEven()).onFalse(drive.getDefaultCommand());
+    controller.leftBumper().onTrue(drive.getPathOdd()).onFalse(drive.getDefaultCommand());
   }
 
   /**
@@ -240,17 +293,21 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     m_armevator.setDefaultCommand(m_armevator.defaultCommand());
-    m_doghouse.setDefaultCommand(m_doghouse.coralIntakeFactory());
+    m_doghouse.setDefaultCommand(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()));
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
+        DriveCommands.joystickDriveAtAngle(
             drive,
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> Rotation2d.fromDegrees(drive.aimAtExpectedTarget(() -> m_doghouse.hasCoral()))));
 
-    // Lock to 0° when A button is held
+    // Switch to X pattern when X button is pressed
+    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+
+    // Reset gyro to 0° when B button is pressed
+
     controller
         .a()
         .whileTrue(
@@ -258,21 +315,21 @@ public class RobotContainer {
                 drive,
                 () -> -controller.getLeftY(),
                 () -> -controller.getLeftX(),
-                () -> Rotation2d.fromDegrees(drive.getAngle())));
+                () ->
+                    Rotation2d.fromDegrees(
+                        (p_amplitude.getValue()
+                                * Math.sin((p_frequency.getValue() * 2.0) * Math.PI * timer.get()))
+                            + 90.0)));
 
     controller
         .y()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
+        .onTrue(
+            DriveCommands.joystickDrive(
                 drive,
                 () -> -controller.getLeftY(),
                 () -> -controller.getLeftX(),
-                () -> Rotation2d.fromDegrees(drive.aimAtReef())));
+                () -> -controller.getRightX()));
 
-    // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
-
-    // Reset gyro to 0° when B button is pressed
     controller
         .b()
         .onTrue(
@@ -296,9 +353,28 @@ public class RobotContainer {
     }
   }
 
+  private Command scoreAuto(int num) {
+    try {
+      PathPlannerPath autoPath = PathPlannerPath.fromPathFile("Score " + num);
+      return AutoBuilder.pathfindThenFollowPath(autoPath, new PathConstraints(3.0, 3.0, 8.0, 20.0));
+    } catch (Exception e) {
+      Command autoPath = new WaitCommand(1.0);
+      System.err.println("Exception loading auto path");
+      e.printStackTrace();
+      return autoPath;
+    }
+  }
+
   private Command shootCommand() {
     return new ParallelDeadlineGroup(
         m_doghouse.shootFactory(), new WaitCommand(0.5).andThen(m_armevator.armGoToZeroFactory()));
+  }
+
+  private Command netflingCommand() {
+    return new ParallelDeadlineGroup(
+            new WaitCommand(0.15).andThen(m_doghouse.shootFullSpeedFactory()),
+            m_armevator.armGoToZeroFactory())
+        .andThen(m_armevator.stowFactory());
   }
 
   private Command algaePickupFactory() {
@@ -338,10 +414,18 @@ public class RobotContainer {
 
   private Command getCoralFactory() {
     return new ParallelDeadlineGroup(
-        m_doghouse.coralIntakeFactory(), m_armevator.armGoToZeroFactory());
+        m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()),
+        m_armevator.armGoToZeroFactory());
   }
 
-  public void teleopInit() {}
+  private boolean hasCoralDebounced() {
+    return m_doghouse.hasCoralDebounced();
+  }
+
+  public void teleopInit() {
+    new SequentialCommandGroup(climber.calibrateFactory(), climber.calibrateGripperFactory())
+        .schedule();
+  }
 
   public void disableInit() {}
 
