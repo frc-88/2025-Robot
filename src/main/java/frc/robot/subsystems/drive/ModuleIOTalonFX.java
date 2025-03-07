@@ -145,13 +145,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     tryUntilOk(5, () -> turnTalon.getConfigurator().apply(turnConfig, 0.25));
 
     // Configure CANCoder
-    CANcoderConfiguration cancoderConfig = constants.EncoderInitialConfigs;
-    cancoderConfig.MagnetSensor.MagnetOffset = constants.EncoderOffset;
-    cancoderConfig.MagnetSensor.SensorDirection =
-        constants.EncoderInverted
-            ? SensorDirectionValue.Clockwise_Positive
-            : SensorDirectionValue.CounterClockwise_Positive;
-    cancoder.getConfigurator().apply(cancoderConfig);
+    configureEncoder(constants.EncoderOffset);
 
     // Create timestamp queue
     timestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
@@ -185,6 +179,23 @@ public class ModuleIOTalonFX implements ModuleIO {
         turnAppliedVolts,
         turnCurrent);
     ParentDevice.optimizeBusUtilizationForAll(driveTalon, turnTalon);
+  }
+
+  @Override
+  public void configureEncoder(double offset) {
+    // Configure CANCoder
+    CANcoderConfiguration cancoderConfig = constants.EncoderInitialConfigs;
+    cancoderConfig.MagnetSensor.MagnetOffset = offset;
+    cancoderConfig.MagnetSensor.SensorDirection =
+        constants.EncoderInverted
+            ? SensorDirectionValue.Clockwise_Positive
+            : SensorDirectionValue.CounterClockwise_Positive;
+    cancoder.getConfigurator().apply(cancoderConfig);
+  }
+
+  @Override
+  public double getEncoderPosition() {
+    return cancoder.getAbsolutePosition().getValueAsDouble();
   }
 
   @Override
