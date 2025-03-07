@@ -121,6 +121,7 @@ public class DriveCommands {
             ANGLE_KD,
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
     angleController.enableContinuousInput(-Math.PI, Math.PI);
+    angleController.setTolerance(0.2);
 
     // Construct command
     return Commands.run(
