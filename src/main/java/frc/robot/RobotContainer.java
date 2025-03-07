@@ -175,6 +175,7 @@ public class RobotContainer {
 
   public void registerNamedCommands() {
     NamedCommands.registerCommand("Shoot", shootCommand());
+    NamedCommands.registerCommand("NetFling", netflingCommand());
     NamedCommands.registerCommand("Get Coral", getCoralFactory());
     NamedCommands.registerCommand(
         "Arm Go To Zero", m_armevator.armGoToZeroFactory().withTimeout(0.5));
@@ -219,6 +220,7 @@ public class RobotContainer {
     SmartDashboard.putData("L2 Algae", L2AlgaePickupFactory());
     SmartDashboard.putData("L3 Algae", L3AlgaePickupFactory());
     SmartDashboard.putData("Shoot In Net", shootInNet());
+    SmartDashboard.putData("Fling In Net", netflingCommand());
     SmartDashboard.putData("Shoot Full Speed", m_doghouse.shootFullSpeedFactory());
 
     SmartDashboard.putData("Stop Doghouse", m_doghouse.stopAllFactory());
@@ -363,6 +365,13 @@ public class RobotContainer {
   private Command shootCommand() {
     return new ParallelDeadlineGroup(
         m_doghouse.shootFactory(), new WaitCommand(0.5).andThen(m_armevator.armGoToZeroFactory()));
+  }
+
+  private Command netflingCommand() {
+    return new ParallelDeadlineGroup(
+            new WaitCommand(0.15).andThen(m_doghouse.shootFullSpeedFactory()),
+            m_armevator.armGoToZeroFactory())
+        .andThen(m_armevator.stowFactory());
   }
 
   private Command algaePickupFactory() {
