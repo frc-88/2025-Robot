@@ -276,8 +276,8 @@ public class RobotContainer {
     buttons.button(9).onTrue(L2AlgaePickupFactory());
 
     controller.rightTrigger().onTrue(shootCommand());
-    controller.rightBumper().whileTrue(drive.getPathEven()).onFalse(drive.getDefaultCommand());
-    controller.leftBumper().whileTrue(drive.getPathOdd()).onFalse(drive.getDefaultCommand());
+    controller.rightBumper().onTrue(drive.getPathEven()).onFalse(drive.getDefaultCommand());
+    controller.leftBumper().onTrue(drive.getPathOdd()).onFalse(drive.getDefaultCommand());
   }
 
   /**
