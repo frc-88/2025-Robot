@@ -1,12 +1,16 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
@@ -14,10 +18,15 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
+import java.util.function.BooleanSupplier;
+import java.util.function.IntSupplier;
+import org.littletonrobotics.junction.AutoLogOutput;
+
+// haiku???
 
 public class Armevator extends SubsystemBase {
   private final TalonFX m_elevatorMain =
@@ -25,6 +34,7 @@ public class Armevator extends SubsystemBase {
   private final TalonFX m_elevatorFollower =
       new TalonFX(Constants.ELEVATOR_FOLLOWER_MOTOR, Constants.RIO_CANBUS);
   private final TalonFX m_arm = new TalonFX(Constants.ELEVATOR_ARM_MOTOR, Constants.RIO_CANBUS);
+  private final CANcoder m_encoder = new CANcoder(Constants.ELEVATOR_ENCODER, Constants.RIO_CANBUS);
 
   private final PIDPreferenceConstants elevatorPID =
       new PIDPreferenceConstants("Armevator/Elevator/PID", 8, 0, 0, 0.15, 0, 0, 0, 0);
@@ -50,19 +60,41 @@ public class Armevator extends SubsystemBase {
   private final DoublePreferenceConstant p_armTiltAngle =
       new DoublePreferenceConstant("Armevator/Arm/TiltAngle", 5.0);
 
+  private final DoublePreferenceConstant p_armEncoderOffset =
+      new DoublePreferenceConstant("Armevator/Arm/EncoderOffset", -0.154785);
+  private final DoublePreferenceConstant p_armAngleNet =
+      new DoublePreferenceConstant("Armevator/Arm/NetAngle", -40.0);
+
+  private final DoublePreferenceConstant p_currentLimit =
+      new DoublePreferenceConstant("Armevator/Elevator/CurrentLimit", 40);
+
+  private final DoublePreferenceConstant p_currentLimitSupply =
+      new DoublePreferenceConstant("Armevator/Elevator/SupplyCurrentLimit", 40);
   private final MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
 
   private final Debouncer elevatorDebouncer = new Debouncer(1.0);
+  private final DigitalInput m_magnetInput = new DigitalInput(7);
+  public final Trigger m_shouldCalibrate =
+      new Trigger(
+          () ->
+              !m_magnetInput.get()
+                  && elevatorDebouncer.calculate(
+                      Math.abs(m_elevatorMain.getVelocity().getValueAsDouble()) < 0.1));
 
+  private BooleanSupplier m_safeToMove;
   private boolean m_calibrated = false;
 
-  public Armevator() {
+  public Armevator(BooleanSupplier safeToMove) {
+    m_safeToMove = safeToMove;
     configureTalons();
   }
 
   private void configureTalons() {
     TalonFXConfiguration elevatorCfg = new TalonFXConfiguration();
     TalonFXConfiguration armCfg = new TalonFXConfiguration();
+    CANcoderConfiguration cancg = new CANcoderConfiguration();
+    cancg.MagnetSensor.MagnetOffset = p_armEncoderOffset.getValue();
+    cancg.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
 
     elevatorCfg.Slot0.kP = elevatorPID.getKP().getValue();
     elevatorCfg.Slot0.kI = elevatorPID.getKI().getValue();
@@ -72,6 +104,12 @@ public class Armevator extends SubsystemBase {
     elevatorCfg.MotionMagic.MotionMagicCruiseVelocity = p_elevatorMaxVelocity.getValue();
     elevatorCfg.MotionMagic.MotionMagicAcceleration = p_elevatorMaxAcceleration.getValue();
     elevatorCfg.MotionMagic.MotionMagicJerk = p_elevatorJerk.getValue();
+
+    elevatorCfg.CurrentLimits.StatorCurrentLimitEnable = true;
+    elevatorCfg.CurrentLimits.StatorCurrentLimit = p_currentLimit.getValue();
+
+    elevatorCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+    elevatorCfg.CurrentLimits.SupplyCurrentLimit = p_currentLimitSupply.getValue();
 
     armCfg.Slot0.kP = armPID.getKP().getValue();
     armCfg.Slot0.kI = armPID.getKI().getValue();
@@ -85,32 +123,43 @@ public class Armevator extends SubsystemBase {
     m_elevatorMain.getConfigurator().apply(elevatorCfg);
     m_elevatorFollower.getConfigurator().apply(elevatorCfg);
     m_elevatorFollower.setControl(new Follower(Constants.ELEVATOR_MAIN_MOTOR, false));
+    m_elevatorMain.setNeutralMode(NeutralModeValue.Brake);
+    m_elevatorFollower.setNeutralMode(NeutralModeValue.Brake);
 
     m_arm.getConfigurator().apply(armCfg);
+    m_encoder.getConfigurator().apply(cancg);
     m_arm.setNeutralMode(NeutralModeValue.Brake);
   }
 
+  @AutoLogOutput(key = "Armevator/armAngle")
   public double getArmAngle() {
     return m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES;
   }
 
+  public boolean onTarget(double position) {
+    return Math.abs(getElevatorPositionInches() - position) < 0.2;
+  }
+
   private void armCalibrate() {
-    m_arm.setPosition(0.0);
+    m_arm.setPosition(m_encoder.getAbsolutePosition().getValueAsDouble() * 112.0);
   }
 
   private void elevatorCalibrate() {
     m_elevatorMain.setPosition(0.0);
   }
 
+  @AutoLogOutput(key = "Armevator/elevatorPosition")
   public double getElevatorPositionInches() {
     return m_elevatorMain.getPosition().getValueAsDouble() * Constants.ELEVATOR_ROTATIONS_TO_INCHES;
   }
 
   private void elevatorSetPosition(double position) {
-    m_elevatorMain.setControl(
-        motionmagicrequest
-            .withPosition(position / Constants.ELEVATOR_ROTATIONS_TO_INCHES)
-            .withFeedForward(0.056));
+    if (m_safeToMove.getAsBoolean()) {
+      m_elevatorMain.setControl(
+          motionmagicrequest
+              .withPosition(position / Constants.ELEVATOR_ROTATIONS_TO_INCHES)
+              .withFeedForward(0.056));
+    }
   }
 
   private void armSetAngle(double angle) {
@@ -133,10 +182,21 @@ public class Armevator extends SubsystemBase {
     armSetAngle(0.0);
   }
 
+  private void armGoToAlgaeStow() {
+    armSetAngle(Constants.ALGAE_STOW_ANGLE);
+  }
+
   private void setL4() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
       armSetAngle(Constants.ARM_L4_ANGLE);
+    }
+  }
+
+  private void setL4Shoot() {
+    elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
+    if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
+      armSetAngle(p_armAngleNet.getValue());
     }
   }
 
@@ -148,6 +208,19 @@ public class Armevator extends SubsystemBase {
   private void setL2() {
     elevatorSetPosition(Constants.ELEVATOR_L2_HEIGHT);
     armGoToTiltAngle();
+  }
+
+  public boolean atL2() {
+    return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L2_HEIGHT) < 0.2;
+  }
+
+  public boolean atL3() {
+    return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L3_HEIGHT) < 0.2;
+  }
+
+  public boolean atL4() {
+    return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L4_HEIGHT) < 0.2
+        && Math.abs(getArmAngle() - Constants.ARM_L4_ANGLE) < 1.0;
   }
 
   private void elevatorStop() {
@@ -163,7 +236,15 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean isArmOnPosition() {
-    return Math.abs(getArmAngle() - 7.5) < 1.2;
+    return Math.abs(getArmAngle()) < 1.2;
+  }
+
+  public boolean isArmOnAlgaePosition() {
+    return Math.abs(getArmAngle() - Constants.ALGAE_STOW_ANGLE) < 1.0;
+  }
+
+  public boolean isElevatorDown() {
+    return !m_magnetInput.get();
   }
 
   private void elevatorSetSlowSpeed() {
@@ -175,15 +256,23 @@ public class Armevator extends SubsystemBase {
   }
 
   private void elevatorSetCalibrateSpeed() {
-    m_elevatorMain.setControl(new DutyCycleOut(-0.09));
+    m_elevatorMain.setControl(new DutyCycleOut(-0.1));
   }
 
   private void stowArm() {
-    armGoToTiltAngle();
+    armGoToZero();
+  }
+
+  private void stowArmAlgae() {
+    armGoToAlgaeStow();
   }
 
   private void stowElevator() {
     elevatorSetPosition(0.0);
+  }
+
+  private void goToOneInch() {
+    elevatorSetPosition(1.0);
   }
 
   public void stowBoth() {
@@ -195,6 +284,10 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(() -> stowArm(), this);
   }
 
+  public Command stowArmAlgaeFactory() {
+    return new RunCommand(() -> stowArmAlgae(), this);
+  }
+
   public Command stowBothFactory() {
     return new RunCommand(() -> stowArmFactory(), this);
   }
@@ -203,52 +296,45 @@ public class Armevator extends SubsystemBase {
     return new InstantCommand(() -> armCalibrate(), this);
   }
 
-  public Command calibrateElevatorFactory() {
+  public Command elevatorCalibrateFactory() {
+    return new InstantCommand(() -> elevatorCalibrate(), this);
+  }
+
+  public Command L2Algae() {
     return new RunCommand(
-            () -> {
-              stowElevator();
-              stowArm();
-            },
-            this)
-        .until(
-            () ->
-                elevatorDebouncer.calculate(
-                        Math.abs(m_elevatorMain.getVelocity().getValueAsDouble()) < 0.02)
-                    && getElevatorPositionInches() < 1.0)
-        .andThen(
-            () -> {
-              elevatorStop();
-              stowArm();
-            })
-        .andThen(new WaitCommand(0.25))
-        .andThen((() -> elevatorCalibrate()))
-        .andThen(
-            new RunCommand(
-                () -> {
-                  stowElevator();
-                  stowArm();
-                }));
+        () -> {
+          armSetAngle(30.0);
+          elevatorSetPosition(9.5);
+        },
+        this);
+  }
+
+  public Command L3Algae() {
+    return new RunCommand(
+        () -> {
+          armSetAngle(30.0);
+          elevatorSetPosition(17.0);
+        },
+        this);
+  }
+
+  public Command calibrateElevatorFactory() {
+    return new ConditionalCommand(
+        goToOneInchFactory()
+            .until(() -> onTarget(1.0))
+            .andThen(new RunCommand(() -> stowElevator())),
+        new RunCommand(() -> stowElevator(), this),
+        () -> getElevatorPositionInches() > 1.0);
   }
 
   public Command calibrateBothFactory() {
-    return new InstantCommand(() -> armCalibrate(), this)
-        .andThen(
-            () -> {
-              elevatorSetCalibrateSpeed();
-              armGoToZero();
-            })
-        .until(
-            () ->
-                elevatorDebouncer.calculate(
-                    Math.abs(m_elevatorMain.getVelocity().getValueAsDouble()) < 0.02))
-        .andThen(() -> elevatorStop())
-        .andThen(new WaitCommand(0.25))
-        .andThen(
-            () -> {
-              elevatorCalibrate();
-              m_calibrated = true;
-            })
-        .beforeStarting(() -> elevatorDebouncer.calculate(false));
+    return new InstantCommand(
+        () -> {
+          armCalibrate();
+          elevatorCalibrate();
+          m_calibrated = true;
+        },
+        this);
   }
 
   public Command algaePickupFactory() {
@@ -261,7 +347,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command goToOneInchFactory() {
-    return new RunCommand(() -> elevatorSetPosition(1.0), this);
+    return new RunCommand(() -> goToOneInch(), this);
   }
 
   public Command stopElevatorFactory() {
@@ -275,6 +361,11 @@ public class Armevator extends SubsystemBase {
   public Command stowFactory() {
     return new SequentialCommandGroup(
         stowArmFactory().until(this::isArmOnPosition), calibrateElevatorFactory());
+  }
+
+  public Command AlgaestowFactory() {
+    return new SequentialCommandGroup(
+        stowArmAlgaeFactory().until(this::isArmOnAlgaePosition), calibrateElevatorFactory());
   }
 
   public Command goToTiltAngleFactory() {
@@ -310,6 +401,10 @@ public class Armevator extends SubsystemBase {
     return new ConditionalCommand(stowFactory(), calibrateBothFactory(), () -> m_calibrated);
   }
 
+  public Command shootInNetFactory() {
+    return new RunCommand(() -> setL4Shoot(), this);
+  }
+
   public Command L4Factory() {
     return new RunCommand(() -> setL4(), this);
   }
@@ -320,6 +415,22 @@ public class Armevator extends SubsystemBase {
 
   public Command L2Factory() {
     return new RunCommand(() -> setL2(), this);
+  }
+
+  public Command scoreAll(IntSupplier mode) {
+    return new RunCommand(
+        () -> {
+          if (mode.getAsInt() == 2) {
+            setL2();
+          } else if (mode.getAsInt() == 3) {
+            setL3();
+          } else if (mode.getAsInt() == 4) {
+            setL4();
+          } else {
+
+          }
+        },
+        this);
   }
 
   @Override
