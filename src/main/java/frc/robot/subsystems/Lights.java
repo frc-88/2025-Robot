@@ -99,7 +99,7 @@ public class Lights extends SubsystemBase {
       new ColorFlowAnimation(165, 0, 255, 0, 0.2, numLEDs.getValue(), Direction.Forward);
   private Animation noteSpinRight =
       new ColorFlowAnimation(165, 0, 0, 255, 0.2, numLEDs.getValue(), Direction.Backward);
-  private Animation holdingNote =
+  private Animation holdingCoral =
       new ColorFlowAnimation(165, 0, 255, 0, 0.2, numLEDs.getValue(), Direction.Forward);
   private Animation intakingNote = new StrobeAnimation(165, 0, 255, 0, 0.2, numLEDs.getValue());
   private Animation setFire = new FireAnimation(1, 0.9, numLEDs.getValue(), 0.4, 0.4);
@@ -115,9 +115,9 @@ public class Lights extends SubsystemBase {
     m_toAnimate = noteSpinRight;
   }
 
-  public void holdingNote() {
+  public void holdingCoral() {
     m_setAnim = true;
-    m_toAnimate = holdingNote;
+    m_toAnimate = holdingCoral;
   }
 
   public void intakingNote() {
@@ -160,42 +160,6 @@ public class Lights extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if (m_clearAnim == true) {
-      m_tiedye = false;
-    }
-    if (m_tiedye == true) {
-      m_candle.setLEDs(
-          255, 0, 0, 0, ((0 + increments) % numLEDs.getValue()), numLEDs.getValue() / 5);
-      m_candle.setLEDs(
-          255,
-          165,
-          0,
-          0,
-          (((0 + numLEDs.getValue() / 5) + increments) % numLEDs.getValue()),
-          numLEDs.getValue() / 5);
-      m_candle.setLEDs(
-          255,
-          255,
-          0,
-          0,
-          (((0 + numLEDs.getValue() * 2 / 5) + increments) % numLEDs.getValue()),
-          numLEDs.getValue() / 5);
-      m_candle.setLEDs(
-          0,
-          0,
-          255,
-          0,
-          (((0 + numLEDs.getValue() * 3 / 5) + increments) % numLEDs.getValue()),
-          numLEDs.getValue() / 5);
-      m_candle.setLEDs(
-          255,
-          255,
-          255,
-          0,
-          (((0 + numLEDs.getValue() * 4 / 5) + increments) % numLEDs.getValue()),
-          numLEDs.getValue() / 5);
-      increments++;
-    }
 
     if (DriverStation.isDisabled()) {
 
@@ -324,9 +288,9 @@ public class Lights extends SubsystemBase {
       }
     } else {
       if (m_hasCoral.getAsBoolean()) {
-        setLED(0, 255, 0);
+        holdingCoral();
       } else if (!m_elevatorDown.getAsBoolean()) {
-        setLED(255, 0, 0);
+        setFire();
       } else {
         rainbow();
       }
@@ -371,7 +335,7 @@ public class Lights extends SubsystemBase {
   public InstantCommand holdNoteFactory() {
     return new InstantCommand(
         () -> {
-          holdingNote();
+          holdingCoral();
         });
   }
 
