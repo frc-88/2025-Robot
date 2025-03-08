@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.616493055555554,
-        "y": 5.744010416666666
+        "x": 5.382777430824046,
+        "y": 5.785055932575525
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.322457976054084,
-        "y": 5.366541161623596
+        "x": 5.2017585858968,
+        "y": 5.315112575954394
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Sector5"
     },
     {
       "anchor": {
@@ -20,8 +20,8 @@
         "y": 5.154
       },
       "prevControl": {
-        "x": 5.282280528952739,
-        "y": 5.357454092874074
+        "x": 5.254780403044659,
+        "y": 5.447458311166278
       },
       "nextControl": null,
       "isLocked": false,
@@ -34,7 +34,7 @@
   "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxAcceleration": 1.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -50,5 +50,5 @@
     "velocity": 0,
     "rotation": -119.99999999999999
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }
