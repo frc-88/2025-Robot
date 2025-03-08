@@ -198,6 +198,8 @@ public class RobotContainer {
     NamedCommands.registerCommand("L4", m_armevator.L4Factory().withTimeout(2.0));
     NamedCommands.registerCommand("Stow", m_armevator.stowFactory().withTimeout(1.0));
     NamedCommands.registerCommand("Armevator Calibration", m_armevator.calibrateBothFactory());
+    NamedCommands.registerCommand("Score Odd",score(true));
+    NamedCommands.registerCommand("Score Even",score(false));
   }
 
   public void configureDashboardButtons() {
