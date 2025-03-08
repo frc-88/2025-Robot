@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
+import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 
@@ -78,9 +79,11 @@ public class Armevator extends SubsystemBase {
                   && elevatorDebouncer.calculate(
                       Math.abs(m_elevatorMain.getVelocity().getValueAsDouble()) < 0.1));
 
+  private BooleanSupplier m_safeToMove;
   private boolean m_calibrated = false;
 
-  public Armevator() {
+  public Armevator(BooleanSupplier safeToMove) {
+    m_safeToMove = safeToMove;
     configureTalons();
   }
 
@@ -149,10 +152,12 @@ public class Armevator extends SubsystemBase {
   }
 
   private void elevatorSetPosition(double position) {
-    m_elevatorMain.setControl(
-        motionmagicrequest
-            .withPosition(position / Constants.ELEVATOR_ROTATIONS_TO_INCHES)
-            .withFeedForward(0.056));
+    if (m_safeToMove.getAsBoolean()) {
+      m_elevatorMain.setControl(
+          motionmagicrequest
+              .withPosition(position / Constants.ELEVATOR_ROTATIONS_TO_INCHES)
+              .withFeedForward(0.056));
+    }
   }
 
   private void armSetAngle(double angle) {
