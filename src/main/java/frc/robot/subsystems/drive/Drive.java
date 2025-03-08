@@ -195,6 +195,10 @@ public class Drive extends SubsystemBase {
     return Units.radiansToDegrees(Math.atan2(y, x));
   }
 
+  private boolean isNearReef() {
+    return getPose().getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 2.0;
+  }
+
   private Command getPath(int i) {
     try {
       return AutoBuilder.pathfindThenFollowPath(m_paths.get(i), Constants.CONSTRAINTS);
@@ -224,8 +228,10 @@ public class Drive extends SubsystemBase {
   public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
     if (hasCoral.getAsBoolean()) {
       return aimAtReef();
-    } else {
+    } else if (!isNearReef()) {
       return aimAtStation();
+    } else {
+      return getPose().getRotation().getDegrees();
     }
   }
 
