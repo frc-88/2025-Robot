@@ -198,8 +198,8 @@ public class RobotContainer {
     NamedCommands.registerCommand("L4", m_armevator.L4Factory().withTimeout(2.0));
     NamedCommands.registerCommand("Stow", m_armevator.stowFactory().withTimeout(1.0));
     NamedCommands.registerCommand("Armevator Calibration", m_armevator.calibrateBothFactory());
-    NamedCommands.registerCommand("Score Odd",score(true));
-    NamedCommands.registerCommand("Score Even",score(false));
+    NamedCommands.registerCommand("Score Odd",scoreNoShoot(true));
+    NamedCommands.registerCommand("Score Even",scoreNoShoot(false));
   }
 
   public void configureDashboardButtons() {
@@ -375,6 +375,12 @@ public class RobotContainer {
         drive.pathFind(odd),
         new ParallelDeadlineGroup(drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)),
         shootCommand());
+  }
+
+  private Command scoreNoShoot(boolean odd) {
+    return new SequentialCommandGroup(
+        drive.pathFind(odd),
+        new ParallelDeadlineGroup(drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)));
   }
 
   private Command scoreAuto(int num) {
