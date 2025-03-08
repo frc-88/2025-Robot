@@ -116,7 +116,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   @AutoLogOutput(key = "DogHouse/isBlocked")
-  private boolean isBlocked() {
+  public boolean isBlocked() {
     return m_doghousCANRange.getIsDetected().getValue();
   }
 
