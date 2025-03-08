@@ -15,9 +15,9 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import java.util.function.BooleanSupplier;
@@ -145,7 +145,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorAlgaeSlow() {
-    setManipulatorSpeed(0.2);
+    setManipulatorSpeed(0.4);
   }
 
   private void algaePickup() {
@@ -154,6 +154,10 @@ public class Doghouse extends SubsystemBase {
 
   private void manipulatorFullSpeed() {
     setManipulatorSpeed(-1.0);
+  }
+
+  private void setAlgae() {
+    algaeMode = true;
   }
 
   public Command stopAllFactory() {
@@ -186,44 +190,64 @@ public class Doghouse extends SubsystemBase {
   public Command coralIntakeFactory(BooleanSupplier elevatorDown) {
     return new RunCommand(
         () -> {
-          if (!elevatorDown.getAsBoolean()) {
-            manipulatorStop();
-            funnelStop();
-          } else if (!hasCoral()) {
-            manipulatorIn();
-            funnelGo();
-            m_coralCaptured = false;
-          } else if (m_coralCaptured) {
-            manipulatorStop();
-            funnelStop();
-          } else if (isBlocked()) {
-            manipulatorSlow();
-            funnelStop();
-          } else if (!isBlocked()) {
-            manipulatorStop();
-            funnelStop();
-            m_coralCaptured = true;
+          if (!algaeMode) {
+            if (!elevatorDown.getAsBoolean()) {
+              manipulatorStop();
+              funnelStop();
+            } else if (!hasCoral()) {
+              manipulatorIn();
+              funnelGo();
+              m_coralCaptured = false;
+            } else if (m_coralCaptured) {
+              manipulatorStop();
+              funnelStop();
+            } else if (isBlocked()) {
+              manipulatorSlow();
+              funnelStop();
+            } else if (!isBlocked()) {
+              manipulatorStop();
+              funnelStop();
+              m_coralCaptured = true;
+            }
+          } else {
+            if (!hasCoral()) {
+              algaePickup();
+              funnelStop();
+              m_algaeCaptured = false;
+            } else if (hasCoralDebounced()) {
+              manipulatorAlgaeSlow();
+              funnelStop();
+              m_algaeCaptured = true;
+            }
           }
         },
         this);
   }
 
   public Command algaeMode() {
-    return new RunCommand(() -> {
-      if (!hasCoralDebounced()) {
-        algaePickup();
-        funnelStop();
-        m_algaeCaptured = false;
-      } else if (hasCoralDebounced()) {
-        manipulatorAlgaeSlow();
-        funnelStop();
-        m_algaeCaptured = true;
-      } 
-    }, this);
+    return new RunCommand(
+        () -> {
+          algaeMode = true;
+          if (!hasCoralDebounced()) {
+            algaePickup();
+            funnelStop();
+            m_algaeCaptured = false;
+          } else if (hasCoralDebounced()) {
+            manipulatorAlgaeSlow();
+            funnelStop();
+            m_algaeCaptured = true;
+          }
+        },
+        this);
   }
 
   public Command shootFactory() {
-    return new RunCommand(() -> manipulatorShoot(), this)
+    return new RunCommand(
+            () -> {
+              manipulatorShoot();
+              algaeMode = false;
+            },
+            this)
         .withTimeout(1.0)
         .andThen(
             () -> {
@@ -232,12 +256,21 @@ public class Doghouse extends SubsystemBase {
   }
 
   public Command shootFullSpeedFactory() {
-    return new RunCommand(() -> manipulatorFullSpeed(), this)
+    return new RunCommand(
+            () -> {
+              manipulatorFullSpeed();
+              algaeMode = false;
+            },
+            this)
         .withTimeout(1.0)
         .andThen(
             () -> {
               manipulatorStop();
             });
+  }
+
+  public Command setAlgaeModeFactory() {
+    return new InstantCommand(() -> setAlgae(), this);
   }
 
   @Override

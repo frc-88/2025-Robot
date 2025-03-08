@@ -304,7 +304,7 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
         () -> {
           armSetAngle(30.0);
-          elevatorSetPosition(8.5);
+          elevatorSetPosition(9.5);
         },
         this);
   }

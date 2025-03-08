@@ -415,7 +415,9 @@ public class RobotContainer {
             .algaePickupFactory()
             .until(() -> m_doghouse.hasCoralDebounced())
             .andThen(m_armevator.AlgaestowFactory()),
-        m_doghouse.algaeMode());
+        m_doghouse
+            .setAlgaeModeFactory()
+            .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
   }
 
   private Command L2AlgaePickupFactory() {
@@ -423,7 +425,9 @@ public class RobotContainer {
         m_armevator.L2Algae()
             .until(() -> m_doghouse.hasCoralDebounced())
             .andThen(m_armevator.AlgaestowFactory()),
-        m_doghouse.algaeMode());
+        m_doghouse
+            .setAlgaeModeFactory()
+            .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
   }
 
   private Command L3AlgaePickupFactory() {
@@ -431,7 +435,9 @@ public class RobotContainer {
         m_armevator.L3Algae()
             .until(() -> m_doghouse.hasCoralDebounced())
             .andThen(m_armevator.AlgaestowFactory()),
-        m_doghouse.algaePickupFactory());
+        m_doghouse
+            .setAlgaeModeFactory()
+            .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
   }
 
   public Command shootInNet() {
