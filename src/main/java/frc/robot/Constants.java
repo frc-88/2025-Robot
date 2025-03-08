@@ -72,6 +72,10 @@ public final class Constants {
   public static final double GAS_MOTOR_ROTATIONS_TO_LENGTH = (8.0 / 180.0);
   public static final double CLIMBER_ENCODER_ROTATIONS_TO_ANGLE = 360;
 
+  // LIGHTS
+  public static final int CANDLE_ID = 0;
+
+  // AUTOMATION
   public static final PathConstraints CONSTRAINTS = new PathConstraints(3.0, 3.0, 8.0, 20.0);
 
   public static final Pose2d REEF_POSE =
