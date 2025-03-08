@@ -197,7 +197,17 @@ public class Drive extends SubsystemBase {
 
   private Command getPath(int i) {
     try {
-      return AutoBuilder.pathfindThenFollowPath(m_paths.get(i), Constants.CONSTRAINTS);
+      return AutoBuilder.followPath(m_paths.get(i - 1));
+    } catch (IndexOutOfBoundsException e) {
+      return new WaitCommand(1.0);
+    }
+  }
+
+  private Command drivePathFind(int i) {
+    try {
+      boolean present = m_paths.get(i - 1).getStartingHolonomicPose().isPresent();
+      Pose2d pose = present ? m_paths.get(i - 1).getStartingHolonomicPose().get() : getPose();
+      return AutoBuilder.pathfindToPose(pose, Constants.CONSTRAINTS);
     } catch (IndexOutOfBoundsException e) {
       return new WaitCommand(1.0);
     }
@@ -270,6 +280,28 @@ public class Drive extends SubsystemBase {
                         odd ? getPath(9) : getPath(10),
                         new ConditionalCommand(
                             odd ? getPath(11) : getPath(12),
+                            new WaitCommand(0.5),
+                            () -> getTargetSector() == 6),
+                        () -> getTargetSector() == 5),
+                    () -> getTargetSector() == 4),
+                () -> getTargetSector() == 3),
+            () -> getTargetSector() == 2),
+        () -> getTargetSector() == 1);
+  }
+
+  public Command pathFind(boolean odd) {
+    return new ConditionalCommand(
+        odd ? drivePathFind(1) : drivePathFind(2),
+        new ConditionalCommand(
+            odd ? drivePathFind(3) : drivePathFind(4),
+            new ConditionalCommand(
+                odd ? drivePathFind(5) : drivePathFind(6),
+                new ConditionalCommand(
+                    odd ? drivePathFind(7) : drivePathFind(8),
+                    new ConditionalCommand(
+                        odd ? drivePathFind(9) : drivePathFind(10),
+                        new ConditionalCommand(
+                            odd ? drivePathFind(11) : drivePathFind(12),
                             new WaitCommand(0.5),
                             () -> getTargetSector() == 6),
                         () -> getTargetSector() == 5),

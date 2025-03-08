@@ -82,6 +82,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public Armevator m_armevator = new Armevator();
+
   public Doghouse m_doghouse = new Doghouse();
   public Climber climber = new Climber();
 
@@ -97,6 +98,7 @@ public class RobotContainer {
   // public Trigger atL2 =
   //     new Trigger(
   //         () -> hasCoralDebounced() && m_armevator.atL2() && m_doghouse.getIsReefDetected());
+  public int mode = 2;
 
   public RobotContainer() {
     timer.start();
@@ -153,8 +155,18 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
-    // ready functions replaced with lambdas returning true for now...need to be implemented in each subsystem
-    lights = new Lights(() -> true, () -> true, () -> true, () -> true, () -> true, m_doghouse::hasCoral, m_armevator::isElevatorDown, () -> autoChooser.get().getName() );
+    // ready functions replaced with lambdas returning true for now...need to be implemented in each
+    // subsystem
+    lights =
+        new Lights(
+            () -> true,
+            () -> true,
+            () -> true,
+            () -> true,
+            () -> true,
+            m_doghouse::hasCoral,
+            m_armevator::isElevatorDown,
+            () -> autoChooser.get().getName());
 
     // Set up SysId routines
     autoChooser.addOption(
@@ -271,11 +283,11 @@ public class RobotContainer {
   }
 
   public void configureButtonBox() {
-    buttons.button(1).onTrue(m_armevator.L2Factory());
-    buttons.button(2).onTrue(m_armevator.L3Factory());
-    buttons.button(3).onTrue(m_armevator.L4Factory());
+    buttons.button(1).onTrue(new InstantCommand(() -> mode = 2));
+    buttons.button(2).onTrue(new InstantCommand(() -> mode = 3));
+    buttons.button(3).onTrue(new InstantCommand(() -> mode = 4));
     buttons.button(10).onTrue(shootCommand());
-    buttons.button(4).onTrue(m_armevator.AlgaestowFactory());
+    buttons.button(4).onTrue(m_armevator.stowFactory());
     buttons.button(5).onTrue(getCoralFactory());
     buttons.button(11).onTrue(algaePickupFactory());
     buttons.button(7).onTrue(climber.prepClimber());
@@ -285,8 +297,8 @@ public class RobotContainer {
     buttons.button(13).onTrue(netflingCommand());
 
     controller.rightTrigger().onTrue(shootCommand());
-    controller.rightBumper().onTrue(drive.scoreOnReef(false)).onFalse(drive.getDefaultCommand());
-    controller.leftBumper().onTrue(drive.scoreOnReef(true)).onFalse(drive.getDefaultCommand());
+    controller.rightBumper().onTrue(score(true)).onFalse(drive.getDefaultCommand());
+    controller.leftBumper().onTrue(score(false)).onFalse(drive.getDefaultCommand());
   }
 
   /**
@@ -355,6 +367,12 @@ public class RobotContainer {
       e.printStackTrace();
       return autoPath;
     }
+  }
+
+  private Command score(boolean odd) {
+    return new SequentialCommandGroup(
+        drive.pathFind(odd),
+        new ParallelCommandGroup(drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)));
   }
 
   private Command scoreAuto(int num) {
