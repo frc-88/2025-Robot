@@ -7,6 +7,12 @@
         {
           "type": "named",
           "data": {
+            "name": "L4 Mode"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
             "name": "Score Even"
           }
         },
@@ -14,6 +20,12 @@
           "type": "named",
           "data": {
             "name": "Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Stow"
           }
         },
         {
@@ -61,6 +73,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Stow"
+          }
+        },
+        {
           "type": "deadline",
           "data": {
             "commands": [
@@ -102,6 +120,12 @@
           "type": "named",
           "data": {
             "name": "Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Stow"
           }
         }
       ]
