@@ -47,8 +47,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -60,7 +59,6 @@ import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
-import java.util.function.IntSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -197,9 +195,9 @@ public class Drive extends SubsystemBase {
     return Units.radiansToDegrees(Math.atan2(y, x));
   }
 
-  private Command getPath(IntSupplier i) {
+  private Command getPath(int i) {
     try {
-      return AutoBuilder.pathfindThenFollowPath(m_paths.get(i.getAsInt()), Constants.CONSTRAINTS);
+      return AutoBuilder.pathfindThenFollowPath(m_paths.get(i), Constants.CONSTRAINTS);
     } catch (IndexOutOfBoundsException e) {
       return new WaitCommand(1.0);
     }
@@ -223,35 +221,6 @@ public class Drive extends SubsystemBase {
     return angle;
   }
 
-  public Command getPathOdd() {
-    return getPath(() -> m_currentPathOdd);
-  }
-
-  public Command getPathEven() {
-
-    return new SequentialCommandGroup(
-        new InstantCommand(
-            () -> {
-              double angle = getAngleToReef(nextPose());
-              if (angle < 30.0 && angle > -30.0) {
-                m_currentPathEven = 12;
-              } else if (angle > 30.0 && angle < 90.0) {
-                m_currentPathEven = 10;
-              } else if (angle > 90.0 && angle < 150.0) {
-                m_currentPathEven = 8;
-              } else if (angle > 150.0 || angle < -150.0) {
-                m_currentPathEven = 6;
-              } else if (angle > -150.0 && angle < -90.0) {
-                m_currentPathEven = 4;
-              } else if (angle > -90.0 && angle < -30.0) {
-                m_currentPathEven = 2;
-              } else {
-                m_currentPathEven = 2;
-              }
-            }),
-        getPath(() -> m_currentPathEven));
-  }
-
   public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
     if (hasCoral.getAsBoolean()) {
       return aimAtReef();
@@ -267,6 +236,47 @@ public class Drive extends SubsystemBase {
 
     return new Pose2d(
         current.getX() + (x * 0.5), current.getY() + (y * 0.5), current.getRotation());
+  }
+
+  private int getTargetSector() {
+    int target = 0;
+    double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      target = 6;
+    } else if (angle > 30.0 && angle < 90.0) {
+      target = 5;
+    } else if (angle > 90.0 && angle < 150.0) {
+      target = 4;
+    } else if (angle > 150.0 || angle < -150.0) {
+      target = 3;
+    } else if (angle > -150.0 && angle < -90.0) {
+      target = 2;
+    } else if (angle > -90.0 && angle < -30.0) {
+      target = 1;
+    }
+    return target;
+  }
+
+  public Command scoreOnReef(boolean odd) {
+    return new ConditionalCommand(
+        odd ? getPath(1) : getPath(2),
+        new ConditionalCommand(
+            odd ? getPath(3) : getPath(4),
+            new ConditionalCommand(
+                odd ? getPath(5) : getPath(6),
+                new ConditionalCommand(
+                    odd ? getPath(7) : getPath(8),
+                    new ConditionalCommand(
+                        odd ? getPath(9) : getPath(10),
+                        new ConditionalCommand(
+                            odd ? getPath(11) : getPath(12),
+                            new WaitCommand(0.5),
+                            () -> getTargetSector() == 6),
+                        () -> getTargetSector() == 5),
+                    () -> getTargetSector() == 4),
+                () -> getTargetSector() == 3),
+            () -> getTargetSector() == 2),
+        () -> getTargetSector() == 1);
   }
 
   @Override
