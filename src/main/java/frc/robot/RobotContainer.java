@@ -192,7 +192,7 @@ public class RobotContainer {
   public void registerNamedCommands() {
     NamedCommands.registerCommand("Shoot", shootCommand());
     NamedCommands.registerCommand("NetFling", netflingCommand());
-    NamedCommands.registerCommand("Get Coral", getCoralFactory());
+    NamedCommands.registerCommand("Get Coral", m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()));
     NamedCommands.registerCommand(
         "Arm Go To Zero", m_armevator.armGoToZeroFactory().withTimeout(0.5));
     NamedCommands.registerCommand("L4", m_armevator.L4Factory().withTimeout(2.0));
