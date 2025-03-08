@@ -23,6 +23,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -92,6 +93,7 @@ public class RobotContainer {
   private DoublePreferenceConstant p_amplitude = new DoublePreferenceConstant("Aplitude", 0);
   private DoublePreferenceConstant p_frequency = new DoublePreferenceConstant("Wavelength", 0);
 
+  private Debouncer reefDebouncer = new Debouncer(0.1);
   // public Trigger atL4 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL4());
   // public Trigger atL3 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL3());
   // public Trigger atL2 =
@@ -192,7 +194,8 @@ public class RobotContainer {
   public void registerNamedCommands() {
     NamedCommands.registerCommand("Shoot", shootCommand());
     NamedCommands.registerCommand("NetFling", netflingCommand());
-    NamedCommands.registerCommand("Get Coral", m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()));
+    NamedCommands.registerCommand(
+        "Get Coral", m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()));
     NamedCommands.registerCommand(
         "Arm Go To Zero", m_armevator.armGoToZeroFactory().withTimeout(0.5));
     NamedCommands.registerCommand("L4", m_armevator.L4Factory().withTimeout(2.0));
@@ -201,8 +204,8 @@ public class RobotContainer {
     NamedCommands.registerCommand("L2 Mode", new InstantCommand(() -> mode = 2));
     NamedCommands.registerCommand("Stow", m_armevator.stowFactory().withTimeout(1.0));
     NamedCommands.registerCommand("Armevator Calibration", m_armevator.calibrateBothFactory());
-    NamedCommands.registerCommand("Score Odd",scoreNoShoot(true));
-    NamedCommands.registerCommand("Score Even",scoreNoShoot(false));
+    NamedCommands.registerCommand("Score Odd", scoreNoShoot(true));
+    NamedCommands.registerCommand("Score Even", scoreNoShoot(false));
   }
 
   public void configureDashboardButtons() {
@@ -303,6 +306,7 @@ public class RobotContainer {
     controller.rightTrigger().onTrue(shootCommand());
     controller.rightBumper().onTrue(score(true)).onFalse(drive.getDefaultCommand());
     controller.leftBumper().onTrue(score(false)).onFalse(drive.getDefaultCommand());
+    controller.leftTrigger().onTrue(scoreOnReef(false)).onFalse(drive.getDefaultCommand());
   }
 
   /**
@@ -378,6 +382,17 @@ public class RobotContainer {
         drive.pathFind(odd),
         new ParallelDeadlineGroup(drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)),
         shootCommand());
+  }
+
+  private Command scoreOnReef(boolean odd) {
+    return new SequentialCommandGroup(
+            drive.pathFind(odd),
+            new ParallelDeadlineGroup(
+                new WaitUntilCommand(() -> reefDebouncer.calculate(m_doghouse.getIsReefDetected())),
+                drive.scoreOnReef(odd),
+                m_armevator.scoreAll(() -> mode)),
+            shootCommand())
+        .beforeStarting(() -> reefDebouncer.calculate(false));
   }
 
   private Command scoreNoShoot(boolean odd) {
