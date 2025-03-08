@@ -62,6 +62,11 @@ public class Armevator extends SubsystemBase {
   private final DoublePreferenceConstant p_armAngleNet =
       new DoublePreferenceConstant("Armevator/Arm/NetAngle", -40.0);
 
+  private final DoublePreferenceConstant p_currentLimit =
+      new DoublePreferenceConstant("Armevator/Elevator/CurrentLimit", 40);
+
+  private final DoublePreferenceConstant p_currentLimitSupply =
+      new DoublePreferenceConstant("Armevator/Elevator/SupplyCurrentLimit", 40);
   private final MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
 
   private final Debouncer elevatorDebouncer = new Debouncer(1.0);
@@ -94,6 +99,12 @@ public class Armevator extends SubsystemBase {
     elevatorCfg.MotionMagic.MotionMagicCruiseVelocity = p_elevatorMaxVelocity.getValue();
     elevatorCfg.MotionMagic.MotionMagicAcceleration = p_elevatorMaxAcceleration.getValue();
     elevatorCfg.MotionMagic.MotionMagicJerk = p_elevatorJerk.getValue();
+
+    elevatorCfg.CurrentLimits.StatorCurrentLimitEnable = true;
+    elevatorCfg.CurrentLimits.StatorCurrentLimit = p_currentLimit.getValue();
+
+    elevatorCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+    elevatorCfg.CurrentLimits.SupplyCurrentLimit = p_currentLimitSupply.getValue();
 
     armCfg.Slot0.kP = armPID.getKP().getValue();
     armCfg.Slot0.kI = armPID.getKI().getValue();
