@@ -1,7 +1,5 @@
 package frc.robot.subsystems;
 
-import org.littletonrobotics.junction.AutoLogOutput;
-
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -24,6 +22,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
+import java.util.function.IntSupplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 public class Armevator extends SubsystemBase {
   private final TalonFX m_elevatorMain =
@@ -397,6 +397,22 @@ public class Armevator extends SubsystemBase {
 
   public Command L2Factory() {
     return new RunCommand(() -> setL2(), this);
+  }
+
+  public Command scoreAll(IntSupplier mode) {
+    return new RunCommand(
+        () -> {
+          if (mode.getAsInt() == 2) {
+            setL2();
+          } else if (mode.getAsInt() == 3) {
+            setL3();
+          } else if (mode.getAsInt() == 4) {
+            setL4();
+          } else {
+
+          }
+        },
+        this);
   }
 
   @Override
