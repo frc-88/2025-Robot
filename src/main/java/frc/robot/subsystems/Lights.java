@@ -24,11 +24,9 @@ public class Lights extends SubsystemBase {
   private IntPreferenceConstant numLEDs = new IntPreferenceConstant("Number Of LEDs", 93);
   private int m_state = 0;
   private int counter = 0;
-  private int increments = 0;
   private final CANdle m_candle = new CANdle(Constants.CANDLE_ID);
   private boolean m_clearAnim = true;
   private boolean m_setAnim = true;
-  private boolean m_tiedye = false;
 
   private Animation m_toAnimate = null;
   private Animation m_lastAnimation = null;
@@ -148,14 +146,6 @@ public class Lights extends SubsystemBase {
   public void rainbow() {
     m_setAnim = true;
     m_toAnimate = rainBow;
-  }
-
-  // TODO: test this animation to see if it truly works
-  public void tiedye(boolean status) {
-    // m_tiedye = status;
-    m_tiedye = false;
-    m_lastAnimation = null;
-    m_clearAnim = true;
   }
 
   @Override
@@ -343,13 +333,6 @@ public class Lights extends SubsystemBase {
     return new InstantCommand(
         () -> {
           setFire();
-        });
-  }
-
-  public InstantCommand tieDyeFactory() {
-    return new InstantCommand(
-        () -> {
-          tiedye(true);
         });
   }
 
