@@ -46,6 +46,7 @@ public final class Constants {
   public static final double ELEVATOR_L4_HEIGHT = 28.875;
   public static final double ELEVATOR_L3_HEIGHT = 14.0 - 0.125;
   public static final double ELEVATOR_L2_HEIGHT = 5.375 + 0.25;
+  public static final double ALGAE_STOW_ANGLE = 35.0;
   // ARMEVATOR
   public static final int ELEVATOR_MAIN_MOTOR = 2;
   public static final int ELEVATOR_FOLLOWER_MOTOR = 3;
