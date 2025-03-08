@@ -80,10 +80,8 @@ public class RobotContainer {
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
-  public Armevator m_armevator = new Armevator();
-
   public Doghouse m_doghouse = new Doghouse();
+  public Armevator m_armevator = new Armevator(() -> !m_doghouse.isBlocked());
   public Climber climber = new Climber();
 
   public LocalADStarAK pathFinder = new LocalADStarAK();
