@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import java.util.function.BooleanSupplier;
@@ -46,7 +47,10 @@ public class Doghouse extends SubsystemBase {
   private final DutyCycleOut m_funnelRequest = new DutyCycleOut(0.0);
   private final DutyCycleOut m_manipulatorRequest = new DutyCycleOut(0.0);
 
+  private boolean algaeMode = false;
+
   private boolean m_coralCaptured = false;
+  private boolean m_algaeCaptured = false;
   private Debouncer m_algaeDebouncer = new Debouncer(1.0);
 
   public Doghouse() {
@@ -202,6 +206,20 @@ public class Doghouse extends SubsystemBase {
           }
         },
         this);
+  }
+
+  public Command algaeMode() {
+    return new RunCommand(() -> {
+      if (!hasCoralDebounced()) {
+        algaePickup();
+        funnelStop();
+        m_algaeCaptured = false;
+      } else if (hasCoralDebounced()) {
+        manipulatorAlgaeSlow();
+        funnelStop();
+        m_algaeCaptured = true;
+      } 
+    }, this);
   }
 
   public Command shootFactory() {

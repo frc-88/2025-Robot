@@ -236,9 +236,7 @@ public class Drive extends SubsystemBase {
   }
 
   public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
-    if (DriverStation.getMatchTime() < 15.0) {
-      return getPose().getRotation().getDegrees();
-    } else if (hasCoral.getAsBoolean()) {
+    if (hasCoral.getAsBoolean()) {
       return aimAtReef();
     } else if (!isNearReef()) {
       return aimAtStation();

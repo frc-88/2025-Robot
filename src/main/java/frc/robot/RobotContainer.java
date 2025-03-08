@@ -37,6 +37,7 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -372,7 +373,8 @@ public class RobotContainer {
   private Command score(boolean odd) {
     return new SequentialCommandGroup(
         drive.pathFind(odd),
-        new ParallelCommandGroup(drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)));
+        new ParallelDeadlineGroup(drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)),
+        shootCommand());
   }
 
   private Command scoreAuto(int num) {
@@ -394,6 +396,14 @@ public class RobotContainer {
         new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
   }
 
+  private Command shoot() {
+    return new ParallelDeadlineGroup(
+        new WaitUntilCommand(() -> m_doghouse.getIsReefDetected())
+            .andThen(m_doghouse.shootFactory()),
+        new WaitCommand(0.5).andThen(m_armevator.armGoToZeroFactory()),
+        new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
+  }
+
   private Command netflingCommand() {
     return new ParallelDeadlineGroup(
             new WaitCommand(0.15).andThen(m_doghouse.shootFullSpeedFactory()),
@@ -407,7 +417,7 @@ public class RobotContainer {
             .algaePickupFactory()
             .until(() -> m_doghouse.hasCoralDebounced())
             .andThen(m_armevator.AlgaestowFactory()),
-        m_doghouse.algaePickupFactory());
+        m_doghouse.algaeMode());
   }
 
   private Command L2AlgaePickupFactory() {
@@ -415,7 +425,7 @@ public class RobotContainer {
         m_armevator.L2Algae()
             .until(() -> m_doghouse.hasCoralDebounced())
             .andThen(m_armevator.AlgaestowFactory()),
-        m_doghouse.algaePickupFactory());
+        m_doghouse.algaeMode());
   }
 
   private Command L3AlgaePickupFactory() {
