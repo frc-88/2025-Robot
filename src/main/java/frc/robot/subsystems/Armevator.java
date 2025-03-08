@@ -160,6 +160,10 @@ public class Armevator extends SubsystemBase {
     armSetAngle(0.0);
   }
 
+  private void armGoToAlgaeStow() {
+    armSetAngle(Constants.ALGAE_STOW_ANGLE);
+  }
+
   private void setL4() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
@@ -213,6 +217,10 @@ public class Armevator extends SubsystemBase {
     return Math.abs(getArmAngle()) < 1.2;
   }
 
+  public boolean isArmOnAlgaePosition() {
+    return Math.abs(getArmAngle() - Constants.ALGAE_STOW_ANGLE) < 1.0;
+  }
+
   public boolean isElevatorDown() {
     return !m_magnetInput.get();
   }
@@ -233,6 +241,10 @@ public class Armevator extends SubsystemBase {
     armGoToZero();
   }
 
+  private void stowArmAlgae() {
+    armGoToAlgaeStow();
+  }
+
   private void stowElevator() {
     elevatorSetPosition(0.0);
   }
@@ -248,6 +260,10 @@ public class Armevator extends SubsystemBase {
 
   public Command stowArmFactory() {
     return new RunCommand(() -> stowArm(), this);
+  }
+
+  public Command stowArmAlgaeFactory() {
+    return new RunCommand(() -> stowArmAlgae(), this);
   }
 
   public Command stowBothFactory() {
@@ -323,6 +339,11 @@ public class Armevator extends SubsystemBase {
   public Command stowFactory() {
     return new SequentialCommandGroup(
         stowArmFactory().until(this::isArmOnPosition), calibrateElevatorFactory());
+  }
+
+  public Command AlgaestowFactory() {
+    return new SequentialCommandGroup(
+        stowArmAlgaeFactory().until(this::isArmOnAlgaePosition), calibrateElevatorFactory());
   }
 
   public Command goToTiltAngleFactory() {

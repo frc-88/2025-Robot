@@ -270,12 +270,14 @@ public class RobotContainer {
     buttons.button(2).onTrue(m_armevator.L3Factory());
     buttons.button(3).onTrue(m_armevator.L4Factory());
     buttons.button(10).onTrue(shootCommand());
-    buttons.button(4).onTrue(m_armevator.stowFactory());
+    buttons.button(4).onTrue(m_armevator.AlgaestowFactory());
     buttons.button(5).onTrue(getCoralFactory());
     buttons.button(11).onTrue(algaePickupFactory());
     buttons.button(7).onTrue(climber.prepClimber());
     buttons.button(8).onTrue(L3AlgaePickupFactory());
     buttons.button(9).onTrue(L2AlgaePickupFactory());
+    buttons.button(12).onTrue(m_armevator.shootInNetFactory());
+    buttons.button(13).onTrue(netflingCommand());
 
     controller.rightTrigger().onTrue(shootCommand());
     controller.rightBumper().whileTrue(drive.getPathEven()).onFalse(drive.getDefaultCommand());
@@ -379,7 +381,7 @@ public class RobotContainer {
         m_armevator
             .algaePickupFactory()
             .until(() -> m_doghouse.hasCoralDebounced())
-            .andThen(m_armevator.stowFactory()),
+            .andThen(m_armevator.AlgaestowFactory()),
         m_doghouse.algaePickupFactory());
   }
 
@@ -387,7 +389,7 @@ public class RobotContainer {
     return new ParallelCommandGroup(
         m_armevator.L2Algae()
             .until(() -> m_doghouse.hasCoralDebounced())
-            .andThen(m_armevator.stowFactory()),
+            .andThen(m_armevator.AlgaestowFactory()),
         m_doghouse.algaePickupFactory());
   }
 
@@ -395,7 +397,7 @@ public class RobotContainer {
     return new ParallelCommandGroup(
         m_armevator.L3Algae()
             .until(() -> m_doghouse.hasCoralDebounced())
-            .andThen(m_armevator.stowFactory()),
+            .andThen(m_armevator.AlgaestowFactory()),
         m_doghouse.algaePickupFactory());
   }
 
