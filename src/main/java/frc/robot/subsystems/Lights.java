@@ -152,7 +152,8 @@ public class Lights extends SubsystemBase {
 
   // TODO: test this animation to see if it truly works
   public void tiedye(boolean status) {
-    m_tiedye = status;
+    // m_tiedye = status;
+    m_tiedye = false;
     m_lastAnimation = null;
     m_clearAnim = true;
   }
