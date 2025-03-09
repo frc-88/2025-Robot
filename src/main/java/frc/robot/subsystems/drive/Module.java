@@ -59,7 +59,7 @@ public class Module {
   }
 
   public boolean isReady() {
-    return inputs.driveConnected && inputs.turnConnected;
+    return inputs.driveConnected && inputs.turnConnected && inputs.turnEncoderConnected;
   }
 
   public void periodic() {
