@@ -303,7 +303,12 @@ public class RobotContainer {
     buttons.button(4).onTrue(m_armevator.stowFactory());
     buttons.button(5).onTrue(getCoralFactory());
     buttons.button(11).onTrue(algaePickupFactory());
-    buttons.button(7).onTrue(climber.prepClimber().alongWith(m_doghouse.stopAllFactory()));
+    buttons.button(7).onTrue(climber.prepClimber().alongWith(m_doghouse.stopAllFactory(), 
+    DriveCommands.joystickDrive(
+      drive,
+      () -> -controller.getLeftY(),
+      () -> -controller.getLeftX(),
+      () -> -controller.getRightX())));
     buttons.button(8).onTrue(L3AlgaePickupFactory());
     buttons.button(9).onTrue(L2AlgaePickupFactory());
     buttons.button(12).onTrue(m_armevator.shootInNetFactory());
