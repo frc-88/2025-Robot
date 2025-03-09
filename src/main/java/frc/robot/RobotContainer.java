@@ -162,7 +162,7 @@ public class RobotContainer {
         new Lights(
             drive::isReady,
             m_armevator::isReady,
-            () -> true,
+            m_doghouse::isReady,
             () -> true,
             () -> true,
             m_doghouse::hasCoral,

@@ -93,6 +93,16 @@ public class Doghouse extends SubsystemBase {
     m_coralRange.getConfigurator().apply(coralRangecfg);
   }
 
+  public boolean isReady() {
+    return m_funnel.isConnected()
+        && m_manipulator.isConnected()
+        && m_doghousCANRange.isConnected()
+        && m_coralRange.isConnected()
+        && m_reefRange.isConnected()
+        && hasCoral()
+        && !isBlocked();
+  }
+
   @AutoLogOutput(key = "DogHouse/reefDetected")
   public boolean getIsReefDetected() {
     return m_reefRange.getIsDetected().getValue();
