@@ -302,7 +302,12 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command stowArmAlgaeFactory() {
-    return new RunCommand(() -> stowArmAlgae(), this);
+    return new RunCommand(
+        () -> {
+          stowArmAlgae();
+          stowElevator();
+        },
+        this);
   }
 
   public Command stowBothFactory() {

@@ -207,6 +207,10 @@ public class Drive extends SubsystemBase {
     return getPose().getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 2.0;
   }
 
+  public boolean isShootingDistance() {
+    return getPose().getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 1.45;
+  }
+
   private Command getPath(int i) {
     try {
       return AutoBuilder.followPath(m_paths.get(i - 1));
