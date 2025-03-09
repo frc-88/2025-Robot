@@ -20,9 +20,7 @@ import static frc.robot.subsystems.vision.VisionConstants.robotToCamera1;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.filter.Debouncer;
@@ -311,6 +309,7 @@ public class RobotContainer {
     controller.rightTrigger().onTrue(shootCommand());
     controller.rightBumper().onTrue(scoreOnReef(true)).onFalse(drive.getDefaultCommand());
     controller.leftBumper().onTrue(scoreOnReef(false)).onFalse(drive.getDefaultCommand());
+    controller.leftTrigger().onTrue(scoreOnPath(false)).onFalse(drive.getDefaultCommand());
   }
 
   /**
@@ -393,11 +392,20 @@ public class RobotContainer {
             drive.pathFind(odd),
             new ParallelDeadlineGroup(
                 new WaitUntilCommand(
-                    () ->
-                        reefDebouncer.calculate(m_doghouse.getIsReefDetected())
-                            && m_armevator.atMode(() -> mode)),
+                    () -> drive.isShootingDistance() && m_armevator.atMode(() -> mode)),
+                // reefDebouncer.calculate(m_doghouse.getIsReefDetected())
+                //     && m_armevator.atMode(() -> mode)),
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)),
+            shootCommand())
+        .beforeStarting(() -> reefDebouncer.calculate(false));
+  }
+
+  private Command scoreOnPath(boolean odd) {
+    return new SequentialCommandGroup(
+            drive.pathFind(odd),
+            new ParallelDeadlineGroup(
+                new WaitCommand(0.7), drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)),
             shootCommand())
         .beforeStarting(() -> reefDebouncer.calculate(false));
   }
