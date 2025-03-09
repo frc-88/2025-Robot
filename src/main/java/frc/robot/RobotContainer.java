@@ -160,7 +160,7 @@ public class RobotContainer {
     // subsystem
     lights =
         new Lights(
-            () -> true,
+            drive::isReady,
             () -> true,
             () -> true,
             () -> true,
