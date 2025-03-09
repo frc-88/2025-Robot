@@ -219,7 +219,7 @@ public class Drive extends SubsystemBase {
     try {
       boolean present = m_paths.get(i - 1).getStartingHolonomicPose().isPresent();
       Pose2d pose = present ? m_paths.get(i - 1).getStartingHolonomicPose().get() : getPose();
-      return AutoBuilder.pathfindToPose(pose, Constants.CONSTRAINTS);
+      return AutoBuilder.pathfindToPose(pose, Constants.CONSTRAINTS, 1.0);
     } catch (IndexOutOfBoundsException e) {
       return new WaitCommand(1.0);
     }
@@ -259,7 +259,7 @@ public class Drive extends SubsystemBase {
     double y = getChassisSpeeds().vyMetersPerSecond;
 
     return new Pose2d(
-        current.getX() + (x * 0.5), current.getY() + (y * 0.5), current.getRotation());
+        current.getX() + (x * 0.2), current.getY() + (y * 0.2), current.getRotation());
   }
 
   private int getTargetSector() {
@@ -382,7 +382,7 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
-    double angle = getAngleToReef(nextPose());
+    double angle = getAngleToReef(getPose());
     if (angle < 30.0 && angle > -30.0) {
       m_currentPathOdd = 11;
     } else if (angle > 30.0 && angle < 90.0) {

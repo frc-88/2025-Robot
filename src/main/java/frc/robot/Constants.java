@@ -77,7 +77,7 @@ public final class Constants {
   public static final int CANDLE_ID = 0;
 
   // AUTOMATION
-  public static final PathConstraints CONSTRAINTS = new PathConstraints(3.0, 3.0, 8.0, 20.0);
+  public static final PathConstraints CONSTRAINTS = new PathConstraints(4.0, 4.5, 8.0, 20.0);
 
   public static final Pose2d REEF_POSE =
       new Pose2d(
