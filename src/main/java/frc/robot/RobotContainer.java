@@ -395,12 +395,12 @@ public class RobotContainer {
             drive.pathFind(odd),
             new ParallelDeadlineGroup(
                 new ConditionalCommand(
+                  new WaitUntilCommand(
+                    () ->
+                        reefDebouncer.calculate(m_doghouse.getIsReefDetected())
+                            && m_armevator.atMode(() -> mode)) ,
                     new WaitUntilCommand(
-                        () -> drive.isShootingDistance() && m_armevator.atMode(() -> mode)),
-                    new WaitUntilCommand(
-                        () ->
-                            reefDebouncer.calculate(m_doghouse.getIsReefDetected())
-                                && m_armevator.atMode(() -> mode)),
+                                  () -> drive.isShootingDistance() && m_armevator.atMode(() -> mode)),
                     () -> mode == 4),
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)),
