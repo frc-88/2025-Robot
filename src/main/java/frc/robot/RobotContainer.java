@@ -95,7 +95,7 @@ public class RobotContainer {
   private DoublePreferenceConstant p_amplitude = new DoublePreferenceConstant("Aplitude", 0);
   private DoublePreferenceConstant p_frequency = new DoublePreferenceConstant("Wavelength", 0);
 
-  private Debouncer reefDebouncer = new Debouncer(0.1);
+  private Debouncer reefDebouncer = new Debouncer(0.2);
   // public Trigger atL4 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL4());
   // public Trigger atL3 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL3());
   // public Trigger atL2 =
