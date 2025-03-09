@@ -10,13 +10,18 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import java.util.function.BooleanSupplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 public class Doghouse extends SubsystemBase {
   private final TalonFX m_funnel = new TalonFX(Constants.DOGHOUSE_FUNNEL_MOTOR, "rio");
@@ -26,6 +31,7 @@ public class Doghouse extends SubsystemBase {
       new CANrange(Constants.DOGHOUSE_CANRANGE, Constants.RIO_CANBUS);
   private final CANrange m_coralRange =
       new CANrange(Constants.CORAL_CANRANGE, Constants.RIO_CANBUS);
+  private final CANrange m_reefRange = new CANrange(Constants.REEF_CANRANGE, Constants.RIO_CANBUS);
 
   private final DoublePreferenceConstant p_funnelSpeed =
       new DoublePreferenceConstant("Doghouse/Funnel/Speed", 1);
@@ -41,7 +47,11 @@ public class Doghouse extends SubsystemBase {
   private final DutyCycleOut m_funnelRequest = new DutyCycleOut(0.0);
   private final DutyCycleOut m_manipulatorRequest = new DutyCycleOut(0.0);
 
+  private boolean algaeMode = false;
+
   private boolean m_coralCaptured = false;
+  private boolean m_algaeCaptured = false;
+  private Debouncer m_algaeDebouncer = new Debouncer(1.0);
 
   public Doghouse() {
     // configure funnel
@@ -57,17 +67,25 @@ public class Doghouse extends SubsystemBase {
         p_manipulatorCurrentLimit.getValue();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
     m_manipulator.getConfigurator().apply(manipulatorConfiguration);
-
+    m_manipulator.setNeutralMode(NeutralModeValue.Brake);
     configureCANrange();
   }
 
   private void configureCANrange() {
     CANrangeConfiguration coralRangecfg = new CANrangeConfiguration();
     CANrangeConfiguration doghouscfg = new CANrangeConfiguration();
+    CANrangeConfiguration reefRangecfg = new CANrangeConfiguration();
     coralRangecfg.FovParams.FOVRangeX = 6.75;
     doghouscfg.FovParams.FOVRangeX = 7.5;
     coralRangecfg.FovParams.FOVRangeY = 6.75;
     doghouscfg.FovParams.FOVRangeY = 27.0;
+
+    reefRangecfg.FovParams.FOVRangeX = 15.0;
+    reefRangecfg.FovParams.FOVRangeY = 7.0;
+
+    reefRangecfg.ProximityParams.ProximityThreshold = 0.28;
+    reefRangecfg.ProximityParams.ProximityHysteresis = 0.03;
+    reefRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 1300;
 
     doghouscfg.ToFParams.UpdateFrequency = 50;
     coralRangecfg.ToFParams.UpdateFrequency = 50;
@@ -81,6 +99,16 @@ public class Doghouse extends SubsystemBase {
 
     m_doghousCANRange.getConfigurator().apply(doghouscfg);
     m_coralRange.getConfigurator().apply(coralRangecfg);
+    m_reefRange.getConfigurator().apply(reefRangecfg);
+  }
+
+  @AutoLogOutput(key = "DogHouse/reefDetected")
+  public boolean getIsReefDetected() {
+    return m_reefRange.getIsDetected().getValue();
+  }
+
+  public boolean hasCoralDebounced() {
+    return m_algaeDebouncer.calculate(hasCoral());
   }
 
   private void setFunnelSpeed(double output) {
@@ -91,11 +119,13 @@ public class Doghouse extends SubsystemBase {
     m_manipulator.setControl(m_manipulatorRequest.withOutput(output));
   }
 
+  @AutoLogOutput(key = "DogHouse/hasCoral")
   public boolean hasCoral() {
     return m_coralRange.getIsDetected().getValue();
   }
 
-  private boolean isBlocked() {
+  @AutoLogOutput(key = "DogHouse/isBlocked")
+  public boolean isBlocked() {
     return m_doghousCANRange.getIsDetected().getValue();
   }
 
@@ -123,8 +153,20 @@ public class Doghouse extends SubsystemBase {
     setManipulatorSpeed(-0.1);
   }
 
+  private void manipulatorAlgaeSlow() {
+    setManipulatorSpeed(0.4);
+  }
+
   private void algaePickup() {
     setManipulatorSpeed(1.0);
+  }
+
+  private void manipulatorFullSpeed() {
+    setManipulatorSpeed(-1.0);
+  }
+
+  private void setAlgae() {
+    algaeMode = true;
   }
 
   public Command stopAllFactory() {
@@ -138,42 +180,106 @@ public class Doghouse extends SubsystemBase {
 
   public Command algaePickupFactory() {
     return new RunCommand(
+            () -> {
+              funnelStop();
+              algaePickup();
+            },
+            this)
+        .until(() -> hasCoralDebounced())
+        .andThen(
+            () -> {
+              manipulatorAlgaeSlow();
+            });
+  }
+
+  public Command setAlgaeSlowFactory() {
+    return new RunCommand(() -> manipulatorAlgaeSlow(), this);
+  }
+
+  public Command coralIntakeFactory(BooleanSupplier elevatorDown) {
+    return new RunCommand(
         () -> {
-          funnelStop();
-          algaePickup();
+          if (!algaeMode) {
+            if (!elevatorDown.getAsBoolean()) {
+              manipulatorStop();
+              funnelStop();
+            } else if (!hasCoral()) {
+              manipulatorIn();
+              funnelGo();
+              m_coralCaptured = false;
+            } else if (m_coralCaptured) {
+              manipulatorStop();
+              funnelStop();
+            } else if (isBlocked()) {
+              manipulatorSlow();
+              funnelStop();
+            } else if (!isBlocked()) {
+              manipulatorStop();
+              funnelStop();
+              m_coralCaptured = true;
+            }
+          } else {
+            if (!hasCoral()) {
+              algaePickup();
+              funnelStop();
+              m_algaeCaptured = false;
+            } else if (hasCoralDebounced()) {
+              manipulatorAlgaeSlow();
+              funnelStop();
+              m_algaeCaptured = true;
+            }
+          }
         },
         this);
   }
 
-  public Command coralIntakeFactory() {
+  public Command algaeMode() {
     return new RunCommand(
         () -> {
-          if (!hasCoral()) {
-            manipulatorIn();
-            funnelGo();
-            m_coralCaptured = false;
-          } else if (m_coralCaptured) {
-            manipulatorStop();
+          algaeMode = true;
+          if (!hasCoralDebounced()) {
+            algaePickup();
             funnelStop();
-          } else if (isBlocked()) {
-            manipulatorSlow();
+            m_algaeCaptured = false;
+          } else if (hasCoralDebounced()) {
+            manipulatorAlgaeSlow();
             funnelStop();
-          } else if (!isBlocked()) {
-            manipulatorStop();
-            funnelStop();
-            m_coralCaptured = true;
+            m_algaeCaptured = true;
           }
         },
         this);
   }
 
   public Command shootFactory() {
-    return new RunCommand(() -> manipulatorShoot(), this)
+    return new RunCommand(
+            () -> {
+              manipulatorShoot();
+              algaeMode = false;
+            },
+            this)
         .withTimeout(1.0)
         .andThen(
             () -> {
               manipulatorStop();
             });
+  }
+
+  public Command shootFullSpeedFactory() {
+    return new RunCommand(
+            () -> {
+              manipulatorFullSpeed();
+              algaeMode = false;
+            },
+            this)
+        .withTimeout(1.0)
+        .andThen(
+            () -> {
+              manipulatorStop();
+            });
+  }
+
+  public Command setAlgaeModeFactory() {
+    return new InstantCommand(() -> setAlgae(), this);
   }
 
   @Override
@@ -188,5 +294,6 @@ public class Doghouse extends SubsystemBase {
         "Doghouse/Coral Distance",
         Units.metersToInches(m_coralRange.getDistance().getValueAsDouble()));
     SmartDashboard.putBoolean("Doghouse/Is Blocked", isBlocked());
+    SmartDashboard.putBoolean("Doghouse/Reef", m_reefRange.getIsDetected().getValue());
   }
 }

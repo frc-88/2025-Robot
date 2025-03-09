@@ -21,6 +21,7 @@ import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
@@ -39,24 +40,36 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
+import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
+
+  private ArrayList<PathPlannerPath> m_paths = new ArrayList<>();
+
+  public int m_currentPathEven = 10;
+  public int m_currentPathOdd = 10;
+  public Pose2d nextPose = new Pose2d();
   static final double ODOMETRY_FREQUENCY =
       new CANBus(TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD() ? 250.0 : 100.0;
   public static final double DRIVE_BASE_RADIUS =
@@ -156,6 +169,152 @@ public class Drive extends SubsystemBase {
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+
+    for (int i = 1; i < 13; i++) {
+      try {
+        PathPlannerPath path = PathPlannerPath.fromPathFile("Score " + i);
+        m_paths.add(path);
+        System.out.println("Loaded path " + i);
+      } catch (Exception e) {
+        Command autoPath = new WaitCommand(1.0);
+        // m_paths.add(autoPath);
+        System.err.println("Exception loading auto path");
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private double aimAtStation() {
+    return getPose().getY() < 4.1148 ? 45.0 : -45.0;
+  }
+
+  private double getAngleToReef(Pose2d pose) {
+    Translation2d position = pose.relativeTo(Constants.REEF_POSE).getTranslation();
+    double x = position.getX();
+    double y = position.getY();
+    return Units.radiansToDegrees(Math.atan2(y, x));
+  }
+
+  private boolean isNearReef() {
+    return getPose().getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 2.0;
+  }
+
+  private Command getPath(int i) {
+    try {
+      return AutoBuilder.followPath(m_paths.get(i - 1));
+    } catch (IndexOutOfBoundsException e) {
+      return new WaitCommand(1.0);
+    }
+  }
+
+  private Command drivePathFind(int i) {
+    try {
+      boolean present = m_paths.get(i - 1).getStartingHolonomicPose().isPresent();
+      Pose2d pose = present ? m_paths.get(i - 1).getStartingHolonomicPose().get() : getPose();
+      return AutoBuilder.pathfindToPose(pose, Constants.CONSTRAINTS);
+    } catch (IndexOutOfBoundsException e) {
+      return new WaitCommand(1.0);
+    }
+  }
+
+  private double aimAtReef() {
+    double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      angle = 180.0;
+    } else if (angle > 30.0 && angle < 90.0) {
+      angle = -120;
+    } else if (angle > 90.0 && angle < 150.0) {
+      angle = -60.0;
+    } else if (angle > 150.0 || angle < -150.0) {
+      angle = 0.0;
+    } else if (angle > -150.0 && angle < -90.0) {
+      angle = 60.0;
+    } else if (angle > -90.0 && angle < -30.0) {
+      angle = 120;
+    }
+    return angle;
+  }
+
+  public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
+    if (hasCoral.getAsBoolean()) {
+      return aimAtReef();
+    } else if (!isNearReef()) {
+      return aimAtStation();
+    } else {
+      return getPose().getRotation().getDegrees();
+    }
+  }
+
+  public Pose2d nextPose() {
+    Pose2d current = getPose();
+    double x = getChassisSpeeds().vxMetersPerSecond;
+    double y = getChassisSpeeds().vyMetersPerSecond;
+
+    return new Pose2d(
+        current.getX() + (x * 0.5), current.getY() + (y * 0.5), current.getRotation());
+  }
+
+  private int getTargetSector() {
+    int target = 0;
+    double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      target = 6;
+    } else if (angle > 30.0 && angle < 90.0) {
+      target = 5;
+    } else if (angle > 90.0 && angle < 150.0) {
+      target = 4;
+    } else if (angle > 150.0 || angle < -150.0) {
+      target = 3;
+    } else if (angle > -150.0 && angle < -90.0) {
+      target = 2;
+    } else if (angle > -90.0 && angle < -30.0) {
+      target = 1;
+    }
+    return target;
+  }
+
+  public Command scoreOnReef(boolean odd) {
+    return new ConditionalCommand(
+        odd ? getPath(1) : getPath(2),
+        new ConditionalCommand(
+            odd ? getPath(3) : getPath(4),
+            new ConditionalCommand(
+                odd ? getPath(5) : getPath(6),
+                new ConditionalCommand(
+                    odd ? getPath(7) : getPath(8),
+                    new ConditionalCommand(
+                        odd ? getPath(9) : getPath(10),
+                        new ConditionalCommand(
+                            odd ? getPath(11) : getPath(12),
+                            new WaitCommand(0.5),
+                            () -> getTargetSector() == 6),
+                        () -> getTargetSector() == 5),
+                    () -> getTargetSector() == 4),
+                () -> getTargetSector() == 3),
+            () -> getTargetSector() == 2),
+        () -> getTargetSector() == 1);
+  }
+
+  public Command pathFind(boolean odd) {
+    return new ConditionalCommand(
+        odd ? drivePathFind(1) : drivePathFind(2),
+        new ConditionalCommand(
+            odd ? drivePathFind(3) : drivePathFind(4),
+            new ConditionalCommand(
+                odd ? drivePathFind(5) : drivePathFind(6),
+                new ConditionalCommand(
+                    odd ? drivePathFind(7) : drivePathFind(8),
+                    new ConditionalCommand(
+                        odd ? drivePathFind(9) : drivePathFind(10),
+                        new ConditionalCommand(
+                            odd ? drivePathFind(11) : drivePathFind(12),
+                            new WaitCommand(0.5),
+                            () -> getTargetSector() == 6),
+                        () -> getTargetSector() == 5),
+                    () -> getTargetSector() == 4),
+                () -> getTargetSector() == 3),
+            () -> getTargetSector() == 2),
+        () -> getTargetSector() == 1);
   }
 
   @Override
@@ -215,6 +374,23 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
+    double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      m_currentPathOdd = 11;
+    } else if (angle > 30.0 && angle < 90.0) {
+      m_currentPathOdd = 9;
+    } else if (angle > 90.0 && angle < 150.0) {
+      m_currentPathOdd = 7;
+    } else if (angle > 150.0 || angle < -150.0) {
+      m_currentPathOdd = 5;
+    } else if (angle > -150.0 && angle < -90.0) {
+      m_currentPathOdd = 3;
+    } else if (angle > -90.0 && angle < -30.0) {
+      m_currentPathOdd = 1;
+    } else {
+      m_currentPathOdd = 2;
+    }
+    SmartDashboard.putNumber("CurrentPathOdd", m_currentPathOdd);
   }
 
   /**
