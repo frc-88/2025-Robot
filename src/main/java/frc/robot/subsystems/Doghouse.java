@@ -74,10 +74,18 @@ public class Doghouse extends SubsystemBase {
   private void configureCANrange() {
     CANrangeConfiguration coralRangecfg = new CANrangeConfiguration();
     CANrangeConfiguration doghouscfg = new CANrangeConfiguration();
+    CANrangeConfiguration reefRangecfg = new CANrangeConfiguration();
     coralRangecfg.FovParams.FOVRangeX = 6.75;
     doghouscfg.FovParams.FOVRangeX = 7.5;
     coralRangecfg.FovParams.FOVRangeY = 6.75;
     doghouscfg.FovParams.FOVRangeY = 27.0;
+
+    reefRangecfg.FovParams.FOVRangeX = 15.0;
+    reefRangecfg.FovParams.FOVRangeY = 7.0;
+
+    reefRangecfg.ProximityParams.ProximityThreshold = 0.28;
+    reefRangecfg.ProximityParams.ProximityHysteresis = 0.03;
+    reefRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 1300;
 
     doghouscfg.ToFParams.UpdateFrequency = 50;
     coralRangecfg.ToFParams.UpdateFrequency = 50;
@@ -91,6 +99,7 @@ public class Doghouse extends SubsystemBase {
 
     m_doghousCANRange.getConfigurator().apply(doghouscfg);
     m_coralRange.getConfigurator().apply(coralRangecfg);
+    m_reefRange.getConfigurator().apply(reefRangecfg);
   }
 
   @AutoLogOutput(key = "DogHouse/reefDetected")
