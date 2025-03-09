@@ -55,6 +55,14 @@ public class Vision extends SubsystemBase {
     }
   }
 
+  public boolean isReady(){
+    boolean ready = true;
+    for (int i = 0; i < inputs.length; i++) {
+      ready &= inputs[i].connected;
+    }
+    return ready;
+  }
+
   /**
    * Returns the X angle to the best target, which can be used for simple servoing with vision.
    *

@@ -164,7 +164,7 @@ public class RobotContainer {
             m_armevator::isReady,
             m_doghouse::isReady,
             climber::isReady,
-            () -> true,
+            vision::isReady,
             m_doghouse::hasCoral,
             m_armevator::isElevatorDown,
             () -> autoChooser.get().getName());
