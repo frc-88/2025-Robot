@@ -216,7 +216,7 @@ public class Climber extends SubsystemBase {
 
   public boolean shouldEnableNeutralOnDisable() {
 
-    return RobotState.isDisabled() && getPositionGasMotorRotations() > 40.0 /*m_grabbed*/;
+    return RobotState.isDisabled();
   }
 
   public boolean poweredClimb() {

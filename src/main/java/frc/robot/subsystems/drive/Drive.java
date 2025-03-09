@@ -118,6 +118,7 @@ public class Drive extends SubsystemBase {
       };
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+  private boolean m_autoaim = true;
 
   public Drive(
       GyroIO gyroIO,
@@ -247,8 +248,18 @@ public class Drive extends SubsystemBase {
     return angle;
   }
 
+  public void enableAutoAim() {
+    m_autoaim = true;
+  }
+
+  public void disableAutoAim() {
+    m_autoaim = false;
+  }
+
   public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
-    if (hasCoral.getAsBoolean()) {
+    if (!m_autoaim) {
+      return getPose().getRotation().getDegrees();
+    } else if (hasCoral.getAsBoolean()) {
       return aimAtReef();
     } else if (!isNearReef()) {
       return aimAtStation();
