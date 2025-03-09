@@ -161,7 +161,7 @@ public class RobotContainer {
     lights =
         new Lights(
             drive::isReady,
-            () -> true,
+            m_armevator::isReady,
             () -> true,
             () -> true,
             () -> true,
