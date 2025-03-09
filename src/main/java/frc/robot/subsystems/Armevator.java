@@ -131,6 +131,15 @@ public class Armevator extends SubsystemBase {
     m_arm.setNeutralMode(NeutralModeValue.Brake);
   }
 
+  public boolean isReady() {
+    return m_elevatorMain.isConnected()
+        && m_elevatorFollower.isConnected()
+        && m_arm.isConnected()
+        && m_encoder.isConnected()
+        && isArmZero()
+        && isElevatorDown();
+  }
+
   @AutoLogOutput(key = "Armevator/armAngle")
   public double getArmAngle() {
     return m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES;

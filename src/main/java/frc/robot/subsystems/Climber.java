@@ -144,6 +144,13 @@ public class Climber extends SubsystemBase {
     m_gripper.setNeutralMode(NeutralModeValue.Brake);
   }
 
+  public boolean isReady() {
+    return m_gasmotor.isConnected()
+        && m_gripper.isConnected()
+        && m_climberEncoder.isConnected()
+        && m_canRange.isConnected();
+  }
+
   public Trigger shouldGripperClose() {
     return shouldCloseTrigger;
   }

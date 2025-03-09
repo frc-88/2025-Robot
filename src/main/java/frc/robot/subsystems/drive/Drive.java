@@ -184,6 +184,14 @@ public class Drive extends SubsystemBase {
     }
   }
 
+  public boolean isReady() {
+    return gyroInputs.connected
+        && modules[0].isReady()
+        && modules[1].isReady()
+        && modules[2].isReady()
+        && modules[3].isReady();
+  }
+
   private double aimAtStation() {
     return getPose().getY() < 4.1148 ? 45.0 : -45.0;
   }

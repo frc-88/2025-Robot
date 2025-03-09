@@ -160,11 +160,11 @@ public class RobotContainer {
     // subsystem
     lights =
         new Lights(
-            () -> true,
-            () -> true,
-            () -> true,
-            () -> true,
-            () -> true,
+            drive::isReady,
+            m_armevator::isReady,
+            m_doghouse::isReady,
+            climber::isReady,
+            vision::isReady,
             m_doghouse::hasCoral,
             m_armevator::isElevatorDown,
             () -> autoChooser.get().getName());
