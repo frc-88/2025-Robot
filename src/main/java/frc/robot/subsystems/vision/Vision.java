@@ -55,7 +55,7 @@ public class Vision extends SubsystemBase {
     }
   }
 
-  public boolean isReady(){
+  public boolean isReady() {
     boolean ready = true;
     for (int i = 0; i < inputs.length; i++) {
       ready &= inputs[i].connected;
