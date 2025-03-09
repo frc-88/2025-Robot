@@ -163,7 +163,7 @@ public class RobotContainer {
             drive::isReady,
             m_armevator::isReady,
             m_doghouse::isReady,
-            () -> true,
+            climber::isReady,
             () -> true,
             m_doghouse::hasCoral,
             m_armevator::isElevatorDown,

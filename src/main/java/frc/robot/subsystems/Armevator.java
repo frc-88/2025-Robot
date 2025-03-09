@@ -135,6 +135,7 @@ public class Armevator extends SubsystemBase {
     return m_elevatorMain.isConnected()
         && m_elevatorFollower.isConnected()
         && m_arm.isConnected()
+        && m_encoder.isConnected()
         && isArmZero()
         && isElevatorDown();
   }
