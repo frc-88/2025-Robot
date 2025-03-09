@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
@@ -393,10 +394,14 @@ public class RobotContainer {
     return new SequentialCommandGroup(
             drive.pathFind(odd),
             new ParallelDeadlineGroup(
-                new WaitUntilCommand(
-                    () -> drive.isShootingDistance() && m_armevator.atMode(() -> mode)),
-                // reefDebouncer.calculate(m_doghouse.getIsReefDetected())
-                //     && m_armevator.atMode(() -> mode)),
+                new ConditionalCommand(
+                    new WaitUntilCommand(
+                        () -> drive.isShootingDistance() && m_armevator.atMode(() -> mode)),
+                    new WaitUntilCommand(
+                        () ->
+                            reefDebouncer.calculate(m_doghouse.getIsReefDetected())
+                                && m_armevator.atMode(() -> mode)),
+                    () -> mode == 4),
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)),
             shootCommand())
