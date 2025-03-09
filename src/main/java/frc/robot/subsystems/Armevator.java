@@ -289,6 +289,14 @@ public class Armevator extends SubsystemBase {
     stowElevator();
   }
 
+  public boolean atMode(IntSupplier i) {
+    if (i.getAsInt() == 4) {
+      return Math.abs(getArmAngle() - Constants.ARM_L4_ANGLE) < 1.2;
+    } else {
+      return true;
+    }
+  }
+
   public Command stowArmFactory() {
     return new RunCommand(() -> stowArm(), this);
   }
@@ -373,8 +381,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command AlgaestowFactory() {
-    return new SequentialCommandGroup(
-        stowArmAlgaeFactory().until(this::isArmOnAlgaePosition), calibrateElevatorFactory());
+    return stowArmAlgaeFactory();
   }
 
   public Command goToTiltAngleFactory() {
