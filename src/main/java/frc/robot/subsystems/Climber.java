@@ -88,7 +88,10 @@ public class Climber extends SubsystemBase {
       new Trigger(() -> shouldSoftClose() && RobotState.isEnabled());
   // public Trigger forceCloseTrigger = new Trigger(() -> forceClose());
 
-  /** Creates a new Climber. */
+  // tic toc goes the clock
+  // zero time is when we climb
+  // grab the cage and wait
+
   public Climber() {
     configureTalons();
     calibrateBoth();
