@@ -403,8 +403,7 @@ public class RobotContainer {
                     () -> mode == 4),
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)),
-            shootCommand(),
-            new InstantCommand(m_armevator::enableAutocal))
+            shootCommand())
         .beforeStarting(
             () -> {
               reefDebouncer.calculate(false);
@@ -434,8 +433,7 @@ public class RobotContainer {
                         () -> drive.isShootingDistance() && m_armevator.atMode(() -> mode)),
                     () -> mode == 4),
                 drive.scoreOnReef(odd),
-                m_armevator.scoreAll(() -> mode)),
-            new InstantCommand(m_armevator::enableAutocal))
+                m_armevator.scoreAll(() -> mode)))
         .beforeStarting(
             () -> {
               reefDebouncer.calculate(false);
@@ -459,7 +457,8 @@ public class RobotContainer {
     return new ParallelDeadlineGroup(
         m_doghouse.shootFactory(),
         new WaitCommand(0.25).andThen(m_armevator.armGoToZeroFactory()),
-        new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
+        new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())),
+        new InstantCommand(m_armevator::enableAutocal));
   }
 
   private Command shoot() {
