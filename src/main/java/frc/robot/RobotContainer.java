@@ -404,7 +404,11 @@ public class RobotContainer {
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)),
             shootCommand())
-        .beforeStarting(() -> {reefDebouncer.calculate(false);m_armevator.disableAutocal();})
+        .beforeStarting(
+            () -> {
+              reefDebouncer.calculate(false);
+              m_armevator.disableAutocal();
+            })
         .andThen(m_armevator::enableAutocal);
   }
 
@@ -431,8 +435,12 @@ public class RobotContainer {
                     () -> mode == 4),
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)))
-                .beforeStarting(() -> {reefDebouncer.calculate(false);m_armevator.disableAutocal();})
-                .andThen(m_armevator::enableAutocal);
+        .beforeStarting(
+            () -> {
+              reefDebouncer.calculate(false);
+              m_armevator.disableAutocal();
+            })
+        .andThen(m_armevator::enableAutocal);
   }
 
   private Command scoreAuto(int num) {
