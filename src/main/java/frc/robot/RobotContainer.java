@@ -224,6 +224,7 @@ public class RobotContainer {
                                 () -> controller.setRumble(RumbleType.kBothRumble, 0)))));
 
     climber.shouldSoftCloseTrigger.onTrue(climber.softCloseFactory());
+    m_armevator.m_shouldCalibrate.onTrue(m_armevator.elevatorCalibrateFactory());
     // atL2.onTrue(m_doghouse.shootFactory());
     // .onFalse(climber.setNotGrabbed());
     // climber.forceCloseOnDisable().onTrue(climber.climbOnDisable().ignoringDisable(true));
@@ -403,11 +404,7 @@ public class RobotContainer {
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)),
             shootCommand())
-        .beforeStarting(
-            () -> {
-              reefDebouncer.calculate(false);
-              m_armevator.disableAutocal();
-            })
+        .beforeStarting(() -> {reefDebouncer.calculate(false);m_armevator.disableAutocal();})
         .andThen(m_armevator::enableAutocal);
   }
 
@@ -434,12 +431,8 @@ public class RobotContainer {
                     () -> mode == 4),
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)))
-        .beforeStarting(
-            () -> {
-              reefDebouncer.calculate(false);
-              m_armevator.disableAutocal();
-            })
-        .andThen(m_armevator::enableAutocal);
+                .beforeStarting(() -> {reefDebouncer.calculate(false);m_armevator.disableAutocal();})
+                .andThen(m_armevator::enableAutocal);
   }
 
   private Command scoreAuto(int num) {
@@ -530,7 +523,6 @@ public class RobotContainer {
   public void teleopInit() {
     new SequentialCommandGroup(climber.calibrateFactory(), climber.calibrateGripperFactory())
         .schedule();
-    m_armevator.m_shouldCalibrate.onTrue(m_armevator.elevatorCalibrateFactory());
   }
 
   public void disableInit() {}
