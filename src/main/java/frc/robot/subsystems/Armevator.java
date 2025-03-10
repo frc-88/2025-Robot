@@ -74,15 +74,17 @@ public class Armevator extends SubsystemBase {
 
   private final Debouncer elevatorDebouncer = new Debouncer(1.0);
   private final DigitalInput m_magnetInput = new DigitalInput(7);
+  private BooleanSupplier m_safeToMove;
+  private boolean m_calibrated = false;
+  private boolean m_calibrationOK = true;
+
   public final Trigger m_shouldCalibrate =
       new Trigger(
           () ->
               !m_magnetInput.get()
+                  && m_calibrationOK
                   && elevatorDebouncer.calculate(
                       Math.abs(m_elevatorMain.getVelocity().getValueAsDouble()) < 0.1));
-
-  private BooleanSupplier m_safeToMove;
-  private boolean m_calibrated = false;
 
   public Armevator(BooleanSupplier safeToMove) {
     m_safeToMove = safeToMove;
@@ -155,6 +157,14 @@ public class Armevator extends SubsystemBase {
 
   private void elevatorCalibrate() {
     m_elevatorMain.setPosition(0.0);
+  }
+
+  public void enableAutocal() {
+    m_calibrationOK = true;
+  }
+
+  public void disableAutocal() {
+    m_calibrationOK = false;
   }
 
   @AutoLogOutput(key = "Armevator/elevatorPosition")
