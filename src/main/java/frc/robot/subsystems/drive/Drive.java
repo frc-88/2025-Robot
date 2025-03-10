@@ -118,6 +118,7 @@ public class Drive extends SubsystemBase {
       };
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+  private boolean m_autoaim = true;
 
   public Drive(
       GyroIO gyroIO,
@@ -184,6 +185,14 @@ public class Drive extends SubsystemBase {
     }
   }
 
+  public boolean isReady() {
+    return gyroInputs.connected
+        && modules[0].isReady()
+        && modules[1].isReady()
+        && modules[2].isReady()
+        && modules[3].isReady();
+  }
+
   private double aimAtStation() {
     return getPose().getY() < 4.1148 ? 45.0 : -45.0;
   }
@@ -197,6 +206,10 @@ public class Drive extends SubsystemBase {
 
   private boolean isNearReef() {
     return getPose().getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 2.0;
+  }
+
+  public boolean isShootingDistance() {
+    return getPose().getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 1.40;
   }
 
   private Command getPath(int i) {
@@ -235,8 +248,18 @@ public class Drive extends SubsystemBase {
     return angle;
   }
 
+  public void enableAutoAim() {
+    m_autoaim = true;
+  }
+
+  public void disableAutoAim() {
+    m_autoaim = false;
+  }
+
   public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
-    if (hasCoral.getAsBoolean()) {
+    if (!m_autoaim) {
+      return getPose().getRotation().getDegrees();
+    } else if (hasCoral.getAsBoolean()) {
       return aimAtReef();
     } else if (!isNearReef()) {
       return aimAtStation();
@@ -251,7 +274,7 @@ public class Drive extends SubsystemBase {
     double y = getChassisSpeeds().vyMetersPerSecond;
 
     return new Pose2d(
-        current.getX() + (x * 0.5), current.getY() + (y * 0.5), current.getRotation());
+        current.getX() + (x * 0.2), current.getY() + (y * 0.2), current.getRotation());
   }
 
   private int getTargetSector() {
@@ -374,7 +397,7 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
-    double angle = getAngleToReef(nextPose());
+    double angle = getAngleToReef(getPose());
     if (angle < 30.0 && angle > -30.0) {
       m_currentPathOdd = 11;
     } else if (angle > 30.0 && angle < 90.0) {

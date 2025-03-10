@@ -144,6 +144,13 @@ public class Climber extends SubsystemBase {
     m_gripper.setNeutralMode(NeutralModeValue.Brake);
   }
 
+  public boolean isReady() {
+    return m_gasmotor.isConnected()
+        && m_gripper.isConnected()
+        && m_climberEncoder.isConnected()
+        && m_canRange.isConnected();
+  }
+
   public Trigger shouldGripperClose() {
     return shouldCloseTrigger;
   }
@@ -209,7 +216,7 @@ public class Climber extends SubsystemBase {
 
   public boolean shouldEnableNeutralOnDisable() {
 
-    return RobotState.isDisabled() && getPositionGasMotorRotations() > 40.0 /*m_grabbed*/;
+    return RobotState.isDisabled();
   }
 
   public boolean poweredClimb() {

@@ -55,6 +55,14 @@ public class Vision extends SubsystemBase {
     }
   }
 
+  public boolean isReady() {
+    boolean ready = true;
+    for (int i = 0; i < inputs.length; i++) {
+      ready &= inputs[i].connected;
+    }
+    return ready;
+  }
+
   /**
    * Returns the X angle to the best target, which can be used for simple servoing with vision.
    *
@@ -111,7 +119,7 @@ public class Vision extends SubsystemBase {
                 || observation.pose().getX() > aprilTagLayout.getFieldLength()
                 || observation.pose().getY() < 0.0
                 || observation.pose().getY() > aprilTagLayout.getFieldWidth()
-                || observation.averageTagDistance() > 3.0;
+                || observation.averageTagDistance() > (cameraIndex == 0 ? 2.0 : 8.0);
 
         // Add pose to log
         robotPoses.add(observation.pose());

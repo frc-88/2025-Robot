@@ -13,13 +13,19 @@
         {
           "type": "named",
           "data": {
-            "name": "Score Even"
+            "name": "Score Odd"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Stow"
           }
         },
         {
@@ -31,22 +37,9 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "deadline",
+                      "type": "path",
                       "data": {
-                        "commands": [
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "Sector1ToStation"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Stow"
-                            }
-                          }
-                        ]
+                        "pathName": "Sector5ToStation"
                       }
                     },
                     {
@@ -58,7 +51,7 @@
                     {
                       "type": "named",
                       "data": {
-                        "name": "Score Even"
+                        "name": "Score Odd"
                       }
                     }
                   ]
@@ -80,6 +73,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Stow"
+          }
+        },
+        {
           "type": "deadline",
           "data": {
             "commands": [
@@ -88,22 +87,9 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "deadline",
+                      "type": "path",
                       "data": {
-                        "commands": [
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "Sector2ToStation"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Stow"
-                            }
-                          }
-                        ]
+                        "pathName": "Sector4ToStation"
                       }
                     },
                     {
@@ -115,7 +101,7 @@
                     {
                       "type": "named",
                       "data": {
-                        "name": "Score Odd"
+                        "name": "Score Even"
                       }
                     }
                   ]

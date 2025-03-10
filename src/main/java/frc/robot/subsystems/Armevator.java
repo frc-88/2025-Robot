@@ -131,6 +131,15 @@ public class Armevator extends SubsystemBase {
     m_arm.setNeutralMode(NeutralModeValue.Brake);
   }
 
+  public boolean isReady() {
+    return m_elevatorMain.isConnected()
+        && m_elevatorFollower.isConnected()
+        && m_arm.isConnected()
+        && m_encoder.isConnected()
+        && isArmZero()
+        && isElevatorDown();
+  }
+
   @AutoLogOutput(key = "Armevator/armAngle")
   public double getArmAngle() {
     return m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES;
@@ -280,12 +289,25 @@ public class Armevator extends SubsystemBase {
     stowElevator();
   }
 
+  public boolean atMode(IntSupplier i) {
+    if (i.getAsInt() == 4) {
+      return Math.abs(getArmAngle() - Constants.ARM_L4_ANGLE) < 1.2;
+    } else {
+      return true;
+    }
+  }
+
   public Command stowArmFactory() {
     return new RunCommand(() -> stowArm(), this);
   }
 
   public Command stowArmAlgaeFactory() {
-    return new RunCommand(() -> stowArmAlgae(), this);
+    return new RunCommand(
+        () -> {
+          stowArmAlgae();
+          stowElevator();
+        },
+        this);
   }
 
   public Command stowBothFactory() {
@@ -364,8 +386,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command AlgaestowFactory() {
-    return new SequentialCommandGroup(
-        stowArmAlgaeFactory().until(this::isArmOnAlgaePosition), calibrateElevatorFactory());
+    return stowArmAlgaeFactory();
   }
 
   public Command goToTiltAngleFactory() {

@@ -58,6 +58,10 @@ public class Module {
             AlertType.kError);
   }
 
+  public boolean isReady() {
+    return inputs.driveConnected && inputs.turnConnected && inputs.turnEncoderConnected;
+  }
+
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
