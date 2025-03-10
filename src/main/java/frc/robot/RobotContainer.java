@@ -403,13 +403,13 @@ public class RobotContainer {
                     () -> mode == 4),
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)),
-            shootCommand())
+            shootCommand(),
+            new InstantCommand(m_armevator::enableAutocal))
         .beforeStarting(
             () -> {
               reefDebouncer.calculate(false);
               m_armevator.disableAutocal();
-            })
-        .andThen(m_armevator::enableAutocal);
+            });
   }
 
   private Command scoreOnPath(boolean odd) {
@@ -434,13 +434,13 @@ public class RobotContainer {
                         () -> drive.isShootingDistance() && m_armevator.atMode(() -> mode)),
                     () -> mode == 4),
                 drive.scoreOnReef(odd),
-                m_armevator.scoreAll(() -> mode)))
+                m_armevator.scoreAll(() -> mode)),
+            new InstantCommand(m_armevator::enableAutocal))
         .beforeStarting(
             () -> {
               reefDebouncer.calculate(false);
               m_armevator.disableAutocal();
-            })
-        .andThen(m_armevator::enableAutocal);
+            });
   }
 
   private Command scoreAuto(int num) {
