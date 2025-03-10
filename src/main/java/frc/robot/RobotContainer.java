@@ -44,7 +44,6 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Armevator;
@@ -91,17 +90,11 @@ public class RobotContainer {
 
   public LocalADStarAK pathFinder = new LocalADStarAK();
 
-  public Trigger driveOnCoral = new Trigger(() -> hasCoralDebounced());
   Timer timer = new Timer();
   private DoublePreferenceConstant p_amplitude = new DoublePreferenceConstant("Aplitude", 0);
   private DoublePreferenceConstant p_frequency = new DoublePreferenceConstant("Wavelength", 0);
 
   private Debouncer reefDebouncer = new Debouncer(0.2);
-  // public Trigger atL4 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL4());
-  // public Trigger atL3 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL3());
-  // public Trigger atL2 =
-  //     new Trigger(
-  //         () -> hasCoralDebounced() && m_armevator.atL2() && m_doghouse.getIsReefDetected());
   public int mode = 2;
 
   public RobotContainer() {
@@ -411,7 +404,11 @@ public class RobotContainer {
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)),
             shootCommand())
-        .beforeStarting(() -> reefDebouncer.calculate(false));
+        .beforeStarting(
+            () -> {
+              reefDebouncer.calculate(false);
+              m_armevator.disableAutocal();
+            });
   }
 
   private Command scoreOnPath(boolean odd) {
@@ -437,7 +434,11 @@ public class RobotContainer {
                     () -> mode == 4),
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)))
-        .beforeStarting(() -> reefDebouncer.calculate(false));
+        .beforeStarting(
+            () -> {
+              reefDebouncer.calculate(false);
+              m_armevator.disableAutocal();
+            });
   }
 
   private Command scoreAuto(int num) {
@@ -456,7 +457,8 @@ public class RobotContainer {
     return new ParallelDeadlineGroup(
         m_doghouse.shootFactory(),
         new WaitCommand(0.25).andThen(m_armevator.armGoToZeroFactory()),
-        new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
+        new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())),
+        new InstantCommand(m_armevator::enableAutocal));
   }
 
   private Command shoot() {
