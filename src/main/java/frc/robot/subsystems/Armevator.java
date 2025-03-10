@@ -397,8 +397,7 @@ public class Armevator extends SubsystemBase {
 
   public Command AlgaestowFactory() {
     return new SequentialCommandGroup(
-      new InstantCommand(()-> disableAutocal()),
-      stowArmAlgaeFactory());
+        new InstantCommand(() -> disableAutocal()), stowArmAlgaeFactory());
   }
 
   public Command goToTiltAngleFactory() {
