@@ -170,6 +170,11 @@ public class Armevator extends SubsystemBase {
           motionmagicrequest
               .withPosition(position / Constants.ELEVATOR_ROTATIONS_TO_INCHES)
               .withFeedForward(0.056));
+    } else {
+      m_elevatorMain.setControl(
+          motionmagicrequest
+              .withPosition(m_elevatorMain.getPosition().getValueAsDouble())
+              .withFeedForward(0.056));
     }
   }
 
