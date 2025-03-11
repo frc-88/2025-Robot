@@ -193,23 +193,39 @@ public class Drive extends SubsystemBase {
         && modules[3].isReady();
   }
 
+  private boolean weAreRed() {
+    return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+  }
+
+  private Pose2d reefPose() {
+    if (weAreRed()) {
+      return Constants.REEF_POSE.relativeTo(
+          new Pose2d(Constants.FIELD_LENGTH, Constants.FIELD_WIDTH, new Rotation2d(180.0)));
+    }
+    return Constants.REEF_POSE;
+  }
+
   private double aimAtStation() {
-    return getPose().getY() < 4.1148 ? 45.0 : -45.0;
+    if (getPose().getY() < (Constants.FIELD_WIDTH / 2.0)) {
+      return weAreRed() ? 135.0 : 45;
+    } else {
+      return weAreRed() ? -135.0 : -45.0;
+    }
   }
 
   private double getAngleToReef(Pose2d pose) {
-    Translation2d position = pose.relativeTo(Constants.REEF_POSE).getTranslation();
+    Translation2d position = pose.relativeTo(reefPose()).getTranslation();
     double x = position.getX();
     double y = position.getY();
     return Units.radiansToDegrees(Math.atan2(y, x));
   }
 
   private boolean isNearReef() {
-    return getPose().getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 2.0;
+    return getPose().getTranslation().getDistance(reefPose().getTranslation()) < 2.0;
   }
 
   public boolean isShootingDistance() {
-    return getPose().getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 1.40;
+    return getPose().getTranslation().getDistance(reefPose().getTranslation()) < 1.40;
   }
 
   private Command getPath(int i) {
