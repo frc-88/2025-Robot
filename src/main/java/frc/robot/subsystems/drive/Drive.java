@@ -199,10 +199,11 @@ public class Drive extends SubsystemBase {
 
   private Pose2d flipIfRed(Pose2d pose) {
     if (weAreRed()) {
-      pose.relativeTo(
+      return pose.relativeTo(
           new Pose2d(Constants.FIELD_LENGTH, Constants.FIELD_WIDTH, new Rotation2d(180.0)));
+    } else {
+      return pose;
     }
-    return pose;
   }
 
   private double aimAtStation() {
