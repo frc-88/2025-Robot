@@ -26,7 +26,9 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 
-// haiku???
+// take two subsystems
+// then squish their names together
+// portmanteau robot
 
 public class Armevator extends SubsystemBase {
   private final TalonFX m_elevatorMain =

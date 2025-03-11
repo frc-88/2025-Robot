@@ -53,6 +53,10 @@ public class Doghouse extends SubsystemBase {
   private boolean m_algaeCaptured = false;
   private Debouncer m_algaeDebouncer = new Debouncer(1.0);
 
+  // who made the doghouse?
+  // and why is it named like that?
+  // ask us in the pit!
+
   public Doghouse() {
     // configure funnel
     TalonFXConfiguration doghouseConfiguration = new TalonFXConfiguration();

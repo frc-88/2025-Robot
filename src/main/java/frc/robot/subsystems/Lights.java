@@ -66,6 +66,10 @@ public class Lights extends SubsystemBase {
     Empty
   }
 
+  // the best subsystems
+  // do their work while disabled
+  // the climber agrees
+
   public Lights(
       BooleanSupplier driveReady,
       BooleanSupplier armevatorReady,
