@@ -30,6 +30,10 @@ import java.util.LinkedList;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
 
+// thank you very much
+// to Littleton Robotics
+// AdvantageKit rocks!
+
 public class Vision extends SubsystemBase {
   private final VisionConsumer consumer;
   private final VisionIO[] io;
