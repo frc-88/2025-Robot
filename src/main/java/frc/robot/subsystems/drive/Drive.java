@@ -197,12 +197,12 @@ public class Drive extends SubsystemBase {
     return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
   }
 
-  private Pose2d reefPose() {
+  private Pose2d flipIfRed(Pose2d pose) {
     if (weAreRed()) {
-      return Constants.REEF_POSE.relativeTo(
+      pose.relativeTo(
           new Pose2d(Constants.FIELD_LENGTH, Constants.FIELD_WIDTH, new Rotation2d(180.0)));
     }
-    return Constants.REEF_POSE;
+    return pose;
   }
 
   private double aimAtStation() {
@@ -214,18 +214,20 @@ public class Drive extends SubsystemBase {
   }
 
   private double getAngleToReef(Pose2d pose) {
-    Translation2d position = pose.relativeTo(reefPose()).getTranslation();
+    Translation2d position = flipIfRed(pose).relativeTo(Constants.REEF_POSE).getTranslation();
     double x = position.getX();
     double y = position.getY();
     return Units.radiansToDegrees(Math.atan2(y, x));
   }
 
   private boolean isNearReef() {
-    return getPose().getTranslation().getDistance(reefPose().getTranslation()) < 2.0;
+    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
+        < 2.0;
   }
 
   public boolean isShootingDistance() {
-    return getPose().getTranslation().getDistance(reefPose().getTranslation()) < 1.40;
+    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
+        < 1.40;
   }
 
   private Command getPath(int i) {
@@ -249,17 +251,17 @@ public class Drive extends SubsystemBase {
   private double aimAtReef() {
     double angle = getAngleToReef(nextPose());
     if (angle < 30.0 && angle > -30.0) {
-      angle = 180.0;
+      angle = weAreRed() ? 0.0 : 180.0;
     } else if (angle > 30.0 && angle < 90.0) {
-      angle = -120;
+      angle = weAreRed() ? 60.0 : -120.0;
     } else if (angle > 90.0 && angle < 150.0) {
-      angle = -60.0;
+      angle = weAreRed() ? 120.0 : -60.0;
     } else if (angle > 150.0 || angle < -150.0) {
-      angle = 0.0;
+      angle = weAreRed() ? 180.0 : 0.0;
     } else if (angle > -150.0 && angle < -90.0) {
-      angle = 60.0;
+      angle = weAreRed() ? -120.0 : 60.0;
     } else if (angle > -90.0 && angle < -30.0) {
-      angle = 120;
+      angle = weAreRed() ? -60.0 : 120.0;
     }
     return angle;
   }
