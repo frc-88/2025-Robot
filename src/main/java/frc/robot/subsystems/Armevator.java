@@ -321,7 +321,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command elevatorCalibrateFactory() {
-    return new InstantCommand(() -> elevatorCalibrate(), this);
+    return new InstantCommand(() -> elevatorCalibrate());
   }
 
   public Command L2Algae() {
