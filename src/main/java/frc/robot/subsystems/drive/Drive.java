@@ -204,7 +204,10 @@ public class Drive extends SubsystemBase {
   private Pose2d flipIfRed(Pose2d pose) {
     if (weAreRed()) {
       return pose.relativeTo(
-          new Pose2d(Constants.FIELD_LENGTH, Constants.FIELD_WIDTH, new Rotation2d(180.0)));
+          new Pose2d(
+              Constants.FIELD_LENGTH,
+              Constants.FIELD_WIDTH,
+              new Rotation2d(Units.degreesToRadians(180))));
     } else {
       return pose;
     }
@@ -247,7 +250,7 @@ public class Drive extends SubsystemBase {
     try {
       boolean present = m_paths.get(i - 1).getStartingHolonomicPose().isPresent();
       Pose2d pose = present ? m_paths.get(i - 1).getStartingHolonomicPose().get() : getPose();
-      return AutoBuilder.pathfindToPose(pose, Constants.CONSTRAINTS);
+      return AutoBuilder.pathfindToPose(flipIfRed(pose), Constants.CONSTRAINTS);
     } catch (IndexOutOfBoundsException e) {
       return new WaitCommand(1.0);
     }

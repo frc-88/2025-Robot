@@ -94,12 +94,12 @@ public class Doghouse extends SubsystemBase {
     doghouscfg.ToFParams.UpdateFrequency = 50;
     coralRangecfg.ToFParams.UpdateFrequency = 50;
 
-    doghouscfg.ProximityParams.ProximityThreshold = 0.5;
+    doghouscfg.ProximityParams.ProximityThreshold = 0.3;
     doghouscfg.ProximityParams.ProximityHysteresis = 0.03;
     coralRangecfg.ProximityParams.ProximityThreshold = 0.5;
 
     coralRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 40000;
-    doghouscfg.ProximityParams.MinSignalStrengthForValidMeasurement = 10000;
+    doghouscfg.ProximityParams.MinSignalStrengthForValidMeasurement = 18000;
 
     m_doghousCANRange.getConfigurator().apply(doghouscfg);
     m_coralRange.getConfigurator().apply(coralRangecfg);
