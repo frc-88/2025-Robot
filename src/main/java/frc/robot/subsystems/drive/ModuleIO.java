@@ -41,6 +41,14 @@ public interface ModuleIO {
   /** Updates the set of loggable inputs. */
   public default void updateInputs(ModuleIOInputs inputs) {}
 
+  /** Configure encoder with provided offset */
+  public default void configureEncoder(double offset) {}
+
+  /** Get encoder absolute position */
+  public default double getEncoderPosition() {
+    return 0;
+  }
+
   /** Run the drive motor at the specified open loop value. */
   public default void setDriveOpenLoop(double output) {}
 
