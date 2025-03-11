@@ -7,6 +7,12 @@
         {
           "type": "named",
           "data": {
+            "name": "Armevator Calibration"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
             "name": "L4 Mode"
           }
         },
