@@ -62,6 +62,10 @@ import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+// we stand on shoulders
+// of mechanical giants
+// what an advantage
+
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
 
@@ -118,6 +122,7 @@ public class Drive extends SubsystemBase {
       };
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+  private boolean m_autoaim = true;
 
   public Drive(
       GyroIO gyroIO,
@@ -184,19 +189,53 @@ public class Drive extends SubsystemBase {
     }
   }
 
+  public boolean isReady() {
+    return gyroInputs.connected
+        && modules[0].isReady()
+        && modules[1].isReady()
+        && modules[2].isReady()
+        && modules[3].isReady();
+  }
+
+  private boolean weAreRed() {
+    return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+  }
+
+  private Pose2d flipIfRed(Pose2d pose) {
+    if (weAreRed()) {
+      return pose.relativeTo(
+          new Pose2d(
+              Constants.FIELD_LENGTH,
+              Constants.FIELD_WIDTH,
+              new Rotation2d(Units.degreesToRadians(180))));
+    } else {
+      return pose;
+    }
+  }
+
   private double aimAtStation() {
-    return getPose().getY() < 4.1148 ? 45.0 : -45.0;
+    if (getPose().getY() < (Constants.FIELD_WIDTH / 2.0)) {
+      return weAreRed() ? 135.0 : 45;
+    } else {
+      return weAreRed() ? -135.0 : -45.0;
+    }
   }
 
   private double getAngleToReef(Pose2d pose) {
-    Translation2d position = pose.relativeTo(Constants.REEF_POSE).getTranslation();
+    Translation2d position = flipIfRed(pose).relativeTo(Constants.REEF_POSE).getTranslation();
     double x = position.getX();
     double y = position.getY();
     return Units.radiansToDegrees(Math.atan2(y, x));
   }
 
   private boolean isNearReef() {
-    return getPose().getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 2.0;
+    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
+        < 2.0;
+  }
+
+  public boolean isShootingDistance() {
+    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
+        < 1.40;
   }
 
   private Command getPath(int i) {
@@ -211,7 +250,7 @@ public class Drive extends SubsystemBase {
     try {
       boolean present = m_paths.get(i - 1).getStartingHolonomicPose().isPresent();
       Pose2d pose = present ? m_paths.get(i - 1).getStartingHolonomicPose().get() : getPose();
-      return AutoBuilder.pathfindToPose(pose, Constants.CONSTRAINTS);
+      return AutoBuilder.pathfindToPose(flipIfRed(pose), Constants.CONSTRAINTS);
     } catch (IndexOutOfBoundsException e) {
       return new WaitCommand(1.0);
     }
@@ -220,23 +259,33 @@ public class Drive extends SubsystemBase {
   private double aimAtReef() {
     double angle = getAngleToReef(nextPose());
     if (angle < 30.0 && angle > -30.0) {
-      angle = 180.0;
+      angle = weAreRed() ? 0.0 : 180.0;
     } else if (angle > 30.0 && angle < 90.0) {
-      angle = -120;
+      angle = weAreRed() ? 60.0 : -120.0;
     } else if (angle > 90.0 && angle < 150.0) {
-      angle = -60.0;
+      angle = weAreRed() ? 120.0 : -60.0;
     } else if (angle > 150.0 || angle < -150.0) {
-      angle = 0.0;
+      angle = weAreRed() ? 180.0 : 0.0;
     } else if (angle > -150.0 && angle < -90.0) {
-      angle = 60.0;
+      angle = weAreRed() ? -120.0 : 60.0;
     } else if (angle > -90.0 && angle < -30.0) {
-      angle = 120;
+      angle = weAreRed() ? -60.0 : 120.0;
     }
     return angle;
   }
 
+  public void enableAutoAim() {
+    m_autoaim = true;
+  }
+
+  public void disableAutoAim() {
+    m_autoaim = false;
+  }
+
   public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
-    if (hasCoral.getAsBoolean()) {
+    if (!m_autoaim) {
+      return getPose().getRotation().getDegrees();
+    } else if (hasCoral.getAsBoolean()) {
       return aimAtReef();
     } else if (!isNearReef()) {
       return aimAtStation();
@@ -251,7 +300,7 @@ public class Drive extends SubsystemBase {
     double y = getChassisSpeeds().vyMetersPerSecond;
 
     return new Pose2d(
-        current.getX() + (x * 0.5), current.getY() + (y * 0.5), current.getRotation());
+        current.getX() + (x * 0.2), current.getY() + (y * 0.2), current.getRotation());
   }
 
   private int getTargetSector() {
@@ -374,7 +423,7 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
-    double angle = getAngleToReef(nextPose());
+    double angle = getAngleToReef(getPose());
     if (angle < 30.0 && angle > -30.0) {
       m_currentPathOdd = 11;
     } else if (angle > 30.0 && angle < 90.0) {

@@ -20,7 +20,9 @@ import static frc.robot.subsystems.vision.VisionConstants.robotToCamera1;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.filter.Debouncer;
@@ -33,6 +35,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
@@ -93,7 +96,7 @@ public class RobotContainer {
   private DoublePreferenceConstant p_amplitude = new DoublePreferenceConstant("Aplitude", 0);
   private DoublePreferenceConstant p_frequency = new DoublePreferenceConstant("Wavelength", 0);
 
-  private Debouncer reefDebouncer = new Debouncer(0.1);
+  private Debouncer reefDebouncer = new Debouncer(0.2);
   // public Trigger atL4 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL4());
   // public Trigger atL3 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL3());
   // public Trigger atL2 =
@@ -160,11 +163,11 @@ public class RobotContainer {
     // subsystem
     lights =
         new Lights(
-            () -> true,
-            () -> true,
-            () -> true,
-            () -> true,
-            () -> true,
+            drive::isReady,
+            m_armevator::isReady,
+            m_doghouse::isReady,
+            climber::isReady,
+            vision::isReady,
             m_doghouse::hasCoral,
             m_armevator::isElevatorDown,
             () -> autoChooser.get().getName());
@@ -206,6 +209,9 @@ public class RobotContainer {
     NamedCommands.registerCommand("Armevator Calibration", m_armevator.calibrateBothFactory());
     NamedCommands.registerCommand("Score Odd", scoreNoShoot(true));
     NamedCommands.registerCommand("Score Even", scoreNoShoot(false));
+
+    PathfindingCommand.warmupCommand().schedule();
+    FollowPathCommand.warmupCommand().schedule();
   }
 
   public void configureDashboardButtons() {
@@ -222,9 +228,11 @@ public class RobotContainer {
                         .andThen(new WaitCommand(2.0))
                         .andThen(
                             new InstantCommand(
-                                () -> controller.setRumble(RumbleType.kBothRumble, 0)))));
+                                () -> controller.setRumble(RumbleType.kBothRumble, 0))))
+                .alongWith(m_doghouse.stopAllFactory()));
 
-    climber.shouldSoftCloseTrigger.onTrue(climber.softCloseFactory());
+    climber.shouldSoftCloseTrigger.onTrue(
+        climber.softCloseFactory().alongWith(m_doghouse.stopAllFactory()));
     m_armevator.m_shouldCalibrate.onTrue(m_armevator.elevatorCalibrateFactory());
     // atL2.onTrue(m_doghouse.shootFactory());
     // .onFalse(climber.setNotGrabbed());
@@ -297,7 +305,13 @@ public class RobotContainer {
     buttons.button(4).onTrue(m_armevator.stowFactory());
     buttons.button(5).onTrue(getCoralFactory());
     buttons.button(11).onTrue(algaePickupFactory());
-    buttons.button(7).onTrue(climber.prepClimber().alongWith(m_doghouse.stopAllFactory()));
+    buttons
+        .button(7)
+        .onTrue(
+            climber
+                .prepClimber()
+                .alongWith(
+                    m_doghouse.stopAllFactory(), new InstantCommand(() -> drive.disableAutoAim())));
     buttons.button(8).onTrue(L3AlgaePickupFactory());
     buttons.button(9).onTrue(L2AlgaePickupFactory());
     buttons.button(12).onTrue(m_armevator.shootInNetFactory());
@@ -306,6 +320,7 @@ public class RobotContainer {
     controller.rightTrigger().onTrue(shootCommand());
     controller.rightBumper().onTrue(scoreOnReef(true)).onFalse(drive.getDefaultCommand());
     controller.leftBumper().onTrue(scoreOnReef(false)).onFalse(drive.getDefaultCommand());
+    controller.leftTrigger().onTrue(scoreOnPath(false)).onFalse(drive.getDefaultCommand());
   }
 
   /**
@@ -387,17 +402,35 @@ public class RobotContainer {
     return new SequentialCommandGroup(
             drive.pathFind(odd),
             new ParallelDeadlineGroup(
-                new WaitUntilCommand(() -> reefDebouncer.calculate(m_doghouse.getIsReefDetected())),
+                new ConditionalCommand(
+                    new WaitUntilCommand(
+                        () ->
+                            reefDebouncer.calculate(m_doghouse.getIsReefDetected())
+                                && m_armevator.atMode(() -> mode)),
+                    new WaitUntilCommand(
+                        () -> drive.isShootingDistance() && m_armevator.atMode(() -> mode)),
+                    () -> mode == 4),
                 drive.scoreOnReef(odd),
-                m_armevator.scoreAll(() -> mode)),
+                m_armevator.scoreAll(() -> mode),
+                m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
+            shootCommand())
+        .beforeStarting(() -> reefDebouncer.calculate(false));
+  }
+
+  private Command scoreOnPath(boolean odd) {
+    return new SequentialCommandGroup(
+            drive.pathFind(odd),
+            new ParallelDeadlineGroup(
+                new WaitCommand(0.7), drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)),
             shootCommand())
         .beforeStarting(() -> reefDebouncer.calculate(false));
   }
 
   private Command scoreNoShoot(boolean odd) {
     return new SequentialCommandGroup(
-        drive.pathFind(odd),
-        new ParallelDeadlineGroup(drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)));
+            drive.pathFind(odd),
+            new ParallelDeadlineGroup(drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)))
+        .beforeStarting(() -> reefDebouncer.calculate(false));
   }
 
   private Command scoreAuto(int num) {

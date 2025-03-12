@@ -79,6 +79,9 @@ public final class Constants {
   // AUTOMATION
   public static final PathConstraints CONSTRAINTS = new PathConstraints(3.0, 3.0, 8.0, 20.0);
 
+  public static final double FIELD_WIDTH = 8.05;
+  public static final double FIELD_LENGTH = 17.55;
+
   public static final Pose2d REEF_POSE =
       new Pose2d(
           new Translation2d(Units.inchesToMeters(176.75), Units.feetToMeters(13.5)),

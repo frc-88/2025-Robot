@@ -19,7 +19,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Score Even"
+            "name": "Score Odd"
           }
         },
         {
@@ -43,7 +43,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector1ToStation"
+                              "pathName": "Sector5ToStation"
                             }
                           },
                           {
@@ -64,7 +64,7 @@
                     {
                       "type": "named",
                       "data": {
-                        "name": "Score Even"
+                        "name": "Score Odd"
                       }
                     }
                   ]
@@ -100,7 +100,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector2ToStation"
+                              "pathName": "Sector4ToStation"
                             }
                           },
                           {
@@ -121,7 +121,7 @@
                     {
                       "type": "named",
                       "data": {
-                        "name": "Score Odd"
+                        "name": "Score Even"
                       }
                     }
                   ]

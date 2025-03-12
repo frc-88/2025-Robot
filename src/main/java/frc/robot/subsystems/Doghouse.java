@@ -53,6 +53,10 @@ public class Doghouse extends SubsystemBase {
   private boolean m_algaeCaptured = false;
   private Debouncer m_algaeDebouncer = new Debouncer(1.0);
 
+  // who made the doghouse?
+  // and why is it named like that?
+  // ask us in the pit!
+
   public Doghouse() {
     // configure funnel
     TalonFXConfiguration doghouseConfiguration = new TalonFXConfiguration();
@@ -90,16 +94,26 @@ public class Doghouse extends SubsystemBase {
     doghouscfg.ToFParams.UpdateFrequency = 50;
     coralRangecfg.ToFParams.UpdateFrequency = 50;
 
-    doghouscfg.ProximityParams.ProximityThreshold = 0.5;
+    doghouscfg.ProximityParams.ProximityThreshold = 0.3;
     doghouscfg.ProximityParams.ProximityHysteresis = 0.03;
     coralRangecfg.ProximityParams.ProximityThreshold = 0.5;
 
     coralRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 40000;
-    doghouscfg.ProximityParams.MinSignalStrengthForValidMeasurement = 10000;
+    doghouscfg.ProximityParams.MinSignalStrengthForValidMeasurement = 18000;
 
     m_doghousCANRange.getConfigurator().apply(doghouscfg);
     m_coralRange.getConfigurator().apply(coralRangecfg);
     m_reefRange.getConfigurator().apply(reefRangecfg);
+  }
+
+  public boolean isReady() {
+    return m_funnel.isConnected()
+        && m_manipulator.isConnected()
+        && m_doghousCANRange.isConnected()
+        && m_coralRange.isConnected()
+        && m_reefRange.isConnected()
+        && hasCoral()
+        && !isBlocked();
   }
 
   @AutoLogOutput(key = "DogHouse/reefDetected")
@@ -206,17 +220,12 @@ public class Doghouse extends SubsystemBase {
             } else if (!hasCoral()) {
               manipulatorIn();
               funnelGo();
-              m_coralCaptured = false;
-            } else if (m_coralCaptured) {
+            } else if (hasCoral() & !isBlocked()) {
               manipulatorStop();
               funnelStop();
             } else if (isBlocked()) {
               manipulatorSlow();
               funnelStop();
-            } else if (!isBlocked()) {
-              manipulatorStop();
-              funnelStop();
-              m_coralCaptured = true;
             }
           } else {
             if (!hasCoral()) {

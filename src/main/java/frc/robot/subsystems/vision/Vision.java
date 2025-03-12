@@ -30,6 +30,10 @@ import java.util.LinkedList;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
 
+// thank you very much
+// to Littleton Robotics
+// AdvantageKit rocks!
+
 public class Vision extends SubsystemBase {
   private final VisionConsumer consumer;
   private final VisionIO[] io;
@@ -53,6 +57,14 @@ public class Vision extends SubsystemBase {
           new Alert(
               "Vision camera " + Integer.toString(i) + " is disconnected.", AlertType.kWarning);
     }
+  }
+
+  public boolean isReady() {
+    boolean ready = true;
+    for (int i = 0; i < inputs.length; i++) {
+      ready &= inputs[i].connected;
+    }
+    return ready;
   }
 
   /**
@@ -111,7 +123,7 @@ public class Vision extends SubsystemBase {
                 || observation.pose().getX() > aprilTagLayout.getFieldLength()
                 || observation.pose().getY() < 0.0
                 || observation.pose().getY() > aprilTagLayout.getFieldWidth()
-                || observation.averageTagDistance() > 3.0;
+                || observation.averageTagDistance() > (cameraIndex == 0 ? 2.0 : 8.0);
 
         // Add pose to log
         robotPoses.add(observation.pose());

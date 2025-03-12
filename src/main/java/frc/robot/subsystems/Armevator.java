@@ -26,7 +26,9 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 
-// haiku???
+// take two subsystems
+// then squish their names together
+// portmanteau robot
 
 public class Armevator extends SubsystemBase {
   private final TalonFX m_elevatorMain =
@@ -72,7 +74,7 @@ public class Armevator extends SubsystemBase {
       new DoublePreferenceConstant("Armevator/Elevator/SupplyCurrentLimit", 40);
   private final MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
 
-  private final Debouncer elevatorDebouncer = new Debouncer(1.0);
+  private final Debouncer elevatorDebouncer = new Debouncer(0.5);
   private final DigitalInput m_magnetInput = new DigitalInput(7);
   public final Trigger m_shouldCalibrate =
       new Trigger(
@@ -131,6 +133,15 @@ public class Armevator extends SubsystemBase {
     m_arm.setNeutralMode(NeutralModeValue.Brake);
   }
 
+  public boolean isReady() {
+    return m_elevatorMain.isConnected()
+        && m_elevatorFollower.isConnected()
+        && m_arm.isConnected()
+        && m_encoder.isConnected()
+        && isArmZero()
+        && isElevatorDown();
+  }
+
   @AutoLogOutput(key = "Armevator/armAngle")
   public double getArmAngle() {
     return m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES;
@@ -158,6 +169,11 @@ public class Armevator extends SubsystemBase {
       m_elevatorMain.setControl(
           motionmagicrequest
               .withPosition(position / Constants.ELEVATOR_ROTATIONS_TO_INCHES)
+              .withFeedForward(0.056));
+    } else {
+      m_elevatorMain.setControl(
+          motionmagicrequest
+              .withPosition(m_elevatorMain.getPosition().getValueAsDouble())
               .withFeedForward(0.056));
     }
   }
@@ -280,12 +296,25 @@ public class Armevator extends SubsystemBase {
     stowElevator();
   }
 
+  public boolean atMode(IntSupplier i) {
+    if (i.getAsInt() == 4) {
+      return Math.abs(getArmAngle() - Constants.ARM_L4_ANGLE) < 1.2;
+    } else {
+      return true;
+    }
+  }
+
   public Command stowArmFactory() {
     return new RunCommand(() -> stowArm(), this);
   }
 
   public Command stowArmAlgaeFactory() {
-    return new RunCommand(() -> stowArmAlgae(), this);
+    return new RunCommand(
+        () -> {
+          stowArmAlgae();
+          stowElevator();
+        },
+        this);
   }
 
   public Command stowBothFactory() {
@@ -297,7 +326,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command elevatorCalibrateFactory() {
-    return new InstantCommand(() -> elevatorCalibrate(), this);
+    return new InstantCommand(() -> elevatorCalibrate());
   }
 
   public Command L2Algae() {
@@ -364,8 +393,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command AlgaestowFactory() {
-    return new SequentialCommandGroup(
-        stowArmAlgaeFactory().until(this::isArmOnAlgaePosition), calibrateElevatorFactory());
+    return stowArmAlgaeFactory();
   }
 
   public Command goToTiltAngleFactory() {

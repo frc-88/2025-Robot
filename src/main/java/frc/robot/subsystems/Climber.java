@@ -88,7 +88,10 @@ public class Climber extends SubsystemBase {
       new Trigger(() -> shouldSoftClose() && RobotState.isEnabled());
   // public Trigger forceCloseTrigger = new Trigger(() -> forceClose());
 
-  /** Creates a new Climber. */
+  // tic toc goes the clock
+  // zero time is when we climb
+  // grab the cage and wait
+
   public Climber() {
     configureTalons();
     calibrateBoth();
@@ -144,6 +147,13 @@ public class Climber extends SubsystemBase {
     m_gripper.setNeutralMode(NeutralModeValue.Brake);
   }
 
+  public boolean isReady() {
+    return m_gasmotor.isConnected()
+        && m_gripper.isConnected()
+        && m_climberEncoder.isConnected()
+        && m_canRange.isConnected();
+  }
+
   public Trigger shouldGripperClose() {
     return shouldCloseTrigger;
   }
@@ -163,8 +173,8 @@ public class Climber extends SubsystemBase {
   public boolean shouldClose() {
     return !input.get()
         && gripperDebouncer.calculate(
-            m_canRange.getDistance().getValueAsDouble() > 0.19
-                && m_canRange.getDistance().getValueAsDouble() < 0.20);
+            m_canRange.getDistance().getValueAsDouble() > 0.205
+                && m_canRange.getDistance().getValueAsDouble() < 0.213);
   }
 
   public boolean shouldSoftClose() {
@@ -209,7 +219,7 @@ public class Climber extends SubsystemBase {
 
   public boolean shouldEnableNeutralOnDisable() {
 
-    return RobotState.isDisabled() && getPositionGasMotorRotations() > 40.0 /*m_grabbed*/;
+    return RobotState.isDisabled();
   }
 
   public boolean poweredClimb() {
