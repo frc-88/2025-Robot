@@ -81,7 +81,7 @@ public class Climber extends SubsystemBase {
   VisionIOLimelight vision = new VisionIOLimelight("", () -> new Rotation2d());
 
   private Debouncer climberDebouncer = new Debouncer(1.0);
-  private Debouncer gripperDebouncer = new Debouncer(0.1);
+  private Debouncer gripperDebouncer = new Debouncer(0.05);
   public Trigger onDisable = new Trigger(() -> shouldEnableNeutralOnDisable());
   public Trigger shouldCloseTrigger = new Trigger(() -> shouldClose() && RobotState.isEnabled());
   public Trigger shouldSoftCloseTrigger =
@@ -173,8 +173,8 @@ public class Climber extends SubsystemBase {
   public boolean shouldClose() {
     return !input.get()
         && gripperDebouncer.calculate(
-            m_canRange.getDistance().getValueAsDouble() > 0.205
-                && m_canRange.getDistance().getValueAsDouble() < 0.213);
+            m_canRange.getDistance().getValueAsDouble() > 0.21
+                && m_canRange.getDistance().getValueAsDouble() < 0.22);
   }
 
   public boolean shouldSoftClose() {
@@ -240,7 +240,7 @@ public class Climber extends SubsystemBase {
   }
 
   private void closeGrabber() {
-    setGripperAngle(0.0);
+    setGripperAngle(-5.0);
   }
 
   private void stow() {
