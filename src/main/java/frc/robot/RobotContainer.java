@@ -426,8 +426,7 @@ public class RobotContainer {
   private Command scoreNoShoot(boolean odd) {
     return new SequentialCommandGroup(
             drive.pathFind(odd),
-            new ParallelDeadlineGroup(drive.scoreOnReef(odd),
-                m_armevator.scoreAll(() -> mode)))
+            new ParallelDeadlineGroup(drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)))
         .beforeStarting(() -> reefDebouncer.calculate(false));
   }
 
