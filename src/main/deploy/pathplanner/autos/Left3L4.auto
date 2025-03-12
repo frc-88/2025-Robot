@@ -29,12 +29,6 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "Stow"
-          }
-        },
-        {
           "type": "deadline",
           "data": {
             "commands": [
@@ -43,9 +37,22 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "path",
+                      "type": "deadline",
                       "data": {
-                        "pathName": "Sector5ToStation"
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "Sector5ToStation"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Stow"
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -79,12 +86,6 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "Stow"
-          }
-        },
-        {
           "type": "deadline",
           "data": {
             "commands": [
@@ -93,9 +94,22 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "path",
+                      "type": "deadline",
                       "data": {
-                        "pathName": "Sector4ToStation"
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "Sector4ToStation"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Stow"
+                            }
+                          }
+                        ]
                       }
                     },
                     {
