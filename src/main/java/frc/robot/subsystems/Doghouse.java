@@ -220,17 +220,12 @@ public class Doghouse extends SubsystemBase {
             } else if (!hasCoral()) {
               manipulatorIn();
               funnelGo();
-              m_coralCaptured = false;
-            } else if (m_coralCaptured) {
+            } else if (hasCoral() & !isBlocked()) {
               manipulatorStop();
               funnelStop();
             } else if (isBlocked()) {
               manipulatorSlow();
               funnelStop();
-            } else if (!isBlocked()) {
-              manipulatorStop();
-              funnelStop();
-              m_coralCaptured = true;
             }
           } else {
             if (!hasCoral()) {
