@@ -74,7 +74,7 @@ public class Armevator extends SubsystemBase {
       new DoublePreferenceConstant("Armevator/Elevator/SupplyCurrentLimit", 40);
   private final MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
 
-  private final Debouncer elevatorDebouncer = new Debouncer(1.0);
+  private final Debouncer elevatorDebouncer = new Debouncer(0.5);
   private final DigitalInput m_magnetInput = new DigitalInput(7);
   public final Trigger m_shouldCalibrate =
       new Trigger(
