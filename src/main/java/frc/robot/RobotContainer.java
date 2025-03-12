@@ -409,7 +409,8 @@ public class RobotContainer {
                         () -> drive.isShootingDistance() && m_armevator.atMode(() -> mode)),
                     () -> mode == 4),
                 drive.scoreOnReef(odd),
-                m_armevator.scoreAll(() -> mode)),
+                m_armevator.scoreAll(() -> mode),
+                m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
             shootCommand())
         .beforeStarting(() -> reefDebouncer.calculate(false));
   }
