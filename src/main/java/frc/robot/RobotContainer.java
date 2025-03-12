@@ -426,16 +426,7 @@ public class RobotContainer {
   private Command scoreNoShoot(boolean odd) {
     return new SequentialCommandGroup(
             drive.pathFind(odd),
-            new ParallelDeadlineGroup(
-                new ConditionalCommand(
-                    new WaitUntilCommand(
-                        () ->
-                            reefDebouncer.calculate(m_doghouse.getIsReefDetected())
-                                && m_armevator.atMode(() -> mode)),
-                    new WaitUntilCommand(
-                        () -> drive.isShootingDistance() && m_armevator.atMode(() -> mode)),
-                    () -> mode == 4),
-                drive.scoreOnReef(odd),
+            new ParallelDeadlineGroup(drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode)))
         .beforeStarting(() -> reefDebouncer.calculate(false));
   }
