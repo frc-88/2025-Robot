@@ -228,9 +228,11 @@ public class RobotContainer {
                         .andThen(new WaitCommand(2.0))
                         .andThen(
                             new InstantCommand(
-                                () -> controller.setRumble(RumbleType.kBothRumble, 0)))));
+                                () -> controller.setRumble(RumbleType.kBothRumble, 0))))
+                .alongWith(m_doghouse.stopAllFactory()));
 
-    climber.shouldSoftCloseTrigger.onTrue(climber.softCloseFactory());
+    climber.shouldSoftCloseTrigger.onTrue(
+        climber.softCloseFactory().alongWith(m_doghouse.stopAllFactory()));
     m_armevator.m_shouldCalibrate.onTrue(m_armevator.elevatorCalibrateFactory());
     // atL2.onTrue(m_doghouse.shootFactory());
     // .onFalse(climber.setNotGrabbed());
