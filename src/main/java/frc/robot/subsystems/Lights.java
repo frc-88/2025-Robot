@@ -190,7 +190,7 @@ public class Lights extends SubsystemBase {
           {
             if (!m_colorSet) {
               // orange
-              larsonColor(255, 50, 0);
+              larsonColor(255, 153,0);
               m_colorSet = true;
             }
             if (m_doghouseReady.getAsBoolean() && counter++ > 50) {
@@ -246,7 +246,7 @@ public class Lights extends SubsystemBase {
           {
             if (!m_colorSet) {
               // light blue
-              larsonColor(0, 255, 143);
+              larsonColor(0, 255, 255);
               m_colorSet = true;
             }
             if (true && counter++ > 50) {
@@ -270,12 +270,22 @@ public class Lights extends SubsystemBase {
             }
             break;
           }
-        case 8:
+          // last case is default
+        default:
           {
-            rainbow();
-            if (counter++ > 50) {
-              m_state++;
-              counter = 0;
+            if (!m_colorSet) {
+              // rainbow
+              rainbow();
+              m_colorSet = true;
+            }
+
+            if (!(m_driveReady.getAsBoolean()
+                && m_armevatorReady.getAsBoolean()
+                && m_doghouseReady.getAsBoolean()
+                && m_climberReady.getAsBoolean()
+                && m_visionReady.getAsBoolean())) {
+              m_state = 0;
+              m_colorSet = false;
             }
             break;
           }
