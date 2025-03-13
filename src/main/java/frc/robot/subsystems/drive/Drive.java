@@ -250,10 +250,7 @@ public class Drive extends SubsystemBase {
     try {
       boolean present = m_paths.get(i - 1).getStartingHolonomicPose().isPresent();
       Pose2d pose = present ? m_paths.get(i - 1).getStartingHolonomicPose().get() : getPose();
-      return new ConditionalCommand(
-          AutoBuilder.pathfindToPose(flipPose(pose), Constants.CONSTRAINTS),
-          AutoBuilder.pathfindToPose(pose, Constants.CONSTRAINTS),
-          () -> weAreRed());
+      return AutoBuilder.pathfindToPoseFlipped(pose, Constants.CONSTRAINTS);
     } catch (IndexOutOfBoundsException e) {
       return new WaitCommand(1.0);
     }
