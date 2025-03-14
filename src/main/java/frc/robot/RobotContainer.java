@@ -400,7 +400,7 @@ public class RobotContainer {
 
   private Command scoreOnReef(boolean odd) {
     return new SequentialCommandGroup(
-            drive.pathFind(odd),
+            new ParallelDeadlineGroup(drive.pathFind(odd), m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
             new ParallelDeadlineGroup(
                 new ConditionalCommand(
                     new WaitUntilCommand(

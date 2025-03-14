@@ -190,7 +190,7 @@ public class Lights extends SubsystemBase {
           {
             if (!m_colorSet) {
               // orange
-              larsonColor(255, 153,0);
+              larsonColor(255, 153, 0);
               m_colorSet = true;
             }
             if (m_doghouseReady.getAsBoolean() && counter++ > 50) {
