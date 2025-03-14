@@ -316,7 +316,9 @@ public class RobotContainer {
     buttons.button(9).onTrue(L2AlgaePickupFactory());
     buttons.button(12).onTrue(m_armevator.shootInNetFactory());
     buttons.button(13).onTrue(netflingCommand());
-    buttons.button(6).onTrue(climber.gasMotorNeutralModeFactory().andThen(climber.stopGasMotorFactory()));
+    buttons
+        .button(6)
+        .onTrue(climber.gasMotorNeutralModeFactory().andThen(climber.stopGasMotorFactory()));
 
     controller.rightTrigger().onTrue(shootCommand());
     controller.rightBumper().onTrue(scoreOnReef(true)).onFalse(drive.getDefaultCommand());
