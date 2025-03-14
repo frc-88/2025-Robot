@@ -73,6 +73,7 @@ public class Doghouse extends SubsystemBase {
     m_manipulator.getConfigurator().apply(manipulatorConfiguration);
     m_manipulator.setNeutralMode(NeutralModeValue.Brake);
     configureCANrange();
+    m_manipulator.setNeutralMode(NeutralModeValue.Brake);
   }
 
   private void configureCANrange() {

@@ -361,7 +361,7 @@ public class RobotContainer {
 
     controller
         .y()
-        .onTrue(
+        .toggleOnTrue(
             DriveCommands.joystickDrive(
                 drive,
                 () -> -controller.getLeftY(),
@@ -451,6 +451,7 @@ public class RobotContainer {
     return new ParallelDeadlineGroup(
         m_doghouse.shootFactory(),
         new WaitCommand(0.25).andThen(m_armevator.armGoToZeroFactory()),
+        new InstantCommand(() -> drive.enableAutoAim()),
         new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
   }
 
