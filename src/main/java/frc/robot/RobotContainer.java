@@ -316,6 +316,7 @@ public class RobotContainer {
     buttons.button(9).onTrue(L2AlgaePickupFactory());
     buttons.button(12).onTrue(m_armevator.shootInNetFactory());
     buttons.button(13).onTrue(netflingCommand());
+    buttons.button(6).onTrue(climber.gasMotorNeutralModeFactory().andThen(climber.stopGasMotorFactory()));
 
     controller.rightTrigger().onTrue(shootCommand());
     controller.rightBumper().onTrue(scoreOnReef(true)).onFalse(drive.getDefaultCommand());
@@ -449,7 +450,8 @@ public class RobotContainer {
 
   private Command shootCommand() {
     return new ParallelDeadlineGroup(
-        m_doghouse.shootFactory(),
+        new ConditionalCommand(
+            m_doghouse.shootL1(), m_doghouse.shootFactory(), () -> m_armevator.isElevatorDown()),
         new WaitCommand(0.25).andThen(m_armevator.armGoToZeroFactory()),
         new InstantCommand(() -> drive.enableAutoAim()),
         new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));

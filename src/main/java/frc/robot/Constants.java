@@ -77,7 +77,7 @@ public final class Constants {
   public static final int CANDLE_ID = 0;
 
   // AUTOMATION
-  public static final PathConstraints CONSTRAINTS = new PathConstraints(3.0, 3.25, 8.0, 20.0);
+  public static final PathConstraints CONSTRAINTS = new PathConstraints(3.0, 3.0, 8.0, 20.0);
 
   public static final double FIELD_WIDTH = 8.05;
   public static final double FIELD_LENGTH = 17.55;
