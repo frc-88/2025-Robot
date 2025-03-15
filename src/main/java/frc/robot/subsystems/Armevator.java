@@ -89,6 +89,7 @@ public class Armevator extends SubsystemBase {
   public Armevator(BooleanSupplier safeToMove) {
     m_safeToMove = safeToMove;
     configureTalons();
+    armCalibrate();
   }
 
   private void configureTalons() {
@@ -138,7 +139,7 @@ public class Armevator extends SubsystemBase {
         && m_elevatorFollower.isConnected()
         && m_arm.isConnected()
         && m_encoder.isConnected()
-        && isArmZero()
+        && isArmInStartingPosition()
         && isElevatorDown();
   }
 
@@ -249,6 +250,10 @@ public class Armevator extends SubsystemBase {
 
   public boolean isArmZero() {
     return Math.abs(getArmAngle()) < 1.2;
+  }
+
+  public boolean isArmInStartingPosition() {
+    return Math.abs(getArmAngle()) < 5.0;
   }
 
   public boolean isArmOnPosition() {
