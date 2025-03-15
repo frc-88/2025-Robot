@@ -89,6 +89,7 @@ public class Armevator extends SubsystemBase {
   public Armevator(BooleanSupplier safeToMove) {
     m_safeToMove = safeToMove;
     configureTalons();
+    armCalibrate();
   }
 
   private void configureTalons() {

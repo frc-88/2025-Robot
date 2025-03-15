@@ -95,7 +95,7 @@ public class Doghouse extends SubsystemBase {
     doghouscfg.ToFParams.UpdateFrequency = 50;
     coralRangecfg.ToFParams.UpdateFrequency = 50;
 
-    doghouscfg.ProximityParams.ProximityThreshold = 0.3;
+    doghouscfg.ProximityParams.ProximityThreshold = 0.15;
     doghouscfg.ProximityParams.ProximityHysteresis = 0.03;
     coralRangecfg.ProximityParams.ProximityThreshold = 0.5;
 
@@ -181,7 +181,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorL1Speed() {
-    setManipulatorSpeed(-0.1);
+    setManipulatorSpeed(-0.2);
   }
 
   private void setAlgae() {
