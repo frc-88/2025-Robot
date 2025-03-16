@@ -257,7 +257,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean isArmOnPosition() {
-    return Math.abs(getArmAngle()) < 1.2;
+    return Math.abs(getArmAngle()) < 27.0;
   }
 
   public boolean isArmOnAlgaePosition() {
@@ -304,8 +304,10 @@ public class Armevator extends SubsystemBase {
   public boolean atMode(IntSupplier i) {
     if (i.getAsInt() == 4) {
       return Math.abs(getArmAngle() - Constants.ARM_L4_ANGLE) < 1.2;
+    } else if (i.getAsInt() == 3) {
+      return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L3_HEIGHT) < 1.0;
     } else {
-      return true;
+      return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L2_HEIGHT) < 1.0;
     }
   }
 
@@ -338,7 +340,7 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
         () -> {
           armSetAngle(30.0);
-          elevatorSetPosition(9.5);
+          elevatorSetPosition(7.0);
         },
         this);
   }
@@ -347,7 +349,7 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
         () -> {
           armSetAngle(30.0);
-          elevatorSetPosition(17.0);
+          elevatorSetPosition(14.5);
         },
         this);
   }
@@ -356,8 +358,18 @@ public class Armevator extends SubsystemBase {
     return new ConditionalCommand(
         goToOneInchFactory()
             .until(() -> onTarget(1.0))
-            .andThen(new RunCommand(() -> stowElevator())),
-        new RunCommand(() -> stowElevator(), this),
+            .andThen(
+                new RunCommand(
+                    () -> {
+                      stowElevator();
+                      armGoToZero();
+                    })),
+        new RunCommand(
+            () -> {
+              stowElevator();
+              armGoToZero();
+            },
+            this),
         () -> getElevatorPositionInches() > 1.0);
   }
 
@@ -381,7 +393,12 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command goToOneInchFactory() {
-    return new RunCommand(() -> goToOneInch(), this);
+    return new RunCommand(
+        () -> {
+          goToOneInch();
+          armGoToZero();
+        },
+        this);
   }
 
   public Command stopElevatorFactory() {

@@ -48,6 +48,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -73,6 +74,7 @@ public class Drive extends SubsystemBase {
 
   public int m_currentPathEven = 10;
   public int m_currentPathOdd = 10;
+  public int m_currentPose = 0;
   public Pose2d nextPose = new Pose2d();
   static final double ODOMETRY_FREQUENCY =
       new CANBus(TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD() ? 250.0 : 100.0;
@@ -238,6 +240,16 @@ public class Drive extends SubsystemBase {
         < 1.40;
   }
 
+  public boolean isElevatorDistance() {
+    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
+        < 2.5;
+  }
+
+  public boolean isAtTarget() {
+    return flipIfRed(getPose()).getTranslation().getDistance(getTargetPose().getTranslation())
+        < 0.3;
+  }
+
   private Command getPath(int i) {
     try {
       return AutoBuilder.followPath(m_paths.get(i - 1));
@@ -253,6 +265,86 @@ public class Drive extends SubsystemBase {
       return AutoBuilder.pathfindToPoseFlipped(pose, Constants.CONSTRAINTS);
     } catch (IndexOutOfBoundsException e) {
       return new WaitCommand(1.0);
+    }
+  }
+
+  private Command pathFind(int i) {
+    if (i == 1) {
+      return new InstantCommand(() -> m_currentPose = 1)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE1, Constants.CONSTRAINTS));
+    } else if (i == 2) {
+      return new InstantCommand(() -> m_currentPose = 2)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE2, Constants.CONSTRAINTS));
+    } else if (i == 3) {
+      return new InstantCommand(() -> m_currentPose = 3)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE3, Constants.CONSTRAINTS));
+    } else if (i == 4) {
+      return new InstantCommand(() -> m_currentPose = 4)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE4, Constants.CONSTRAINTS));
+    } else if (i == 5) {
+      return new InstantCommand(() -> m_currentPose = 5)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE5, Constants.CONSTRAINTS));
+    } else if (i == 6) {
+      return new InstantCommand(() -> m_currentPose = 6)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE6, Constants.CONSTRAINTS));
+    } else if (i == 7) {
+      return new InstantCommand(() -> m_currentPose = 7)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE7, Constants.CONSTRAINTS));
+    } else if (i == 8) {
+      return new InstantCommand(() -> m_currentPose = 8)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE8, Constants.CONSTRAINTS));
+    } else if (i == 9) {
+      return new InstantCommand(() -> m_currentPose = 9)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE9, Constants.CONSTRAINTS));
+    } else if (i == 10) {
+      return new InstantCommand(() -> m_currentPose = 10)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE10, Constants.CONSTRAINTS));
+    } else if (i == 11) {
+      return new InstantCommand(() -> m_currentPose = 11)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE11, Constants.CONSTRAINTS));
+    } else if (i == 12) {
+      return new InstantCommand(() -> m_currentPose = 12)
+          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE12, Constants.CONSTRAINTS));
+    } else {
+      return new WaitCommand(1.0);
+    }
+  }
+
+  private Pose2d getTargetPose() {
+    if (m_currentPose == 1) {
+      return Constants.POSE1;
+    } else if (m_currentPose == 2) {
+      return Constants.POSE2;
+    } else if (m_currentPose == 3) {
+      return Constants.POSE3;
+    } else if (m_currentPose == 4) {
+      return Constants.POSE4;
+    } else if (m_currentPose == 5) {
+      return Constants.POSE5;
+    } else if (m_currentPose == 6) {
+      return Constants.POSE6;
+    } else if (m_currentPose == 7) {
+      return Constants.POSE7;
+    } else if (m_currentPose == 8) {
+      return Constants.POSE8;
+    } else if (m_currentPose == 9) {
+      return Constants.POSE9;
+    } else if (m_currentPose == 10) {
+      return Constants.POSE10;
+    } else if (m_currentPose == 11) {
+      return Constants.POSE11;
+    } else if (m_currentPose == 12) {
+      return Constants.POSE12;
+    } else {
+      return new Pose2d();
+    }
+  }
+
+  private Command pathFindMoving(int i) {
+    if (i == 5) {
+      return AutoBuilder.pathfindToPoseFlipped(Constants.POSE5, Constants.CONSTRAINTS, 0.3);
+    } else {
+      return AutoBuilder.pathfindToPoseFlipped(Constants.POSE6, Constants.CONSTRAINTS, 0.3);
     }
   }
 
@@ -300,12 +392,31 @@ public class Drive extends SubsystemBase {
     double y = getChassisSpeeds().vyMetersPerSecond;
 
     return new Pose2d(
-        current.getX() + (x * 0.2), current.getY() + (y * 0.2), current.getRotation());
+        current.getX() + (x * 0.4), current.getY() + (y * 0.4), current.getRotation());
   }
 
   private int getTargetSector() {
     int target = 0;
     double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      target = 6;
+    } else if (angle > 30.0 && angle < 90.0) {
+      target = 5;
+    } else if (angle > 90.0 && angle < 150.0) {
+      target = 4;
+    } else if (angle > 150.0 || angle < -150.0) {
+      target = 3;
+    } else if (angle > -150.0 && angle < -90.0) {
+      target = 2;
+    } else if (angle > -90.0 && angle < -30.0) {
+      target = 1;
+    }
+    return target;
+  }
+
+  private int getTargetSectorNow() {
+    int target = 0;
+    double angle = getAngleToReef(getPose());
     if (angle < 30.0 && angle > -30.0) {
       target = 6;
     } else if (angle > 30.0 && angle < 90.0) {
@@ -364,6 +475,32 @@ public class Drive extends SubsystemBase {
                 () -> getTargetSector() == 3),
             () -> getTargetSector() == 2),
         () -> getTargetSector() == 1);
+  }
+
+  public Command reef(boolean odd) {
+    return new ConditionalCommand(
+        odd ? pathFind(1) : pathFind(2),
+        new ConditionalCommand(
+            odd ? pathFind(3) : pathFind(4),
+            new ConditionalCommand(
+                odd ? pathFind(5) : pathFind(6),
+                new ConditionalCommand(
+                    odd ? pathFind(7) : pathFind(8),
+                    new ConditionalCommand(
+                        odd ? pathFind(9) : pathFind(10),
+                        new ConditionalCommand(
+                            odd ? pathFind(11) : pathFind(12),
+                            new WaitCommand(1.0),
+                            () -> getTargetSectorNow() == 6),
+                        () -> getTargetSectorNow() == 5),
+                    () -> getTargetSectorNow() == 4),
+                () -> getTargetSectorNow() == 3),
+            () -> getTargetSectorNow() == 2),
+        () -> getTargetSectorNow() == 1);
+  }
+
+  public Command reefMoving(boolean odd) {
+    return odd ? pathFind(5) : pathFind(6);
   }
 
   @Override

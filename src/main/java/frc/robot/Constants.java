@@ -86,4 +86,30 @@ public final class Constants {
       new Pose2d(
           new Translation2d(Units.inchesToMeters(176.75), Units.feetToMeters(13.5)),
           Rotation2d.fromDegrees(0.0));
+
+  public static final Pose2d POSE5 = new Pose2d(3.2, 3.701, new Rotation2d());
+  public static final Pose2d POSE6 = new Pose2d(3.2, 4.031, new Rotation2d());
+  public static final Pose2d POSE3 =
+      new Pose2d(4.08, 2.7, new Rotation2d(Units.degreesToRadians(60.0)));
+  public static final Pose2d POSE4 =
+      new Pose2d(3.79, 2.86, new Rotation2d(Units.degreesToRadians(60.0)));
+  public static final Pose2d POSE7 =
+      new Pose2d(3.573, 4.978, new Rotation2d(Units.degreesToRadians(-60.0)));
+  public static final Pose2d POSE8 =
+      new Pose2d(3.859, 5.143, new Rotation2d(Units.degreesToRadians(-60.0)));
+  public static final Pose2d POSE9 =
+      new Pose2d(4.851, 5.319, new Rotation2d(Units.degreesToRadians(-120.0)));
+  public static final Pose2d POSE10 =
+      new Pose2d(5.137, 5.154, new Rotation2d(Units.degreesToRadians(-120.0)));
+  public static final Pose2d POSE11 =
+      new Pose2d(5.785, 4.320, new Rotation2d(Units.degreesToRadians(180.0)));
+  public static final Pose2d POSE12 =
+      new Pose2d(5.780, 4.000, new Rotation2d(Units.degreesToRadians(180.0)));
+  public static final Pose2d POSE1 =
+      new Pose2d(5.441, 3.105, new Rotation2d(Units.degreesToRadians(120.0)));
+  public static final Pose2d POSE2 =
+      new Pose2d(5.155, 2.940, new Rotation2d(Units.degreesToRadians(120.0)));
+
+  public static final Pose2d POSE5MOVING = new Pose2d(3.08, 3.154, new Rotation2d());
+  public static final Pose2d POSE6MOVING = new Pose2d(3.08, 4.896, new Rotation2d());
 }

@@ -173,6 +173,10 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void algaePickup() {
+    setManipulatorSpeed(-0.15);
+  }
+
+  private void algaeShoot() {
     setManipulatorSpeed(1.0);
   }
 
@@ -233,15 +237,7 @@ public class Doghouse extends SubsystemBase {
               funnelStop();
             }
           } else {
-            if (!hasCoral()) {
-              algaePickup();
-              funnelStop();
-              m_algaeCaptured = false;
-            } else if (hasCoralDebounced()) {
-              manipulatorAlgaeSlow();
-              funnelStop();
-              m_algaeCaptured = true;
-            }
+            algaePickup();
           }
         },
         this);
@@ -296,6 +292,20 @@ public class Doghouse extends SubsystemBase {
     return new RunCommand(
             () -> {
               manipulatorL1Speed();
+              algaeMode = false;
+            },
+            this)
+        .withTimeout(1.0)
+        .andThen(
+            () -> {
+              manipulatorStop();
+            });
+  }
+
+  public Command shootAlgaeFactory() {
+    return new RunCommand(
+            () -> {
+              algaeShoot();
               algaeMode = false;
             },
             this)

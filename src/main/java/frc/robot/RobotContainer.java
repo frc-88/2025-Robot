@@ -201,7 +201,7 @@ public class RobotContainer {
         "Get Coral", m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()));
     NamedCommands.registerCommand(
         "Arm Go To Zero", m_armevator.armGoToZeroFactory().withTimeout(0.5));
-    NamedCommands.registerCommand("L4", m_armevator.L4Factory().withTimeout(2.0));
+    NamedCommands.registerCommand("L4", m_armevator.L4Factory().withTimeout(1.25));
     NamedCommands.registerCommand("L4 Mode", new InstantCommand(() -> mode = 4));
     NamedCommands.registerCommand("L3 Mode", new InstantCommand(() -> mode = 3));
     NamedCommands.registerCommand("L2 Mode", new InstantCommand(() -> mode = 2));
@@ -315,15 +315,18 @@ public class RobotContainer {
     buttons.button(8).onTrue(L3AlgaePickupFactory());
     buttons.button(9).onTrue(L2AlgaePickupFactory());
     buttons.button(12).onTrue(m_armevator.shootInNetFactory());
-    buttons.button(13).onTrue(netflingCommand());
+    buttons.button(13).onTrue(shootInNet());
     buttons
         .button(6)
         .onTrue(climber.gasMotorNeutralModeFactory().andThen(climber.stopGasMotorFactory()));
 
     controller.rightTrigger().onTrue(shootCommand());
-    controller.rightBumper().onTrue(scoreOnReef(true)).onFalse(drive.getDefaultCommand());
-    controller.leftBumper().onTrue(scoreOnReef(false)).onFalse(drive.getDefaultCommand());
-    controller.leftTrigger().onTrue(scoreOnPath(false)).onFalse(drive.getDefaultCommand());
+    controller
+        .leftTrigger()
+        .onTrue(m_doghouse.shootAlgaeFactory())
+        .onFalse(drive.getDefaultCommand());
+    controller.rightBumper().onTrue(reef(true)).onFalse(drive.getDefaultCommand());
+    controller.leftBumper().onTrue(reef(false)).onFalse(drive.getDefaultCommand());
   }
 
   /**
@@ -454,7 +457,7 @@ public class RobotContainer {
     return new ParallelDeadlineGroup(
         new ConditionalCommand(
             m_doghouse.shootL1(), m_doghouse.shootFactory(), () -> m_armevator.isElevatorDown()),
-        new WaitCommand(0.25).andThen(m_armevator.armGoToZeroFactory()),
+        new WaitCommand(0.25).andThen(m_armevator.stowFactory()),
         new InstantCommand(() -> drive.enableAutoAim()),
         new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
   }
@@ -506,8 +509,7 @@ public class RobotContainer {
   }
 
   public Command shootInNet() {
-    return new ParallelCommandGroup(
-        m_armevator.shootInNetFactory(), m_doghouse.setAlgaeSlowFactory());
+    return m_armevator.shootInNetFactory();
   }
 
   private Command goToTiltAngleFactory() {
@@ -523,6 +525,54 @@ public class RobotContainer {
 
   private boolean hasCoralDebounced() {
     return m_doghouse.hasCoralDebounced();
+  }
+
+  private Command reef(boolean odd) {
+    return new SequentialCommandGroup(
+        new ParallelDeadlineGroup(
+            new ConditionalCommand(
+                new ConditionalCommand(
+                    new WaitUntilCommand(
+                        () ->
+                            reefDebouncer.calculate(m_doghouse.getIsReefDetected())
+                                && m_armevator.atMode(() -> mode)
+                                && drive.isAtTarget()),
+                    new WaitUntilCommand(
+                        () -> m_armevator.atMode(() -> mode) && drive.isAtTarget()),
+                    () -> mode == 4),
+                new ConditionalCommand(
+                    new WaitUntilCommand(
+                        () ->
+                            reefDebouncer.calculate(m_doghouse.getIsReefDetected())
+                                && m_armevator.atMode(() -> mode)),
+                    new WaitUntilCommand(
+                        () -> m_armevator.atMode(() -> mode) && drive.isShootingDistance()),
+                    () -> mode == 4),
+                () -> drive.isElevatorDistance()),
+            drive.reef(odd),
+            new WaitUntilCommand(drive::isElevatorDistance)
+                .andThen(m_armevator.scoreAll(() -> mode)),
+            m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
+        shootCommand());
+  }
+
+  private Command reefMoving(boolean odd) {
+    return new SequentialCommandGroup(
+        new ParallelDeadlineGroup(
+            new ConditionalCommand(
+                new WaitUntilCommand(
+                    () ->
+                        reefDebouncer.calculate(m_doghouse.getIsReefDetected())
+                            && m_armevator.atMode(() -> mode)
+                            && drive.isAtTarget()),
+                new WaitUntilCommand(() -> m_armevator.atMode(() -> mode) && drive.isAtTarget()),
+                () -> mode == 4),
+            drive
+                .reefMoving(odd)
+                .andThen(DriveCommands.driveMoving(() -> 0.0, () -> 0.3, () -> 0.0, drive)),
+            new WaitUntilCommand(drive::isElevatorDistance)
+                .andThen(m_armevator.scoreAll(() -> mode))),
+        shootCommand());
   }
 
   public void teleopInit() {
