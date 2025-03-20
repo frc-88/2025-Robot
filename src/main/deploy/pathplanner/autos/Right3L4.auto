@@ -19,13 +19,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Score Even"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
+            "name": "Reef Even"
           }
         },
         {
@@ -51,6 +45,12 @@
                             "data": {
                               "name": "Stow"
                             }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Get Coral"
+                            }
                           }
                         ]
                       }
@@ -58,31 +58,19 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.1
+                        "waitTime": 0.01
                       }
                     },
                     {
                       "type": "named",
                       "data": {
-                        "name": "Score Even"
+                        "name": "Reef Even"
                       }
                     }
                   ]
                 }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Get Coral"
-                }
               }
             ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
           }
         },
         {
@@ -108,6 +96,12 @@
                             "data": {
                               "name": "Stow"
                             }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Get Coral"
+                            }
                           }
                         ]
                       }
@@ -115,31 +109,19 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.1
+                        "waitTime": 0.01
                       }
                     },
                     {
                       "type": "named",
                       "data": {
-                        "name": "Score Odd"
+                        "name": "Reef Odd"
                       }
                     }
                   ]
                 }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Get Coral"
-                }
               }
             ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
           }
         },
         {

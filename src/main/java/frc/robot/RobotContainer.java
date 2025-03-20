@@ -297,7 +297,6 @@ public class RobotContainer {
     SmartDashboard.putData("Calibrate Gas Motor", climber.calibrateFactory());
 
     // Autos
-    SmartDashboard.putData("TripleL1Right", getAutoPath("TripleL1Right"));
     SmartDashboard.putData("Score 5", scoreAuto(5));
     SmartDashboard.putData("Score 6", scoreAuto(6));
     SmartDashboard.putData("Score 7", scoreAuto(7));
@@ -652,6 +651,34 @@ public class RobotContainer {
                 .andThen(m_armevator.scoreAll(() -> mode)),
             m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
         shootCommand());
+  }
+
+  private Command reefNoShoot(boolean odd) {
+    return new SequentialCommandGroup(
+        new ParallelDeadlineGroup(
+            new ConditionalCommand(
+                new ConditionalCommand(
+                    new WaitUntilCommand(
+                        () ->
+                            reefDebouncer.calculate(m_doghouse.getIsReefDetected())
+                                && m_armevator.atMode(() -> mode)
+                                && drive.isAtTarget()),
+                    new WaitUntilCommand(
+                        () -> m_armevator.atMode(() -> mode) && drive.isAtTarget()),
+                    () -> mode == 4),
+                new ConditionalCommand(
+                    new WaitUntilCommand(
+                        () ->
+                            reefDebouncer.calculate(m_doghouse.getIsReefDetected())
+                                && m_armevator.atMode(() -> mode)),
+                    new WaitUntilCommand(
+                        () -> m_armevator.atMode(() -> mode) && drive.isShootingDistance()),
+                    () -> mode == 4),
+                () -> drive.isElevatorDistance()),
+            drive.reef(odd),
+            new WaitUntilCommand(drive::isElevatorDistance)
+                .andThen(m_armevator.scoreAll(() -> mode)),
+            m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
   }
 
   private Command reefMoving(boolean odd) {
