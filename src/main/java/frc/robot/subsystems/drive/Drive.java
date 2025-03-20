@@ -151,7 +151,7 @@ public class Drive extends SubsystemBase {
         this::getChassisSpeeds,
         this::runVelocity,
         new PPHolonomicDriveController(
-            new PIDConstants(5.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
+            new PIDConstants(3.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
         PP_CONFIG,
         () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
         this);
@@ -247,7 +247,12 @@ public class Drive extends SubsystemBase {
 
   public boolean isAtTarget() {
     return flipIfRed(getPose()).getTranslation().getDistance(getTargetPose().getTranslation())
-        < 0.3;
+            < 0.07
+        && Math.abs(flipIfRed(getPose()).relativeTo(getTargetPose()).getY()) < 0.1;
+  }
+
+  public boolean shouldShootAlgae() {
+    return flipIfRed(getPose()).getX() > 7.48;
   }
 
   private Command getPath(int i) {
@@ -305,6 +310,24 @@ public class Drive extends SubsystemBase {
     } else if (i == 12) {
       return new InstantCommand(() -> m_currentPose = 12)
           .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE12, Constants.CONSTRAINTS));
+    } else {
+      return new WaitCommand(1.0);
+    }
+  }
+
+  public Command pathFindAlgae(int sector) {
+    if (sector == 3) {
+      return AutoBuilder.pathfindToPoseFlipped(Constants.SECTOR3ALGAE, Constants.CONSTRAINTS);
+    } else if (sector == 2) {
+      return AutoBuilder.pathfindToPoseFlipped(Constants.SECTOR2ALGAE, Constants.CONSTRAINTS);
+    } else if (sector == 1) {
+      return AutoBuilder.pathfindToPoseFlipped(Constants.SECTOR1ALGAE, Constants.CONSTRAINTS);
+    } else if (sector == 4) {
+      return AutoBuilder.pathfindToPoseFlipped(Constants.SECTOR4ALGAE, Constants.CONSTRAINTS);
+    } else if (sector == 5) {
+      return AutoBuilder.pathfindToPoseFlipped(Constants.SECTOR5ALGAE, Constants.CONSTRAINTS);
+    } else if (sector == 6) {
+      return AutoBuilder.pathfindToPoseFlipped(Constants.SECTOR6ALGAE, Constants.CONSTRAINTS);
     } else {
       return new WaitCommand(1.0);
     }
@@ -379,8 +402,10 @@ public class Drive extends SubsystemBase {
       return getPose().getRotation().getDegrees();
     } else if (hasCoral.getAsBoolean()) {
       return aimAtReef();
-    } else if (!isNearReef()) {
+    } else if (!isNearReef() && !(flipIfRed(getPose()).getX() > 4.4)) {
       return aimAtStation();
+    } else if (flipIfRed(getPose()).getX() > 4.4) {
+      return getPose().getRotation().getDegrees();
     } else {
       return getPose().getRotation().getDegrees();
     }
@@ -395,7 +420,7 @@ public class Drive extends SubsystemBase {
         current.getX() + (x * 0.4), current.getY() + (y * 0.4), current.getRotation());
   }
 
-  private int getTargetSector() {
+  public int getTargetSector() {
     int target = 0;
     double angle = getAngleToReef(nextPose());
     if (angle < 30.0 && angle > -30.0) {
@@ -414,7 +439,7 @@ public class Drive extends SubsystemBase {
     return target;
   }
 
-  private int getTargetSectorNow() {
+  public int getTargetSectorNow() {
     int target = 0;
     double angle = getAngleToReef(getPose());
     if (angle < 30.0 && angle > -30.0) {
@@ -490,6 +515,28 @@ public class Drive extends SubsystemBase {
                         odd ? pathFind(9) : pathFind(10),
                         new ConditionalCommand(
                             odd ? pathFind(11) : pathFind(12),
+                            new WaitCommand(1.0),
+                            () -> getTargetSectorNow() == 6),
+                        () -> getTargetSectorNow() == 5),
+                    () -> getTargetSectorNow() == 4),
+                () -> getTargetSectorNow() == 3),
+            () -> getTargetSectorNow() == 2),
+        () -> getTargetSectorNow() == 1);
+  }
+
+  public Command algae() {
+    return new ConditionalCommand(
+        pathFindAlgae(1),
+        new ConditionalCommand(
+            pathFindAlgae(2),
+            new ConditionalCommand(
+                pathFindAlgae(3),
+                new ConditionalCommand(
+                    pathFindAlgae(4),
+                    new ConditionalCommand(
+                        pathFindAlgae(5),
+                        new ConditionalCommand(
+                            pathFindAlgae(6),
                             new WaitCommand(1.0),
                             () -> getTargetSectorNow() == 6),
                         () -> getTargetSectorNow() == 5),
@@ -577,6 +624,7 @@ public class Drive extends SubsystemBase {
       m_currentPathOdd = 2;
     }
     SmartDashboard.putNumber("CurrentPathOdd", m_currentPathOdd);
+    SmartDashboard.putBoolean("xPos", flipIfRed(getPose()).getX() > 7.48);
   }
 
   /**

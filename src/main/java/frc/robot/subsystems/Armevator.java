@@ -65,7 +65,7 @@ public class Armevator extends SubsystemBase {
   private final DoublePreferenceConstant p_armEncoderOffset =
       new DoublePreferenceConstant("Armevator/Arm/EncoderOffset", -0.154785);
   private final DoublePreferenceConstant p_armAngleNet =
-      new DoublePreferenceConstant("Armevator/Arm/NetAngle", -40.0);
+      new DoublePreferenceConstant("Armevator/Arm/NetAngle", -30.0);
 
   private final DoublePreferenceConstant p_currentLimit =
       new DoublePreferenceConstant("Armevator/Elevator/CurrentLimit", 40);
@@ -149,7 +149,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean onTarget(double position) {
-    return Math.abs(getElevatorPositionInches() - position) < 0.2;
+    return Math.abs(getElevatorPositionInches() - position) < 1.0;
   }
 
   private void armCalibrate() {
@@ -213,7 +213,7 @@ public class Armevator extends SubsystemBase {
   private void setL4Shoot() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
-      armSetAngle(p_armAngleNet.getValue());
+      armSetAngle(-30.0);
     }
   }
 
@@ -319,7 +319,7 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
         () -> {
           stowArmAlgae();
-          stowElevator();
+          elevatorSetPosition(2.5);
         },
         this);
   }
@@ -478,6 +478,20 @@ public class Armevator extends SubsystemBase {
             setL4();
           } else {
 
+          }
+        },
+        this);
+  }
+
+  public Command algae(IntSupplier sector) {
+    return new RunCommand(
+        () -> {
+          if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
+            armSetAngle(30.0);
+            elevatorSetPosition(14.5);
+          } else {
+            armSetAngle(30.0);
+            elevatorSetPosition(7.0);
           }
         },
         this);
