@@ -613,16 +613,16 @@ public class RobotContainer {
 
   public Command shootAlgae() {
     return m_doghouse
-            .shootAlgaeFactory()
-            .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
-            .alongWith(
-                DriveCommands.joystickDriveAtAngle(
-                    drive,
-                    () -> -controller.getLeftY(),
-                    () -> -controller.getLeftX(),
-                    () ->
-                        Rotation2d.fromDegrees(
-                            drive.aimAtExpectedTarget(() -> m_doghouse.hasCoral()))));
+        .shootAlgaeFactory()
+        .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
+        .alongWith(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () ->
+                    Rotation2d.fromDegrees(
+                        drive.aimAtExpectedTarget(() -> m_doghouse.hasCoral()))));
   }
 
   private Command reef(boolean odd) {
