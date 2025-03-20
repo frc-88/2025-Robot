@@ -73,6 +73,7 @@ public class Doghouse extends SubsystemBase {
     m_manipulator.getConfigurator().apply(manipulatorConfiguration);
     m_manipulator.setNeutralMode(NeutralModeValue.Brake);
     configureCANrange();
+    m_manipulator.setNeutralMode(NeutralModeValue.Brake);
   }
 
   private void configureCANrange() {
@@ -94,7 +95,7 @@ public class Doghouse extends SubsystemBase {
     doghouscfg.ToFParams.UpdateFrequency = 50;
     coralRangecfg.ToFParams.UpdateFrequency = 50;
 
-    doghouscfg.ProximityParams.ProximityThreshold = 0.3;
+    doghouscfg.ProximityParams.ProximityThreshold = 0.15;
     doghouscfg.ProximityParams.ProximityHysteresis = 0.03;
     coralRangecfg.ProximityParams.ProximityThreshold = 0.5;
 
@@ -164,7 +165,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorSlow() {
-    setManipulatorSpeed(-0.1);
+    setManipulatorSpeed(-0.075);
   }
 
   private void manipulatorAlgaeSlow() {
@@ -177,6 +178,10 @@ public class Doghouse extends SubsystemBase {
 
   private void manipulatorFullSpeed() {
     setManipulatorSpeed(-1.0);
+  }
+
+  private void manipulatorL1Speed() {
+    setManipulatorSpeed(-0.2);
   }
 
   private void setAlgae() {
@@ -277,6 +282,20 @@ public class Doghouse extends SubsystemBase {
     return new RunCommand(
             () -> {
               manipulatorFullSpeed();
+              algaeMode = false;
+            },
+            this)
+        .withTimeout(1.0)
+        .andThen(
+            () -> {
+              manipulatorStop();
+            });
+  }
+
+  public Command shootL1() {
+    return new RunCommand(
+            () -> {
+              manipulatorL1Speed();
               algaeMode = false;
             },
             this)
