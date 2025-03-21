@@ -1,0 +1,62 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Armevator Calibration"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "L4 Mode"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score Odd"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Dealgae"
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "CenterToNetShot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Score Algae"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": false,
+  "folder": null,
+  "choreoAuto": false
+}

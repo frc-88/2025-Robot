@@ -273,14 +273,14 @@ public class Doghouse extends SubsystemBase {
         this);
   }
 
-  public Command shootFactory() {
+  public Command shootFactory(double delay) {
     return new RunCommand(
             () -> {
               manipulatorShoot();
               algaeMode = false;
             },
             this)
-        .withTimeout(1.0)
+        .withTimeout(delay)
         .andThen(
             () -> {
               manipulatorStop();
