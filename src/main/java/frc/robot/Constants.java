@@ -90,9 +90,9 @@ public final class Constants {
   public static final Pose2d POSE5 = new Pose2d(3.2, 3.701, new Rotation2d());
   public static final Pose2d POSE6 = new Pose2d(3.2, 4.031, new Rotation2d());
   public static final Pose2d POSE3 =
-      new Pose2d(4.163, 2.765, new Rotation2d(Units.degreesToRadians(60.0)));
+      new Pose2d(4.094, 2.746, new Rotation2d(Units.degreesToRadians(60.0)));
   public static final Pose2d POSE4 =
-      new Pose2d(3.744, 2.913, new Rotation2d(Units.degreesToRadians(60.0)));
+      new Pose2d(3.807, 2.970, new Rotation2d(Units.degreesToRadians(60.0)));
   public static final Pose2d POSE7 =
       new Pose2d(3.573, 4.978, new Rotation2d(Units.degreesToRadians(-60.0)));
   public static final Pose2d POSE8 =

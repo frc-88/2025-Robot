@@ -39,6 +39,7 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
@@ -198,7 +199,7 @@ public class RobotContainer {
   }
 
   public void registerNamedCommands() {
-    NamedCommands.registerCommand("Shoot", shootCommand());
+    NamedCommands.registerCommand("Shoot", shootCommand(0.5));
     NamedCommands.registerCommand("NetFling", netflingCommand());
     NamedCommands.registerCommand(
         "Get Coral", m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()));
@@ -212,8 +213,8 @@ public class RobotContainer {
     NamedCommands.registerCommand("Armevator Calibration", m_armevator.calibrateBothFactory());
     NamedCommands.registerCommand("Score Odd", scoreNoShoot(true));
     NamedCommands.registerCommand("Score Even", scoreNoShoot(false));
-    NamedCommands.registerCommand("Reef Even", reef(false));
-    NamedCommands.registerCommand("Reef Odd", reef(true));
+    NamedCommands.registerCommand("Reef Even", reef(false, 0.5));
+    NamedCommands.registerCommand("Reef Odd", reef(true, 0.5));
 
     PathfindingCommand.warmupCommand().schedule();
     FollowPathCommand.warmupCommand().schedule();
@@ -273,7 +274,7 @@ public class RobotContainer {
     SmartDashboard.putData("Shoot Full Speed", m_doghouse.shootFullSpeedFactory());
 
     SmartDashboard.putData("Stop Doghouse", m_doghouse.stopAllFactory());
-    SmartDashboard.putData("Shoot", m_doghouse.shootFactory());
+    SmartDashboard.putData("Shoot", m_doghouse.shootFactory(1.0));
 
     SmartDashboard.putData("Go To Tilt Angle", goToTiltAngleFactory());
     SmartDashboard.putData("Algae Pickup", algaePickupFactory());
@@ -317,7 +318,7 @@ public class RobotContainer {
     buttons.button(1).onTrue(new InstantCommand(() -> mode = 2));
     buttons.button(2).onTrue(new InstantCommand(() -> mode = 3));
     buttons.button(3).onTrue(new InstantCommand(() -> mode = 4));
-    buttons.button(10).onTrue(shootCommand());
+    buttons.button(10).onTrue(shootCommand(1.0));
     buttons.button(4).onTrue(m_armevator.stowFactory());
     buttons.button(5).onTrue(getCoralFactory());
     buttons.button(11).onTrue(algaePickupFactory());
@@ -345,14 +346,14 @@ public class RobotContainer {
         .button(6)
         .onTrue(climber.gasMotorNeutralModeFactory().andThen(climber.stopGasMotorFactory()));
 
-    controller.rightTrigger().onTrue(shootCommand());
+    controller.rightTrigger().onTrue(shootCommand(1.0));
     controller
         .leftTrigger()
         .onTrue(m_doghouse.shootAlgaeFactory())
         .onFalse(drive.getDefaultCommand());
     controller
         .rightBumper()
-        .onTrue(new ConditionalCommand(reef(true), algae(), () -> m_doghouse.hasCoral()))
+        .onTrue(new ConditionalCommand(reef(true, 1.0), algae(), () -> m_doghouse.hasCoral()))
         .onFalse(
             new ConditionalCommand(
                 new ParallelCommandGroup(
@@ -374,7 +375,7 @@ public class RobotContainer {
                 () -> m_doghouse.isAlgaeMode()));
     controller
         .leftBumper()
-        .onTrue(new ConditionalCommand(reef(false), algae(), () -> m_doghouse.hasCoral()))
+        .onTrue(new ConditionalCommand(reef(false, 1.0), algae(), () -> m_doghouse.hasCoral()))
         .onFalse(
             new ConditionalCommand(
                 new ParallelCommandGroup(
@@ -468,7 +469,7 @@ public class RobotContainer {
     return new SequentialCommandGroup(
         drive.pathFind(odd),
         new ParallelDeadlineGroup(drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)),
-        shootCommand());
+        shootCommand(1.0));
   }
 
   private Command scoreOnReef(boolean odd) {
@@ -488,7 +489,7 @@ public class RobotContainer {
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode),
                 m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
-            shootCommand())
+            shootCommand(1.0))
         .beforeStarting(() -> reefDebouncer.calculate(false));
   }
 
@@ -497,7 +498,7 @@ public class RobotContainer {
             drive.pathFind(odd),
             new ParallelDeadlineGroup(
                 new WaitCommand(0.7), drive.scoreOnReef(odd), m_armevator.scoreAll(() -> mode)),
-            shootCommand())
+            shootCommand(1.0))
         .beforeStarting(() -> reefDebouncer.calculate(false));
   }
 
@@ -520,10 +521,12 @@ public class RobotContainer {
     }
   }
 
-  private Command shootCommand() {
+  private Command shootCommand(double delay) {
     return new ParallelDeadlineGroup(
         new ConditionalCommand(
-            m_doghouse.shootL1(), m_doghouse.shootFactory(), () -> m_armevator.isElevatorDown()),
+            m_doghouse.shootL1(),
+            m_doghouse.shootFactory(delay),
+            () -> m_armevator.isElevatorDown()),
         new WaitCommand(0.15).andThen(m_armevator.stowFactory()),
         new InstantCommand(() -> drive.enableAutoAim()),
         new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
@@ -532,7 +535,7 @@ public class RobotContainer {
   private Command shoot() {
     return new ParallelDeadlineGroup(
         new WaitUntilCommand(() -> m_doghouse.getIsReefDetected())
-            .andThen(m_doghouse.shootFactory()),
+            .andThen(m_doghouse.shootFactory(1.0)),
         new WaitCommand(0.5).andThen(m_armevator.armGoToZeroFactory()),
         new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
   }
@@ -624,24 +627,28 @@ public class RobotContainer {
                         drive.aimAtExpectedTarget(() -> m_doghouse.hasCoral()))));
   }
 
-  private Command reef(boolean odd) {
+  private Command reef(boolean odd, double delay) {
     return new SequentialCommandGroup(
         new ParallelDeadlineGroup(
             new ConditionalCommand(
                 new ConditionalCommand(
-                    new WaitUntilCommand(
-                        () ->
-                            reefDebouncer.calculate(m_doghouse.getIsReefDetected())
-                                && m_armevator.atMode(() -> mode)
-                                && drive.isAtTarget()),
+                    new ParallelRaceGroup(
+                        new WaitUntilCommand(
+                            () ->
+                                reefDebouncer.calculate(m_doghouse.getIsReefDetected())
+                                    && m_armevator.atMode(() -> mode)
+                                    && drive.isAtTarget()),
+                        new WaitCommand(3.0)),
                     new WaitUntilCommand(
                         () -> m_armevator.atMode(() -> mode) && drive.isAtTarget()),
                     () -> mode == 4),
                 new ConditionalCommand(
-                    new WaitUntilCommand(
-                        () ->
-                            reefDebouncer.calculate(m_doghouse.getIsReefDetected())
-                                && m_armevator.atMode(() -> mode)),
+                    new ParallelRaceGroup(
+                        new WaitUntilCommand(
+                            () ->
+                                reefDebouncer.calculate(m_doghouse.getIsReefDetected())
+                                    && m_armevator.atMode(() -> mode)),
+                        new WaitCommand(3.0)),
                     new WaitUntilCommand(
                         () -> m_armevator.atMode(() -> mode) && drive.isShootingDistance()),
                     () -> mode == 4),
@@ -650,7 +657,16 @@ public class RobotContainer {
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode)),
             m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
-        shootCommand());
+        shootCommand(delay));
+  }
+
+  public Command reefAuto(boolean odd, double delay) {
+    return new SequentialCommandGroup(
+        new ParallelDeadlineGroup(
+            drive.reef(odd),
+            new WaitUntilCommand(drive::isElevatorDistance)
+                .andThen(m_armevator.scoreAll(() -> mode))),
+        shootCommand(delay));
   }
 
   private Command reefNoShoot(boolean odd) {
@@ -697,7 +713,7 @@ public class RobotContainer {
                 .andThen(DriveCommands.driveMoving(() -> 0.0, () -> 0.3, () -> 0.0, drive)),
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode))),
-        shootCommand());
+        shootCommand(1.0));
   }
 
   public void teleopInit() {
