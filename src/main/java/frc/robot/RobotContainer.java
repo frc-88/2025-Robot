@@ -315,6 +315,7 @@ public class RobotContainer {
   }
 
   public void configureButtonBox() {
+    buttons.button(15).onTrue(new InstantCommand(() -> mode = 1));
     buttons.button(1).onTrue(new InstantCommand(() -> mode = 2));
     buttons.button(2).onTrue(new InstantCommand(() -> mode = 3));
     buttons.button(3).onTrue(new InstantCommand(() -> mode = 4));
@@ -653,7 +654,7 @@ public class RobotContainer {
                         () -> m_armevator.atMode(() -> mode) && drive.isShootingDistance()),
                     () -> mode == 4),
                 () -> drive.isElevatorDistance()),
-            drive.reef(odd),
+            drive.reef(odd, () -> mode),
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode)),
             m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
@@ -663,7 +664,7 @@ public class RobotContainer {
   public Command reefAuto(boolean odd, double delay) {
     return new SequentialCommandGroup(
         new ParallelDeadlineGroup(
-            drive.reef(odd),
+            drive.reef(odd, () -> mode),
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode))),
         shootCommand(delay));
@@ -691,7 +692,7 @@ public class RobotContainer {
                         () -> m_armevator.atMode(() -> mode) && drive.isShootingDistance()),
                     () -> mode == 4),
                 () -> drive.isElevatorDistance()),
-            drive.reef(odd),
+            drive.reef(odd, () -> mode),
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode)),
             m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));

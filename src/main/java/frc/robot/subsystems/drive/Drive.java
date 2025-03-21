@@ -60,6 +60,7 @@ import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
+import java.util.function.IntSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -502,26 +503,29 @@ public class Drive extends SubsystemBase {
         () -> getTargetSector() == 1);
   }
 
-  public Command reef(boolean odd) {
+  public Command reef(boolean odd, IntSupplier mode) {
     return new ConditionalCommand(
-        odd ? pathFind(1) : pathFind(2),
+        algae(),
         new ConditionalCommand(
-            odd ? pathFind(3) : pathFind(4),
+            odd ? pathFind(1) : pathFind(2),
             new ConditionalCommand(
-                odd ? pathFind(5) : pathFind(6),
+                odd ? pathFind(3) : pathFind(4),
                 new ConditionalCommand(
-                    odd ? pathFind(7) : pathFind(8),
+                    odd ? pathFind(5) : pathFind(6),
                     new ConditionalCommand(
-                        odd ? pathFind(9) : pathFind(10),
+                        odd ? pathFind(7) : pathFind(8),
                         new ConditionalCommand(
-                            odd ? pathFind(11) : pathFind(12),
-                            new WaitCommand(1.0),
-                            () -> getTargetSectorNow() == 6),
-                        () -> getTargetSectorNow() == 5),
-                    () -> getTargetSectorNow() == 4),
-                () -> getTargetSectorNow() == 3),
-            () -> getTargetSectorNow() == 2),
-        () -> getTargetSectorNow() == 1);
+                            odd ? pathFind(9) : pathFind(10),
+                            new ConditionalCommand(
+                                odd ? pathFind(11) : pathFind(12),
+                                new WaitCommand(1.0),
+                                () -> getTargetSectorNow() == 6),
+                            () -> getTargetSectorNow() == 5),
+                        () -> getTargetSectorNow() == 4),
+                    () -> getTargetSectorNow() == 3),
+                () -> getTargetSectorNow() == 2),
+            () -> getTargetSectorNow() == 1),
+        () -> mode.getAsInt() == 1);
   }
 
   public Command algae() {
