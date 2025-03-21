@@ -125,9 +125,28 @@
           }
         },
         {
-          "type": "named",
+          "type": "deadline",
           "data": {
-            "name": "Stow"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Sector2ToStation"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Stow"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Get Coral"
+                }
+              }
+            ]
           }
         }
       ]
