@@ -21,7 +21,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 public class Lights extends SubsystemBase {
-  private IntPreferenceConstant numLEDs = new IntPreferenceConstant("Number Of LEDs", 93);
+  private IntPreferenceConstant numLEDs = new IntPreferenceConstant("Number Of LEDs", 70);
   private int m_state = 0;
   private int counter = 0;
   private final CANdle m_candle = new CANdle(Constants.CANDLE_ID);

@@ -95,8 +95,8 @@ public class RobotContainer {
   public Trigger driveOnCoral = new Trigger(() -> hasCoralDebounced());
   public Trigger shouldShootAlgae;
   Timer timer = new Timer();
-  private DoublePreferenceConstant p_amplitude = new DoublePreferenceConstant("Aplitude", 0);
-  private DoublePreferenceConstant p_frequency = new DoublePreferenceConstant("Wavelength", 0);
+  private DoublePreferenceConstant p_amplitude = new DoublePreferenceConstant("Aplitude", 5);
+  private DoublePreferenceConstant p_frequency = new DoublePreferenceConstant("Wavelength", 5);
 
   private Debouncer reefDebouncer = new Debouncer(0.2);
   // public Trigger atL4 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL4());

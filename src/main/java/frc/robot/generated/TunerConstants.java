@@ -29,7 +29,7 @@ public class TunerConstants {
   private static DoublePreferenceConstant p_backRightEncoderOffset =
       new DoublePreferenceConstant("swervedrive/BackRight/Offset", -0.091796875);
   private static DoublePreferenceConstant p_driveCurrentLimit =
-      new DoublePreferenceConstant("Drive Current Limit", 120.0);
+      new DoublePreferenceConstant("Drive Current Limit", 90.0);
 
   // Both sets of gains need to be tuned to your individual robot.
 

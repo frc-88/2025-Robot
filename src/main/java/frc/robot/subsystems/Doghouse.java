@@ -38,7 +38,7 @@ public class Doghouse extends SubsystemBase {
   private final DoublePreferenceConstant p_funnelCurrentLimit =
       new DoublePreferenceConstant("Doghouse/Funnel/CurrentLimit", 20);
   private final DoublePreferenceConstant p_manipulatorInSpeed =
-      new DoublePreferenceConstant("Doghouse/Manipulator/InSpeed", -0.2);
+      new DoublePreferenceConstant("Doghouse/Manipulator/InSpeed", -0.3);
   private final DoublePreferenceConstant p_manipulatorShootSpeed =
       new DoublePreferenceConstant("Doghouse/Manipulator/ShootSpeed", -0.3);
   private final DoublePreferenceConstant p_manipulatorCurrentLimit =

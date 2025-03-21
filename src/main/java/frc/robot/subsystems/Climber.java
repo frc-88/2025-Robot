@@ -36,9 +36,9 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class Climber extends SubsystemBase {
   private DoublePreferenceConstant p_grippermaxVelocity =
-      new DoublePreferenceConstant("Climber/Gripper/MotionMagicVelocity", 40);
+      new DoublePreferenceConstant("Climber/Gripper/MotionMagicVelocity", 20);
   private DoublePreferenceConstant p_grippermaxAcceleration =
-      new DoublePreferenceConstant("Climber/Gripper/MotionMagicAcceleration", 1000);
+      new DoublePreferenceConstant("Climber/Gripper/MotionMagicAcceleration", 300);
   private DoublePreferenceConstant p_grippermaxJerk =
       new DoublePreferenceConstant("Climber/Gripper/MotionMagicJerk", 0);
   private PIDPreferenceConstants p_gripperPidPreferenceConstants =
