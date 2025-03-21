@@ -87,10 +87,10 @@ public final class Constants {
           new Translation2d(Units.inchesToMeters(176.75), Units.feetToMeters(13.5)),
           Rotation2d.fromDegrees(0.0));
 
-  public static final Pose2d POSE5 = new Pose2d(3.2, 3.701, new Rotation2d());
-  public static final Pose2d POSE6 = new Pose2d(3.2, 4.031, new Rotation2d());
+  public static final Pose2d POSE5 = new Pose2d(3.229, 3.762, new Rotation2d());
+  public static final Pose2d POSE6 = new Pose2d(3.229, 4.092, new Rotation2d());
   public static final Pose2d POSE3 =
-      new Pose2d(4.094, 2.746, new Rotation2d(Units.degreesToRadians(60.0)));
+      new Pose2d(4.093, 2.805, new Rotation2d(Units.degreesToRadians(60.0)));
   public static final Pose2d POSE4 =
       new Pose2d(3.807, 2.970, new Rotation2d(Units.degreesToRadians(60.0)));
   public static final Pose2d POSE7 =
