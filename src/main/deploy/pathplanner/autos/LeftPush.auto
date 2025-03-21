@@ -17,9 +17,15 @@
           }
         },
         {
+          "type": "path",
+          "data": {
+            "pathName": "LeftPush"
+          }
+        },
+        {
           "type": "named",
           "data": {
-            "name": "Reef Even"
+            "name": "Reef Odd"
           }
         },
         {
@@ -37,7 +43,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector1ToStation"
+                              "pathName": "Sector5ToStation"
                             }
                           },
                           {
@@ -88,7 +94,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector2ToStation"
+                              "pathName": "Sector4ToStation"
                             }
                           },
                           {
@@ -125,28 +131,9 @@
           }
         },
         {
-          "type": "deadline",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Sector2ToStation"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Stow"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Get Coral"
-                }
-              }
-            ]
+            "name": "Stow"
           }
         }
       ]

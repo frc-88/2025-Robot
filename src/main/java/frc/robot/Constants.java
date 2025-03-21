@@ -77,7 +77,7 @@ public final class Constants {
   public static final int CANDLE_ID = 0;
 
   // AUTOMATION
-  public static final PathConstraints CONSTRAINTS = new PathConstraints(3.0, 3.0, 8.0, 20.0);
+  public static final PathConstraints CONSTRAINTS = new PathConstraints(2.75, 2.25, 8.0, 20.0);
 
   public static final double FIELD_WIDTH = 8.05;
   public static final double FIELD_LENGTH = 17.55;
@@ -86,4 +86,42 @@ public final class Constants {
       new Pose2d(
           new Translation2d(Units.inchesToMeters(176.75), Units.feetToMeters(13.5)),
           Rotation2d.fromDegrees(0.0));
+
+  public static final Pose2d POSE5 = new Pose2d(3.229, 3.762, new Rotation2d());
+  public static final Pose2d POSE6 = new Pose2d(3.229, 4.092, new Rotation2d());
+  public static final Pose2d POSE3 =
+      new Pose2d(4.093, 2.805, new Rotation2d(Units.degreesToRadians(60.0)));
+  public static final Pose2d POSE4 =
+      new Pose2d(3.807, 2.970, new Rotation2d(Units.degreesToRadians(60.0)));
+  public static final Pose2d POSE7 =
+      new Pose2d(3.573, 4.978, new Rotation2d(Units.degreesToRadians(-60.0)));
+  public static final Pose2d POSE8 =
+      new Pose2d(3.859, 5.143, new Rotation2d(Units.degreesToRadians(-60.0)));
+  public static final Pose2d POSE9 =
+      new Pose2d(4.851, 5.319, new Rotation2d(Units.degreesToRadians(-120.0)));
+  public static final Pose2d POSE10 =
+      new Pose2d(5.137, 5.154, new Rotation2d(Units.degreesToRadians(-120.0)));
+  public static final Pose2d POSE11 =
+      new Pose2d(5.785, 4.320, new Rotation2d(Units.degreesToRadians(180.0)));
+  public static final Pose2d POSE12 =
+      new Pose2d(5.780, 4.000, new Rotation2d(Units.degreesToRadians(180.0)));
+  public static final Pose2d POSE1 =
+      new Pose2d(5.441, 3.105, new Rotation2d(Units.degreesToRadians(120.0)));
+  public static final Pose2d POSE2 =
+      new Pose2d(5.155, 2.940, new Rotation2d(Units.degreesToRadians(120.0)));
+
+  public static Pose2d SECTOR3ALGAE = new Pose2d(3.2, 3.8, new Rotation2d());
+  public static Pose2d SECTOR2ALGAE =
+      new Pose2d(3.892, 2.778, new Rotation2d(Units.degreesToRadians(60.0)));
+  public static Pose2d SECTOR6ALGAE =
+      new Pose2d(5.7825, 4.16, new Rotation2d(Units.degreesToRadians(180.0)));
+  public static Pose2d SECTOR1ALGAE =
+      new Pose2d(5.298, 3.0225, new Rotation2d(Units.degreesToRadians(120.0)));
+  public static Pose2d SECTOR5ALGAE =
+      new Pose2d(5.002, 5.255, new Rotation2d(Units.degreesToRadians(-120.0)));
+  public static Pose2d SECTOR4ALGAE =
+      new Pose2d(3.716, 5.0605, new Rotation2d(Units.degreesToRadians(-60.0)));
+
+  public static final Pose2d POSE5MOVING = new Pose2d(3.08, 3.154, new Rotation2d());
+  public static final Pose2d POSE6MOVING = new Pose2d(3.08, 4.896, new Rotation2d());
 }

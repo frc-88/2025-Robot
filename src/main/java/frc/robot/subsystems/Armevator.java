@@ -65,7 +65,7 @@ public class Armevator extends SubsystemBase {
   private final DoublePreferenceConstant p_armEncoderOffset =
       new DoublePreferenceConstant("Armevator/Arm/EncoderOffset", -0.154785);
   private final DoublePreferenceConstant p_armAngleNet =
-      new DoublePreferenceConstant("Armevator/Arm/NetAngle", -40.0);
+      new DoublePreferenceConstant("Armevator/Arm/NetAngle", -30.0);
 
   private final DoublePreferenceConstant p_currentLimit =
       new DoublePreferenceConstant("Armevator/Elevator/CurrentLimit", 40);
@@ -149,7 +149,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean onTarget(double position) {
-    return Math.abs(getElevatorPositionInches() - position) < 0.2;
+    return Math.abs(getElevatorPositionInches() - position) < 1.0;
   }
 
   private void armCalibrate() {
@@ -213,7 +213,7 @@ public class Armevator extends SubsystemBase {
   private void setL4Shoot() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
-      armSetAngle(p_armAngleNet.getValue());
+      armSetAngle(-30.0);
     }
   }
 
@@ -257,7 +257,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean isArmOnPosition() {
-    return Math.abs(getArmAngle()) < 1.2;
+    return Math.abs(getArmAngle()) < 27.0;
   }
 
   public boolean isArmOnAlgaePosition() {
@@ -304,8 +304,10 @@ public class Armevator extends SubsystemBase {
   public boolean atMode(IntSupplier i) {
     if (i.getAsInt() == 4) {
       return Math.abs(getArmAngle() - Constants.ARM_L4_ANGLE) < 1.2;
+    } else if (i.getAsInt() == 3) {
+      return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L3_HEIGHT) < 1.0;
     } else {
-      return true;
+      return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L2_HEIGHT) < 1.0;
     }
   }
 
@@ -317,7 +319,7 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
         () -> {
           stowArmAlgae();
-          stowElevator();
+          elevatorSetPosition(2.5);
         },
         this);
   }
@@ -338,7 +340,7 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
         () -> {
           armSetAngle(30.0);
-          elevatorSetPosition(9.5);
+          elevatorSetPosition(7.0);
         },
         this);
   }
@@ -347,7 +349,7 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
         () -> {
           armSetAngle(30.0);
-          elevatorSetPosition(17.0);
+          elevatorSetPosition(14.5);
         },
         this);
   }
@@ -356,8 +358,18 @@ public class Armevator extends SubsystemBase {
     return new ConditionalCommand(
         goToOneInchFactory()
             .until(() -> onTarget(1.0))
-            .andThen(new RunCommand(() -> stowElevator())),
-        new RunCommand(() -> stowElevator(), this),
+            .andThen(
+                new RunCommand(
+                    () -> {
+                      stowElevator();
+                      armGoToZero();
+                    })),
+        new RunCommand(
+            () -> {
+              stowElevator();
+              armGoToZero();
+            },
+            this),
         () -> getElevatorPositionInches() > 1.0);
   }
 
@@ -381,7 +393,12 @@ public class Armevator extends SubsystemBase {
   }
 
   public Command goToOneInchFactory() {
-    return new RunCommand(() -> goToOneInch(), this);
+    return new RunCommand(
+        () -> {
+          goToOneInch();
+          armGoToZero();
+        },
+        this);
   }
 
   public Command stopElevatorFactory() {
@@ -461,6 +478,20 @@ public class Armevator extends SubsystemBase {
             setL4();
           } else {
 
+          }
+        },
+        this);
+  }
+
+  public Command algae(IntSupplier sector) {
+    return new RunCommand(
+        () -> {
+          if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
+            armSetAngle(30.0);
+            elevatorSetPosition(14.5);
+          } else {
+            armSetAngle(30.0);
+            elevatorSetPosition(7.0);
           }
         },
         this);
