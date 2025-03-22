@@ -94,11 +94,13 @@ public class RobotContainer {
 
   public Trigger driveOnCoral = new Trigger(() -> hasCoralDebounced());
   public Trigger shouldShootAlgae;
+  public Trigger shouldStow;
   Timer timer = new Timer();
   private DoublePreferenceConstant p_amplitude = new DoublePreferenceConstant("Aplitude", 0);
   private DoublePreferenceConstant p_frequency = new DoublePreferenceConstant("Wavelength", 0);
 
   private Debouncer reefDebouncer = new Debouncer(0.2);
+  private boolean shootingAlgae = false;
   // public Trigger atL4 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL4());
   // public Trigger atL3 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL3());
   // public Trigger atL2 =
@@ -158,6 +160,7 @@ public class RobotContainer {
     }
 
     shouldShootAlgae = new Trigger(() -> m_doghouse.isAlgaeMode() && drive.shouldShootAlgae());
+    shouldStow = new Trigger(() -> drive.shouldShootAlgae() && shootingAlgae);
 
     registerNamedCommands();
     // Set up auto routines
@@ -241,17 +244,22 @@ public class RobotContainer {
         climber.softCloseFactory().alongWith(m_doghouse.stopAllFactory()));
     m_armevator.m_shouldCalibrate.onTrue(m_armevator.elevatorCalibrateFactory());
     shouldShootAlgae.onTrue(
-        m_doghouse
-            .shootAlgaeFactory()
-            .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
-            .alongWith(
-                DriveCommands.joystickDriveAtAngle(
-                    drive,
-                    () -> -controller.getLeftY(),
-                    () -> -controller.getLeftX(),
-                    () ->
-                        Rotation2d.fromDegrees(
-                            drive.aimAtExpectedTarget(() -> m_doghouse.hasCoral())))));
+        new InstantCommand(() -> shootingAlgae = true)
+            .andThen(
+                m_doghouse
+                    .shootAlgaeFactory()
+                    .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
+                    .alongWith(
+                        DriveCommands.joystickDriveAtAngle(
+                            drive,
+                            () -> -controller.getLeftY(),
+                            () -> -controller.getLeftX(),
+                            () ->
+                                Rotation2d.fromDegrees(
+                                    drive.aimAtExpectedTarget(() -> m_doghouse.hasCoral()))),
+                        m_armevator.shootInNetFactory())));
+    shouldStow.onFalse(
+        new InstantCommand(() -> shootingAlgae = false).andThen(m_armevator.stowFactory()));
     // atL2.onTrue(m_doghouse.shootFactory());
     // .onFalse(climber.setNotGrabbed());
     // climber.forceCloseOnDisable().onTrue(climber.climbOnDisable().ignoringDisable(true));
