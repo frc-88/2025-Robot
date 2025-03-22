@@ -535,7 +535,7 @@ public class RobotContainer {
         new ConditionalCommand(
             m_doghouse.shootL1(),
             m_doghouse.shootFactory(delay),
-            () -> m_armevator.isElevatorDown()),
+            () -> mode == 1),
         new WaitCommand(0.15).andThen(m_armevator.stowFactory()),
         new InstantCommand(() -> drive.enableAutoAim()),
         new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
