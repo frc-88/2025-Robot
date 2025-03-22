@@ -12,7 +12,6 @@ import com.ctre.phoenix.led.LarsonAnimation;
 import com.ctre.phoenix.led.LarsonAnimation.BounceMode;
 import com.ctre.phoenix.led.RainbowAnimation;
 import com.ctre.phoenix.led.StrobeAnimation;
-
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -99,15 +98,24 @@ public class Lights extends SubsystemBase {
     m_candle.configLEDType(LEDStripType.RGB, 300);
   }
 
-  private Pair<String, Animation> noteSpinLeft = new Pair<>("noteSpinLeft",
-      new ColorFlowAnimation(165, 0, 255, 0, 0.2, numLEDs.getValue(), Direction.Forward));
+  private Pair<String, Animation> noteSpinLeft =
+      new Pair<>(
+          "noteSpinLeft",
+          new ColorFlowAnimation(165, 0, 255, 0, 0.2, numLEDs.getValue(), Direction.Forward));
   private Pair<String, Animation> noteSpinRight =
-      new Pair<>("noteSpinRight", new ColorFlowAnimation(165, 0, 0, 255, 0.2, numLEDs.getValue(), Direction.Backward));
+      new Pair<>(
+          "noteSpinRight",
+          new ColorFlowAnimation(165, 0, 0, 255, 0.2, numLEDs.getValue(), Direction.Backward));
   private Pair<String, Animation> holdingCoral =
-      new Pair<>("holdingCoral", new ColorFlowAnimation(165, 0, 255, 0, 0.2, numLEDs.getValue(), Direction.Forward));
-  private Pair<String, Animation> intakingNote = new Pair<>("intakingNote", new StrobeAnimation(165, 0, 255, 0, 0.2, numLEDs.getValue()));
-  private Pair<String, Animation> setFire = new Pair<>("setFire", new FireAnimation(1, 0.9, numLEDs.getValue(), 0.4, 0.4));
-  private Pair<String, Animation> rainBow = new Pair<>("rainBow", new RainbowAnimation(1, 0.7, numLEDs.getValue()));
+      new Pair<>(
+          "holdingCoral",
+          new ColorFlowAnimation(165, 0, 255, 0, 0.2, numLEDs.getValue(), Direction.Forward));
+  private Pair<String, Animation> intakingNote =
+      new Pair<>("intakingNote", new StrobeAnimation(165, 0, 255, 0, 0.2, numLEDs.getValue()));
+  private Pair<String, Animation> setFire =
+      new Pair<>("setFire", new FireAnimation(1, 0.9, numLEDs.getValue(), 0.4, 0.4));
+  private Pair<String, Animation> rainBow =
+      new Pair<>("rainBow", new RainbowAnimation(1, 0.7, numLEDs.getValue()));
 
   public void noteSpinLeft() {
     m_setAnim = true;
@@ -135,8 +143,10 @@ public class Lights extends SubsystemBase {
   }
 
   public void larsonColor(int r, int g, int b) {
-    m_toAnimate = new Pair<>("larson "+ r + " " + g + " " + b,
-      new LarsonAnimation(r, g, b, 0, 0.2, numLEDs.getValue(), BounceMode.Front, 8));
+    m_toAnimate =
+        new Pair<>(
+            "larson " + r + " " + g + " " + b,
+            new LarsonAnimation(r, g, b, 0, 0.2, numLEDs.getValue(), BounceMode.Front, 8));
   }
 
   public void setLED(int r, int g, int b) {
@@ -303,25 +313,16 @@ public class Lights extends SubsystemBase {
       }
     }
 
-    // if animation is equal to last one, don't clear
-    if (m_toAnimate.getFirst().equals(m_lastAnimation)) {
+    if (!m_toAnimate.getFirst().equals(m_lastAnimation)) {
 
-      m_clearAnim = false;
-      // if animation if not equal to last one, clear animation
-    } else if (!m_toAnimate.getFirst().equals(m_lastAnimation) && m_lastAnimation != null) {
-      m_lastAnimation = m_toAnimate.getFirst();
-      m_clearAnim = true;
-      // for the very first time when m_lastAnimation is null, don't clear.
-    } else {
-      m_lastAnimation = m_toAnimate.getFirst();
-      m_clearAnim = false;
-    }
-    if (m_clearAnim) {
-      m_candle.clearAnimation(0);
-      m_clearAnim = false;
-    }
-    if (m_setAnim) {
+      if (m_lastAnimation != null) {
+        m_candle.clearAnimation(0);
+      }
+
+      System.out.println("Setting " + m_toAnimate.getFirst());
       m_candle.animate(m_toAnimate.getSecond());
+
+      m_lastAnimation = m_toAnimate.getFirst();
     }
   }
 
