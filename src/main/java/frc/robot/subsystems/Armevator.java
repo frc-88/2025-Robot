@@ -188,7 +188,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void armGotoAlgaePickup() {
-    armSetAngle(56.0);
+    armSetAngle(45.0);
   }
 
   private void armGotoPrefPosition() {
@@ -470,7 +470,7 @@ public class Armevator extends SubsystemBase {
   public Command scoreAll(IntSupplier mode) {
     return new RunCommand(
         () -> {
-          if (mode.getAsInt() == 2) {
+          if (mode.getAsInt() == 2 || mode.getAsInt() == 1) {
             setL2();
           } else if (mode.getAsInt() == 3) {
             setL3();
