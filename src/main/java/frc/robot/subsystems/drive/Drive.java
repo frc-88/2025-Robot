@@ -253,7 +253,7 @@ public class Drive extends SubsystemBase {
   }
 
   public boolean shouldShootAlgae() {
-    return flipIfRed(getPose()).getX() > 7.48;
+    return flipIfRed(getPose()).getX() > 7.28;
   }
 
   private Command getPath(int i) {
