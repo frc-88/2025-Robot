@@ -533,9 +533,7 @@ public class RobotContainer {
   private Command shootCommand(double delay) {
     return new ParallelDeadlineGroup(
         new ConditionalCommand(
-            m_doghouse.shootL1(),
-            m_doghouse.shootFactory(delay),
-            () -> mode == 1),
+            m_doghouse.shootL1(), m_doghouse.shootFactory(delay), () -> mode == 1),
         new WaitCommand(0.15).andThen(m_armevator.stowFactory()),
         new InstantCommand(() -> drive.enableAutoAim()),
         new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
