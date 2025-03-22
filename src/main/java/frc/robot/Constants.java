@@ -123,8 +123,8 @@ public final class Constants {
       new Pose2d(4.148, 2.739, new Rotation2d(Units.degreesToRadians(60.0)));
   public static final Pose2d POSE4 =
       new Pose2d(3.862, 2.904, new Rotation2d(Units.degreesToRadians(60.0)));
-  public static final Pose2d POSE5 = new Pose2d(3.199, 3.701, new Rotation2d());
-  public static final Pose2d POSE6 = new Pose2d(3.199, 4.031, new Rotation2d());
+  public static final Pose2d POSE5 = new Pose2d(3.159, 3.701, new Rotation2d());
+  public static final Pose2d POSE6 = new Pose2d(3.159, 4.031, new Rotation2d());
   public static final Pose2d POSE7 =
       new Pose2d(3.558, 5.004, new Rotation2d(Units.degreesToRadians(-60.0)));
   public static final Pose2d POSE8 =
