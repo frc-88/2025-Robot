@@ -116,7 +116,7 @@ public final class Constants {
   // 5.815	4.382
   // 5.815	4.052
   public static final Pose2d POSE1 =
-      new Pose2d(5.456, 3.079, new Rotation2d(Units.degreesToRadians(120.0)));
+      new Pose2d(5.412, 3.054, new Rotation2d(Units.degreesToRadians(120.0)));
   public static final Pose2d POSE2 =
       new Pose2d(5.127, 2.889, new Rotation2d(Units.degreesToRadians(120.0)));
   public static final Pose2d POSE3 =
