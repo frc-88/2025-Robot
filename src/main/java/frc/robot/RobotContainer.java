@@ -362,7 +362,9 @@ public class RobotContainer {
         .onFalse(drive.getDefaultCommand());
     controller
         .rightBumper()
-        .onTrue(new ConditionalCommand(reef(true, 1.0), algae(), () -> m_doghouse.hasCoral()))
+        .onTrue(
+            new ConditionalCommand(
+                algae(), reef(true, 1.0), () -> !m_doghouse.hasCoral() && !m_doghouse.isBlocked()))
         .onFalse(
             new ConditionalCommand(
                 new ParallelCommandGroup(
@@ -384,7 +386,9 @@ public class RobotContainer {
                 () -> m_doghouse.isAlgaeMode()));
     controller
         .leftBumper()
-        .onTrue(new ConditionalCommand(reef(false, 1.0), algae(), () -> m_doghouse.hasCoral()))
+        .onTrue(
+            new ConditionalCommand(
+                algae(), reef(false, 1.0), () -> !m_doghouse.hasCoral() && !m_doghouse.isBlocked()))
         .onFalse(
             new ConditionalCommand(
                 new ParallelCommandGroup(
