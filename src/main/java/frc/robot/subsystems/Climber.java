@@ -173,8 +173,8 @@ public class Climber extends SubsystemBase {
   public boolean shouldClose() {
     return !input.get()
         && gripperDebouncer.calculate(
-            m_canRange.getDistance().getValueAsDouble() > 0.21
-                && m_canRange.getDistance().getValueAsDouble() < 0.22);
+            m_canRange.getDistance().getValueAsDouble() > 0.225
+                && m_canRange.getDistance().getValueAsDouble() < 0.235);
   }
 
   public boolean shouldSoftClose() {
