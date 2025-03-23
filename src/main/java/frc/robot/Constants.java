@@ -102,31 +102,25 @@ public final class Constants {
   // 11	5.785	4.382
   // 12	5.785	4.052
 
-  // WPI
-  // 5.427	3.028
-  // 5.142	2.863
-  // 4.133	2.713
-  // 3.847	2.878
-  // 3.169	3.701
-  // 3.169	4.031
-  // 3.543	5.031
-  // 3.829	5.196
-  // 4.881	5.371
-  // 5.167	5.206
-  // 5.845	4.382
-  // 5.845	4.052
+  // WPI blue
+//   5.448	2.993
+//   5.188	2.843
+//   4.133	2.713
+//   3.847	2.878
+//   3.149	3.701
+//   3.149	4.031
   public static final Pose2d POSE1 =
-      new Pose2d(5.427, 3.028, new Rotation2d(Units.degreesToRadians(120.0)));
+      new Pose2d(5.448, 2.993, new Rotation2d(Units.degreesToRadians(120.0)));
   public static final Pose2d POSE2 =
-      new Pose2d(5.168, 2.878, new Rotation2d(Units.degreesToRadians(120.0)));
+      new Pose2d(5.188, 2.843, new Rotation2d(Units.degreesToRadians(120.0)));
   public static final Pose2d POSE3 =
       new Pose2d(4.133, 2.713, new Rotation2d(Units.degreesToRadians(60.0)));
   public static final Pose2d POSE4 =
-      new Pose2d(3.837, 2.860, new Rotation2d(Units.degreesToRadians(60.0)));
+      new Pose2d(3.847, 2.878, new Rotation2d(Units.degreesToRadians(60.0)));
   public static final Pose2d POSE5 = new Pose2d(3.149, 3.701, new Rotation2d());
   public static final Pose2d POSE6 = new Pose2d(3.149, 4.031, new Rotation2d());
   public static final Pose2d POSE7 =
-      new Pose2d(3.485, 5.032, new Rotation2d(Units.degreesToRadians(-60.0)));
+      new Pose2d(3.500, 5.005, new Rotation2d(Units.degreesToRadians(-60.0)));
   public static final Pose2d POSE8 =
       new Pose2d(3.785, 5.170, new Rotation2d(Units.degreesToRadians(-60.0)));
   public static final Pose2d POSE9 =
@@ -137,6 +131,12 @@ public final class Constants {
       new Pose2d(5.845, 4.382, new Rotation2d(Units.degreesToRadians(180.0)));
   public static final Pose2d POSE12 =
       new Pose2d(5.845, 4.052, new Rotation2d(Units.degreesToRadians(180.0)));
+//   3.500	5.005
+//   3.785	5.170
+//   4.881	5.371
+//   5.167	5.206
+//   5.845	4.382
+//   5.845	4.052
 
   public static Pose2d SECTOR3ALGAE = new Pose2d(3.2, 3.8, new Rotation2d());
   public static Pose2d SECTOR2ALGAE =
