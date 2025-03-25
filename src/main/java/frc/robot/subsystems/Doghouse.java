@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -46,6 +47,7 @@ public class Doghouse extends SubsystemBase {
 
   private final DutyCycleOut m_funnelRequest = new DutyCycleOut(0.0);
   private final DutyCycleOut m_manipulatorRequest = new DutyCycleOut(0.0);
+  private final TorqueCurrentFOC m_algaePickupRequest = new TorqueCurrentFOC(-80.0);
 
   private boolean algaeMode = false;
 
@@ -96,11 +98,11 @@ public class Doghouse extends SubsystemBase {
     coralRangecfg.ToFParams.UpdateFrequency = 50;
 
     doghouscfg.ProximityParams.ProximityThreshold = 0.15;
-    doghouscfg.ProximityParams.ProximityHysteresis = 0.03;
+    doghouscfg.ProximityParams.ProximityHysteresis = 0.01;
     coralRangecfg.ProximityParams.ProximityThreshold = 0.5;
 
     coralRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 40000;
-    doghouscfg.ProximityParams.MinSignalStrengthForValidMeasurement = 18000;
+    doghouscfg.ProximityParams.MinSignalStrengthForValidMeasurement = 13000;
 
     m_doghousCANRange.getConfigurator().apply(doghouscfg);
     m_coralRange.getConfigurator().apply(coralRangecfg);
@@ -152,6 +154,10 @@ public class Doghouse extends SubsystemBase {
     setFunnelSpeed(p_funnelSpeed.getValue());
   }
 
+  private void funnelSlow() {
+    setFunnelSpeed(0.1);
+  }
+
   private void funnelBackwards() {
     setFunnelSpeed(-1.0);
   }
@@ -169,7 +175,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorSlow() {
-    setManipulatorSpeed(-0.15);
+    setManipulatorSpeed(-0.14);
   }
 
   private void manipulatorAlgaeSlow() {
@@ -177,7 +183,8 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void algaePickup() {
-    setManipulatorSpeed(-0.15);
+    // setManipulatorSpeed(-0.15);
+    m_manipulator.setControl(m_algaePickupRequest);
     funnelBackwards();
   }
 
@@ -190,7 +197,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorL1Speed() {
-    setManipulatorSpeed(-0.2);
+    setManipulatorSpeed(-0.15);
   }
 
   private void setAlgae() {
@@ -236,9 +243,13 @@ public class Doghouse extends SubsystemBase {
     return new RunCommand(
         () -> {
           if (!algaeMode) {
-            if (!elevatorDown.getAsBoolean()) {
+            if (!elevatorDown.getAsBoolean() & !isBlocked()) {
               manipulatorStop();
               funnelStop();
+              // maybe funnel slow backwards
+            } else if (!elevatorDown.getAsBoolean() & isBlocked()) {
+              manipulatorSlow();
+              funnelSlow();
             } else if (!hasCoral()) {
               manipulatorIn();
               funnelGo();
@@ -247,7 +258,7 @@ public class Doghouse extends SubsystemBase {
               funnelStop();
             } else if (isBlocked()) {
               manipulatorSlow();
-              funnelStop();
+              funnelGo();
             }
           } else {
             algaePickup();
