@@ -448,5 +448,5 @@ public class Climber extends SubsystemBase {
     SmartDashboard.putBoolean("try to climb", shouldClose() && RobotState.isEnabled());
     SmartDashboard.putNumber(
         "canrange distance", getCageDistance());
-add   }
+    }
 }
