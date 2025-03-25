@@ -4,8 +4,6 @@
 
 package frc.robot.subsystems;
 
-import org.littletonrobotics.junction.AutoLogOutput;
-
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
@@ -35,6 +33,7 @@ import frc.robot.Constants;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 public class Climber extends SubsystemBase {
   private DoublePreferenceConstant p_grippermaxVelocity =
@@ -446,7 +445,6 @@ public class Climber extends SubsystemBase {
     SmartDashboard.putBoolean(
         "Is braked", m_gripper.getControlMode().getValue() == ControlModeValue.StaticBrake);
     SmartDashboard.putBoolean("try to climb", shouldClose() && RobotState.isEnabled());
-    SmartDashboard.putNumber(
-        "canrange distance", getCageDistance());
-    }
+    SmartDashboard.putNumber("canrange distance", getCageDistance());
+  }
 }
