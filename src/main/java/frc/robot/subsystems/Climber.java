@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
@@ -166,8 +168,14 @@ public class Climber extends SubsystemBase {
     return (inches / Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH) * 1.21;
   }
 
+  @AutoLogOutput(key = "Climber/GripperPosition")
   public double getGripperPositionRotations() {
     return m_gripper.getPosition().getValueAsDouble();
+  }
+
+  @AutoLogOutput(key = "Climber/CageDistance")
+  private double getCageDistance() {
+    return m_canRange.getDistance().getValueAsDouble() * 100.0;
   }
 
   public boolean shouldClose() {
@@ -204,11 +212,13 @@ public class Climber extends SubsystemBase {
     return Math.abs(getGripperPositionRotations()) < 3.0;
   }
 
+  @AutoLogOutput(key = "Climber/Angle")
   public double getAngleOfClimber() {
     return m_climberEncoder.getPosition().getValueAsDouble()
         * Constants.CLIMBER_ENCODER_ROTATIONS_TO_ANGLE;
   }
 
+  @AutoLogOutput(key = "Climber/WinchPosition")
   public double getPositionGasMotorRotations() {
     return m_gasmotor.getPosition().getValueAsDouble();
   }
@@ -437,6 +447,6 @@ public class Climber extends SubsystemBase {
         "Is braked", m_gripper.getControlMode().getValue() == ControlModeValue.StaticBrake);
     SmartDashboard.putBoolean("try to climb", shouldClose() && RobotState.isEnabled());
     SmartDashboard.putNumber(
-        "canrange distance", m_canRange.getDistance().getValueAsDouble() * 100.0);
-  }
+        "canrange distance", getCageDistance());
+add   }
 }
