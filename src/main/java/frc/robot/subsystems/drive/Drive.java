@@ -418,7 +418,7 @@ public class Drive extends SubsystemBase {
     double y = getChassisSpeeds().vyMetersPerSecond;
 
     return new Pose2d(
-        current.getX() + (x * 0.4), current.getY() + (y * 0.4), current.getRotation());
+        current.getX() + (x * 0.1), current.getY() + (y * 0.1), current.getRotation());
   }
 
   public int getTargetSector() {
