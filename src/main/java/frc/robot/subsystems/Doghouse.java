@@ -197,7 +197,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorL1Speed() {
-    setManipulatorSpeed(-0.15);
+    setManipulatorSpeed(-0.1);
   }
 
   private void setAlgae() {
