@@ -63,6 +63,7 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.LocalADStarAK;
+import frc.robot.util.ReefTrax;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -89,6 +90,7 @@ public class RobotContainer {
   public Doghouse m_doghouse = new Doghouse();
   public Armevator m_armevator = new Armevator(() -> !m_doghouse.isBlocked());
   public Climber climber = new Climber();
+  public ReefTrax reeftrax = new ReefTrax();
 
   public LocalADStarAK pathFinder = new LocalADStarAK();
 
@@ -304,6 +306,16 @@ public class RobotContainer {
     SmartDashboard.putData("Set Brake", climber.gasMotorBrakeModeFactory().ignoringDisable(true));
     SmartDashboard.putData("Prep Climber", climber.prepClimber());
     SmartDashboard.putData("Calibrate Gas Motor", climber.calibrateFactory());
+
+    // ReefTrax
+    SmartDashboard.putData(
+        "ReefTrax:Recalc",
+        new InstantCommand(() -> reeftrax.calculateOffsets()).ignoringDisable(true));
+    SmartDashboard.putData(
+        "ReefTrax:Dump", new InstantCommand(() -> reeftrax.dumpReef()).ignoringDisable(true));
+    SmartDashboard.putData(
+        "ReefTrax:Reset Offsets",
+        new InstantCommand(() -> reeftrax.resetReefOffsets()).ignoringDisable(true));
 
     // Autos
     SmartDashboard.putData("Score 5", scoreAuto(5));
