@@ -672,7 +672,13 @@ public class RobotContainer {
                         () -> m_armevator.atMode(() -> mode) && drive.isShootingDistance()),
                     () -> mode == 4),
                 () -> drive.isElevatorDistance()),
-            drive.reef(odd, () -> mode),
+            new SequentialCommandGroup(
+                drive.reef(odd, () -> mode),
+                DriveCommands.joystickDrive(
+                    drive,
+                    () -> -controller.getLeftY()/2.0,
+                    () -> -controller.getLeftX()/2.0,
+                    () -> -controller.getRightX()/2.0)),
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode)),
             m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
