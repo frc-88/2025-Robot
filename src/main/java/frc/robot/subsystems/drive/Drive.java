@@ -56,6 +56,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
+import frc.robot.util.ReefTrax;
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -126,6 +127,7 @@ public class Drive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
   private boolean m_autoaim = true;
+  private ReefTrax reeftrax = new ReefTrax();
 
   public Drive(
       GyroIO gyroIO,
@@ -277,40 +279,40 @@ public class Drive extends SubsystemBase {
   private Command pathFind(int i) {
     if (i == 1) {
       return new InstantCommand(() -> m_currentPose = 1)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE1, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(1), Constants.CONSTRAINTS));
     } else if (i == 2) {
       return new InstantCommand(() -> m_currentPose = 2)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE2, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(2), Constants.CONSTRAINTS));
     } else if (i == 3) {
       return new InstantCommand(() -> m_currentPose = 3)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE3, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(3), Constants.CONSTRAINTS));
     } else if (i == 4) {
       return new InstantCommand(() -> m_currentPose = 4)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE4, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(4), Constants.CONSTRAINTS));
     } else if (i == 5) {
       return new InstantCommand(() -> m_currentPose = 5)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE5, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(5), Constants.CONSTRAINTS));
     } else if (i == 6) {
       return new InstantCommand(() -> m_currentPose = 6)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE6, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(6), Constants.CONSTRAINTS));
     } else if (i == 7) {
       return new InstantCommand(() -> m_currentPose = 7)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE7, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(7), Constants.CONSTRAINTS));
     } else if (i == 8) {
       return new InstantCommand(() -> m_currentPose = 8)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE8, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(8), Constants.CONSTRAINTS));
     } else if (i == 9) {
       return new InstantCommand(() -> m_currentPose = 9)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE9, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(9), Constants.CONSTRAINTS));
     } else if (i == 10) {
       return new InstantCommand(() -> m_currentPose = 10)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE10, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(10), Constants.CONSTRAINTS));
     } else if (i == 11) {
       return new InstantCommand(() -> m_currentPose = 11)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE11, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(11), Constants.CONSTRAINTS));
     } else if (i == 12) {
       return new InstantCommand(() -> m_currentPose = 12)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE12, Constants.CONSTRAINTS));
+          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(12), Constants.CONSTRAINTS));
     } else {
       return new WaitCommand(1.0);
     }
@@ -336,29 +338,29 @@ public class Drive extends SubsystemBase {
 
   private Pose2d getTargetPose() {
     if (m_currentPose == 1) {
-      return Constants.POSE1;
+      return reeftrax.getPose(1);
     } else if (m_currentPose == 2) {
-      return Constants.POSE2;
+      return reeftrax.getPose(2);
     } else if (m_currentPose == 3) {
-      return Constants.POSE3;
+      return reeftrax.getPose(3);
     } else if (m_currentPose == 4) {
-      return Constants.POSE4;
+      return reeftrax.getPose(4);
     } else if (m_currentPose == 5) {
-      return Constants.POSE5;
+      return reeftrax.getPose(5);
     } else if (m_currentPose == 6) {
-      return Constants.POSE6;
+      return reeftrax.getPose(6);
     } else if (m_currentPose == 7) {
-      return Constants.POSE7;
+      return reeftrax.getPose(7);
     } else if (m_currentPose == 8) {
-      return Constants.POSE8;
+      return reeftrax.getPose(8);
     } else if (m_currentPose == 9) {
-      return Constants.POSE9;
+      return reeftrax.getPose(9);
     } else if (m_currentPose == 10) {
-      return Constants.POSE10;
+      return reeftrax.getPose(10);
     } else if (m_currentPose == 11) {
-      return Constants.POSE11;
+      return reeftrax.getPose(11);
     } else if (m_currentPose == 12) {
-      return Constants.POSE12;
+      return reeftrax.getPose(12);
     } else {
       return new Pose2d();
     }
@@ -366,9 +368,9 @@ public class Drive extends SubsystemBase {
 
   private Command pathFindMoving(int i) {
     if (i == 5) {
-      return AutoBuilder.pathfindToPoseFlipped(Constants.POSE5, Constants.CONSTRAINTS, 0.3);
+      return AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(5), Constants.CONSTRAINTS, 0.3);
     } else {
-      return AutoBuilder.pathfindToPoseFlipped(Constants.POSE6, Constants.CONSTRAINTS, 0.3);
+      return AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(6), Constants.CONSTRAINTS, 0.3);
     }
   }
 

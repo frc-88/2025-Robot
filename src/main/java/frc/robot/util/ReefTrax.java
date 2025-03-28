@@ -11,6 +11,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 /** Add your docs here. */
@@ -55,6 +57,12 @@ public class ReefTrax {
       redOffsetRight[pole - 1] =
           new DoublePreferenceConstant("ReefTrax/Red/" + pole + "/Right", 0.0);
     }
+    // ReefTrax
+    SmartDashboard.putData(
+        "ReefTrax:Dump", new InstantCommand(() -> dumpReef()).ignoringDisable(true));
+    SmartDashboard.putData(
+        "ReefTrax:Reset Offsets",
+        new InstantCommand(() -> resetReefOffsets()).ignoringDisable(true));
   }
 
   private boolean weAreRed() {
