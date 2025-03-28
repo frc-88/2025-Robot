@@ -309,9 +309,6 @@ public class RobotContainer {
 
     // ReefTrax
     SmartDashboard.putData(
-        "ReefTrax:Recalc",
-        new InstantCommand(() -> reeftrax.calculateOffsets()).ignoringDisable(true));
-    SmartDashboard.putData(
         "ReefTrax:Dump", new InstantCommand(() -> reeftrax.dumpReef()).ignoringDisable(true));
     SmartDashboard.putData(
         "ReefTrax:Reset Offsets",

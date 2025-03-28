@@ -22,8 +22,7 @@ public class ReefTrax {
   private static final double ROBOT_SCORE_OFFSET = 6.877;
 
   private Pose2d[] baseReef = new Pose2d[12];
-  private Translation2d[] blueOffset = new Translation2d[12];
-  private Translation2d[] redOffset = new Translation2d[12];
+
   private DoublePreferenceConstant[] blueOffsetForward = new DoublePreferenceConstant[12];
   private DoublePreferenceConstant[] blueOffsetRight = new DoublePreferenceConstant[12];
   private DoublePreferenceConstant[] redOffsetForward = new DoublePreferenceConstant[12];
@@ -56,30 +55,6 @@ public class ReefTrax {
       redOffsetRight[pole - 1] =
           new DoublePreferenceConstant("ReefTrax/Red/" + pole + "/Right", 0.0);
     }
-
-    calculateOffsets();
-    dumpReef();
-  }
-
-  public void calculateOffsets() {
-    // calcualte X/Y offsets from F/R offsets
-    for (int pole = 1; pole < 13; pole++) {
-      double targetAngle = Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360);
-
-      blueOffset[pole - 1] =
-          new Translation2d(
-              blueOffsetForward[pole - 1].getValue() * Math.cos(targetAngle)
-                  + blueOffsetRight[pole - 1].getValue() * Math.sin(targetAngle),
-              blueOffsetForward[pole - 1].getValue() * Math.sin(targetAngle)
-                  + blueOffsetRight[pole - 1].getValue() * Math.cos(targetAngle));
-
-      redOffset[pole - 1] =
-          new Translation2d(
-              redOffsetForward[pole - 1].getValue() * Math.cos(targetAngle)
-                  + redOffsetRight[pole - 1].getValue() * Math.sin(targetAngle),
-              redOffsetForward[pole - 1].getValue() * Math.sin(targetAngle)
-                  + redOffsetRight[pole - 1].getValue() * Math.cos(targetAngle));
-    }
   }
 
   private boolean weAreRed() {
@@ -98,14 +73,31 @@ public class ReefTrax {
   public void dumpReef() {
     for (int pole = 1; pole < 13; pole++) {
       System.out.println("Pole " + pole + " = " + getPose(pole));
-      System.out.println("Blue Offset " + pole + " = " + blueOffset[pole - 1]);
-      System.out.println("Red Offset" + pole + " = " + redOffset[pole - 1]);
     }
   }
 
-  public Pose2d getPose(int targetPole) {
-    Translation2d offset = weAreRed() ? redOffset[targetPole - 1] : blueOffset[targetPole - 1];
+  public Pose2d getPose(int pole) {
+    Translation2d offset;
+    double targetAngle = Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360);
+    System.out.println("Angle " + pole + " = " + targetAngle);
 
-    return baseReef[targetPole - 1].transformBy(new Transform2d(offset, new Rotation2d()));
+    if (weAreRed()) {
+      offset =
+          new Translation2d(
+              -redOffsetForward[pole - 1].getValue() * Math.cos(targetAngle)
+                  + redOffsetRight[pole - 1].getValue() * Math.sin(targetAngle),
+              -redOffsetForward[pole - 1].getValue() * Math.sin(targetAngle)
+                  - redOffsetRight[pole - 1].getValue() * Math.cos(targetAngle));
+
+    } else {
+      offset =
+          new Translation2d(
+              blueOffsetForward[pole - 1].getValue() * Math.cos(targetAngle)
+                  + blueOffsetRight[pole - 1].getValue() * Math.sin(targetAngle),
+              blueOffsetForward[pole - 1].getValue() * Math.sin(targetAngle)
+                  - blueOffsetRight[pole - 1].getValue() * Math.cos(targetAngle));
+    }
+
+    return baseReef[pole - 1].transformBy(new Transform2d(offset, new Rotation2d()));
   }
 }
