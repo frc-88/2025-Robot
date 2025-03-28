@@ -354,7 +354,9 @@ public class RobotContainer {
     buttons
         .button(6)
         .onTrue(climber.gasMotorNeutralModeFactory().andThen(climber.stopGasMotorFactory()));
-    controller.povRight().onTrue(DriveCommands.driveToPose(drive));
+    controller
+        .povRight()
+        .onTrue(DriveCommands.driveToPose(() -> drive.getTargetPoseFromSector(false), drive));
 
     controller.rightTrigger().onTrue(shootCommand(1.0));
     controller

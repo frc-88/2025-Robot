@@ -212,7 +212,7 @@ public class Drive extends SubsystemBase {
             new Rotation2d(Units.degreesToRadians(180))));
   }
 
-  private Pose2d flipIfRed(Pose2d pose) {
+  public Pose2d flipIfRed(Pose2d pose) {
     return weAreRed() ? flipPose(pose) : pose;
   }
 
@@ -438,6 +438,24 @@ public class Drive extends SubsystemBase {
       target = 1;
     }
     return target;
+  }
+
+  public Pose2d getTargetPoseFromSector(boolean odd) {
+    double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      return odd ? Constants.POSE11 : Constants.POSE12;
+    } else if (angle > 30.0 && angle < 90.0) {
+      return odd ? Constants.POSE9 : Constants.POSE10;
+    } else if (angle > 90.0 && angle < 150.0) {
+      return odd ? Constants.POSE7 : Constants.POSE8;
+    } else if (angle > 150.0 || angle < -150.0) {
+      return odd ? Constants.POSE5 : Constants.POSE6;
+    } else if (angle > -150.0 && angle < -90.0) {
+      return odd ? Constants.POSE3 : Constants.POSE4;
+    } else if (angle > -90.0 && angle < -30.0) {
+      return odd ? Constants.POSE1 : Constants.POSE2;
+    }
+    return Pose2d.kZero;
   }
 
   public int getTargetSectorNow() {
