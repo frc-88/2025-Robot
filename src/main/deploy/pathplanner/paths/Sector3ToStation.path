@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.1787243150684934,
-        "y": 3.4840753424657533
+        "x": 2.779751712328767,
+        "y": 3.694434931506849
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.0052491168444746,
-        "y": 3.0913458548200423
+        "x": 2.674571917808219,
+        "y": 2.5074058219178084
       },
       "isLocked": false,
-      "linkedName": "ReefA"
+      "linkedName": null
     },
     {
       "anchor": {
@@ -20,20 +20,15 @@
         "y": 0.7193493150684935
       },
       "prevControl": {
-        "x": 1.611907936085137,
-        "y": 1.08707029085227
+        "x": 2.0434931506849314,
+        "y": 1.200171232876712
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "RightCoralStation"
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 1,
-      "rotationDegrees": 55.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],

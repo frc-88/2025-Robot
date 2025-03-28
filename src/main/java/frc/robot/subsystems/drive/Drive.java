@@ -336,7 +336,7 @@ public class Drive extends SubsystemBase {
     }
   }
 
-  private Pose2d getTargetPose() {
+  public Pose2d getTargetPose() {
     if (m_currentPose == 1) {
       return reeftrax.getPose(1);
     } else if (m_currentPose == 2) {
@@ -420,7 +420,7 @@ public class Drive extends SubsystemBase {
     double y = getChassisSpeeds().vyMetersPerSecond;
 
     return new Pose2d(
-        current.getX() + (x * 0.4), current.getY() + (y * 0.4), current.getRotation());
+        current.getX() + (x * 0.1), current.getY() + (y * 0.1), current.getRotation());
   }
 
   public int getTargetSector() {
@@ -716,6 +716,10 @@ public class Drive extends SubsystemBase {
   /** Returns the measured chassis speeds of the robot. */
   @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
   private ChassisSpeeds getChassisSpeeds() {
+    return kinematics.toChassisSpeeds(getModuleStates());
+  }
+
+  public ChassisSpeeds getChassisVelocity() {
     return kinematics.toChassisSpeeds(getModuleStates());
   }
 
