@@ -205,8 +205,10 @@ public class Armevator extends SubsystemBase {
 
   private void setL4() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
-    if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
+    if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 6.0)) {
       armSetAngle(Constants.ARM_L4_ANGLE);
+    } else {
+      armSetAngle(Constants.ARM_L4_SAFE_ANGLE);
     }
   }
 
@@ -257,7 +259,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean isArmOnPosition() {
-    return Math.abs(getArmAngle()) < 27.0;
+    return Math.abs(getArmAngle()) < 35.0;
   }
 
   public boolean isArmOnAlgaePosition() {

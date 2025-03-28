@@ -279,7 +279,7 @@ public class RobotContainer {
     SmartDashboard.putData("L3 Algae", L3AlgaePickupFactory());
     SmartDashboard.putData("Shoot In Net", shootInNet());
     SmartDashboard.putData("Fling In Net", netflingCommand());
-    SmartDashboard.putData("Shoot Full Speed", m_doghouse.shootFullSpeedFactory());
+    SmartDashboard.putData("Shoot Full Speed", m_doghouse.shootFullSpeedFactory(0.5));
 
     SmartDashboard.putData("Stop Doghouse", m_doghouse.stopAllFactory());
     SmartDashboard.putData("Shoot", m_doghouse.shootFactory(1.0));
@@ -354,6 +354,7 @@ public class RobotContainer {
     buttons
         .button(6)
         .onTrue(climber.gasMotorNeutralModeFactory().andThen(climber.stopGasMotorFactory()));
+    controller.povRight().onTrue(DriveCommands.driveToPose(drive));
 
     controller.rightTrigger().onTrue(shootCommand(1.0));
     controller
@@ -537,7 +538,12 @@ public class RobotContainer {
   private Command shootCommand(double delay) {
     return new ParallelDeadlineGroup(
         new ConditionalCommand(
-            m_doghouse.shootL1(), m_doghouse.shootFactory(delay), () -> mode == 1),
+            m_doghouse.shootL1(),
+            new ConditionalCommand(
+                m_doghouse.shootFullSpeedFactory(delay),
+                m_doghouse.shootFactory(delay),
+                () -> mode == 4),
+            () -> mode == 1),
         new WaitCommand(0.15).andThen(m_armevator.stowFactory()),
         new InstantCommand(() -> drive.enableAutoAim()),
         new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
@@ -553,7 +559,7 @@ public class RobotContainer {
 
   private Command netflingCommand() {
     return new ParallelDeadlineGroup(
-            new WaitCommand(0.15).andThen(m_doghouse.shootFullSpeedFactory()),
+            new WaitCommand(0.15).andThen(m_doghouse.shootFullSpeedFactory(0.5)),
             m_armevator.armGoToZeroFactory())
         .andThen(m_armevator.stowFactory());
   }

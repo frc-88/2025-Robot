@@ -334,7 +334,7 @@ public class Drive extends SubsystemBase {
     }
   }
 
-  private Pose2d getTargetPose() {
+  public Pose2d getTargetPose() {
     if (m_currentPose == 1) {
       return Constants.POSE1;
     } else if (m_currentPose == 2) {
@@ -714,6 +714,10 @@ public class Drive extends SubsystemBase {
   /** Returns the measured chassis speeds of the robot. */
   @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
   private ChassisSpeeds getChassisSpeeds() {
+    return kinematics.toChassisSpeeds(getModuleStates());
+  }
+
+  public ChassisSpeeds getChassisVelocity() {
     return kinematics.toChassisSpeeds(getModuleStates());
   }
 
