@@ -32,7 +32,7 @@ public class ReefTrax {
 
   public ReefTrax() {
     for (int pole = 1; pole < 13; pole++) {
-      double targetAngle = Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360);
+      double targetAngle = -Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360 + 180);
       double leftRightRobot = Math.pow(-1, pole) * POLE_SEPARATION / 2.0 - ROBOT_SCORE_OFFSET;
       // initialize base reef
       baseReef[pole - 1] =
