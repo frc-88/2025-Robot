@@ -185,6 +185,10 @@ public class DriveCommands {
                           : drive.getRotation()));
             },
             drive)
+        .until(
+            () ->
+                Math.abs(poseSupplier.get().getX() - drive.getPose().getX()) < 0.04
+                    && Math.abs(poseSupplier.get().getY() - drive.getPose().getY()) < 0.04)
 
         // Reset PID controller when command starts
         .beforeStarting(
@@ -196,7 +200,7 @@ public class DriveCommands {
               driveControllerY.reset(
                   drive.flipIfRed(drive.getPose()).getY(),
                   drive.getChassisVelocity().vyMetersPerSecond);
-            }).until(() -> Math.abs(poseSupplier.get().getX() - drive.getPose().getX()) < 0.03 && Math.abs(poseSupplier.get().getY() - drive.getPose().getY()) < 0.03);
+            });
   }
   /**
    * Field relative drive command using joystick for linear control and PID for angular control.

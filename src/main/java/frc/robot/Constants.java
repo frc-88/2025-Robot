@@ -148,7 +148,7 @@ public final class Constants {
           Map.entry(11, new Pose2d(5.845, 4.382, new Rotation2d(Units.degreesToRadians(180.0)))),
           Map.entry(12, new Pose2d(5.845, 4.052, new Rotation2d(Units.degreesToRadians(180.0)))));
 
-  public static Pose2d SECTOR3ALGAE = new Pose2d(3.2, 3.8, new Rotation2d());
+  public static Pose2d SECTOR3ALGAE = new Pose2d(3.2, 3.9, new Rotation2d());
   public static Pose2d SECTOR2ALGAE =
       new Pose2d(3.892, 2.778, new Rotation2d(Units.degreesToRadians(60.0)));
   public static Pose2d SECTOR6ALGAE =
