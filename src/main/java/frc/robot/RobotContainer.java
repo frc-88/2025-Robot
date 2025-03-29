@@ -220,6 +220,9 @@ public class RobotContainer {
     NamedCommands.registerCommand("Score Even", scoreNoShoot(false));
     NamedCommands.registerCommand("Reef Even", reef(false, 0.5));
     NamedCommands.registerCommand("Reef Odd", reef(true, 0.5));
+    for (int i = 1; i <= 12; i++) {
+      NamedCommands.registerCommand("Reef " + i, reef(i, 0.5));
+    }
 
     PathfindingCommand.warmupCommand().schedule();
     FollowPathCommand.warmupCommand().schedule();
@@ -614,6 +617,14 @@ public class RobotContainer {
   }
 
   private Command reef(boolean odd, double delay) {
+    return reef(drive.reef(odd, () -> mode), delay);
+  }
+
+  private Command reef(int i, double delay) {
+    return reef(drive.pathFind(i), delay);
+  }
+
+  private Command reef(Command reefCommand, double delay) {
     return new SequentialCommandGroup(
         new ParallelDeadlineGroup(
             new ConditionalCommand(
@@ -640,7 +651,7 @@ public class RobotContainer {
                     () -> mode == 4),
                 () -> drive.isElevatorDistance()),
             new SequentialCommandGroup(
-                drive.reef(odd, () -> mode),
+                reefCommand,
                 DriveCommands.joystickDrive(
                     drive,
                     () -> -controller.getLeftY() / 2.0,
@@ -651,6 +662,8 @@ public class RobotContainer {
             m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
         shootCommand(delay));
   }
+
+  
 
   public Command reefAuto(boolean odd, double delay) {
     return new SequentialCommandGroup(

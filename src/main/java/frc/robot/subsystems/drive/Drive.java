@@ -23,7 +23,6 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
-import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
@@ -278,7 +277,7 @@ public class Drive extends SubsystemBase {
     }
   }
 
-  private Command pathFind(int i) {
+  public Command pathFind(int i) {
     return new InstantCommand(() -> m_currentPose = i)
         .andThen(AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(i), Constants.CONSTRAINTS));
   }
