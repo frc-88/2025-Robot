@@ -543,7 +543,7 @@ public class RobotContainer {
                     () ->
                         m_armevator.getElevatorPositionInches()
                             > (Constants.ELEVATOR_L4_HEIGHT - 6))
-                .andThen(m_doghouse.shootFullSpeedFactory()))
+                .andThen(m_doghouse.shootFullSpeedFactory(0.5)))
         .andThen(m_armevator.stowFactory());
   }
 
@@ -581,7 +581,7 @@ public class RobotContainer {
   public Command shootInNet() {
     // return m_armevator.shootInNetFactory();
     return new ParallelDeadlineGroup(
-            new WaitCommand(0.5).andThen(m_doghouse.shootFullSpeedFactory()),
+            new WaitCommand(0.5).andThen(m_doghouse.shootFullSpeedFactory(0.5)),
             m_armevator.shootInNetFactory())
         .andThen(m_armevator.stowFactory());
   }
