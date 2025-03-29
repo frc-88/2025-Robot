@@ -283,7 +283,7 @@ public class Drive extends SubsystemBase {
     }
   }
 
-  private Command pathFind(int i) {
+  public Command pathFind(int i) {
     return new InstantCommand(() -> m_currentPose = i)
         .andThen(AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(i), Constants.CONSTRAINTS));
   }
