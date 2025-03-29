@@ -313,6 +313,26 @@ public class Armevator extends SubsystemBase {
     }
   }
 
+  public void setAlgaeElevatorPosition(IntSupplier sector) {
+    if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
+      elevatorSetPosition(14.5);
+    } else {
+      elevatorSetPosition(7.0);
+    }
+  }
+
+  public boolean elevatorAtAlgaePositon(IntSupplier sector) {
+    if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
+      return Math.abs(getElevatorPositionInches() - 14.5) < 0.5;
+    } else {
+      return Math.abs(getElevatorPositionInches() - 7.0) < 0.5;
+    }
+  }
+
+  public void armGotoAlgaePickup(IntSupplier sector) {
+    armSetAngle(30.0);
+  }
+
   public Command stowArmFactory() {
     return new RunCommand(() -> stowArm(), this);
   }
@@ -497,6 +517,24 @@ public class Armevator extends SubsystemBase {
           }
         },
         this);
+  }
+
+  public Command stowThenalgae(IntSupplier sector) {
+    return new SequentialCommandGroup(
+        new RunCommand(() -> armGoToZero(), this).until(() -> isArmOnPosition()),
+        new RunCommand(
+                () -> {
+                  armGoToZero();
+                  setAlgaeElevatorPosition(sector);
+                },
+                this)
+            .until(() -> elevatorAtAlgaePositon(sector)),
+        new RunCommand(
+            () -> {
+              armGotoAlgaePickup();
+              setAlgaeElevatorPosition(sector);
+            },
+            this));
   }
 
   @Override

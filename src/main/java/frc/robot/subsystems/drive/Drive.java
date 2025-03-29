@@ -458,6 +458,24 @@ public class Drive extends SubsystemBase {
     return Pose2d.kZero;
   }
 
+  public Pose2d getTargetAlgaePoseFromSector() {
+    double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      return Constants.SECTOR6ALGAE;
+    } else if (angle > 30.0 && angle < 90.0) {
+      return Constants.SECTOR5ALGAE;
+    } else if (angle > 90.0 && angle < 150.0) {
+      return Constants.SECTOR4ALGAE;
+    } else if (angle > 150.0 || angle < -150.0) {
+      return Constants.SECTOR3ALGAE;
+    } else if (angle > -150.0 && angle < -90.0) {
+      return Constants.SECTOR2ALGAE;
+    } else if (angle > -90.0 && angle < -30.0) {
+      return Constants.SECTOR1ALGAE;
+    }
+    return Pose2d.kZero;
+  }
+
   public int getTargetSectorNow() {
     int target = 0;
     double angle = getAngleToReef(getPose());

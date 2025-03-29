@@ -42,7 +42,7 @@ public class DriveCommands {
   private static final double ANGLE_KD = 0.01;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
-  private static final double DRIVE_KP = 5.0;
+  private static final double DRIVE_KP = 4.0;
   private static final double DRIVE_KD = 0.0;
   private static final double DRIVE_MAX_VELOCITY = 3.0;
   private static final double DRIVE_MAX_ACCELERATION = 3.0;
@@ -136,12 +136,12 @@ public class DriveCommands {
             ANGLE_KD,
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
     angleController.enableContinuousInput(-Math.PI, Math.PI);
-    angleController.setTolerance(1.0);
+    angleController.setTolerance(0.017);
 
     ProfiledPIDController driveControllerX =
         new ProfiledPIDController(
             DRIVE_KP,
-            0.0,
+            0.002,
             DRIVE_KD,
             new TrapezoidProfile.Constraints(DRIVE_MAX_VELOCITY, DRIVE_MAX_ACCELERATION));
     driveControllerX.setTolerance(0.02);
@@ -149,7 +149,7 @@ public class DriveCommands {
     ProfiledPIDController driveControllerY =
         new ProfiledPIDController(
             DRIVE_KP,
-            0.0,
+            0.002,
             DRIVE_KD,
             new TrapezoidProfile.Constraints(DRIVE_MAX_VELOCITY, DRIVE_MAX_ACCELERATION));
     driveControllerY.setTolerance(0.02);
@@ -163,7 +163,7 @@ public class DriveCommands {
               // Calculate angular speed
               double omega =
                   angleController.calculate(
-                      drive.getRotation().getRadians(), rotation.getRadians());
+                      drive.getRotation().getRadians(), rotation.getRadians() + Math.PI);
 
               double velocityx =
                   driveControllerX.calculate(
@@ -190,8 +190,12 @@ public class DriveCommands {
         .beforeStarting(
             () -> {
               angleController.reset(drive.getRotation().getRadians());
-              driveControllerX.reset(drive.flipIfRed(drive.getPose()).getX());
-              driveControllerY.reset(drive.flipIfRed(drive.getPose()).getY());
+              driveControllerX.reset(
+                  drive.flipIfRed(drive.getPose()).getX(),
+                  drive.getChassisVelocity().vxMetersPerSecond);
+              driveControllerY.reset(
+                  drive.flipIfRed(drive.getPose()).getY(),
+                  drive.getChassisVelocity().vyMetersPerSecond);
             });
   }
   /**

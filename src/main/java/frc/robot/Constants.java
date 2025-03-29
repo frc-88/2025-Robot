@@ -59,7 +59,7 @@ public final class Constants {
   public static final int REEF_CANRANGE = 5;
 
   public static final double ELEVATOR_ROTATIONS_TO_INCHES = ((2.256 * Math.PI) / 8.0);
-  public static final double ARM_ROTATIONS_TO_DEGREES = (360.0 / 47.25);
+  public static final double ARM_ROTATIONS_TO_DEGREES = (360.0 / 48.0);
 
   // DOGHOUSE
   public static final int DOGHOUSE_FUNNEL_MOTOR = 6;
