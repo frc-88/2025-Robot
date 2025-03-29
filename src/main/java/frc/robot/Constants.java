@@ -43,10 +43,10 @@ public final class Constants {
   public static final String RIO_CANBUS = "rio";
 
   public static final double ARM_L4_ANGLE = 37.0;
-  public static final double ELEVATOR_L4_HEIGHT = 28.875;
+  public static final double ELEVATOR_L4_HEIGHT = 28.4;
   public static final double ELEVATOR_L3_HEIGHT = 14.0 - 0.125;
   public static final double ELEVATOR_L2_HEIGHT = 5.375 + 0.25;
-  public static final double ALGAE_STOW_ANGLE = 35.0;
+  public static final double ALGAE_STOW_ANGLE = 0.0;
   // ARMEVATOR
   public static final int ELEVATOR_MAIN_MOTOR = 2;
   public static final int ELEVATOR_FOLLOWER_MOTOR = 3;
@@ -58,7 +58,7 @@ public final class Constants {
   public static final int REEF_CANRANGE = 5;
 
   public static final double ELEVATOR_ROTATIONS_TO_INCHES = ((2.256 * Math.PI) / 8.0);
-  public static final double ARM_ROTATIONS_TO_DEGREES = (360.0 / 112.0);
+  public static final double ARM_ROTATIONS_TO_DEGREES = (360.0 / ((84 / 16) * 3 * 3));
 
   // DOGHOUSE
   public static final int DOGHOUSE_FUNNEL_MOTOR = 6;

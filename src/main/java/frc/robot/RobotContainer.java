@@ -340,7 +340,7 @@ public class RobotContainer {
                     m_doghouse.stopAllFactory(), new InstantCommand(() -> drive.disableAutoAim())));
     buttons.button(8).onTrue(L3AlgaePickupFactory());
     buttons.button(9).onTrue(L2AlgaePickupFactory());
-    buttons.button(12).onTrue(m_armevator.shootInNetFactory());
+    buttons.button(12).onTrue(shootInNet());
     buttons
         .button(13)
         .onTrue(
@@ -553,8 +553,12 @@ public class RobotContainer {
 
   private Command netflingCommand() {
     return new ParallelDeadlineGroup(
-            new WaitCommand(0.15).andThen(m_doghouse.shootFullSpeedFactory()),
-            m_armevator.armGoToZeroFactory())
+            m_armevator.shootInNetFactory(),
+            new WaitUntilCommand(
+                    () ->
+                        m_armevator.getElevatorPositionInches()
+                            > (Constants.ELEVATOR_L4_HEIGHT - 6))
+                .andThen(m_doghouse.shootFullSpeedFactory()))
         .andThen(m_armevator.stowFactory());
   }
 
@@ -590,7 +594,11 @@ public class RobotContainer {
   }
 
   public Command shootInNet() {
-    return m_armevator.shootInNetFactory();
+    // return m_armevator.shootInNetFactory();
+    return new ParallelDeadlineGroup(
+            new WaitCommand(0.5).andThen(m_doghouse.shootFullSpeedFactory()),
+            m_armevator.shootInNetFactory())
+        .andThen(m_armevator.stowFactory());
   }
 
   private Command goToTiltAngleFactory() {

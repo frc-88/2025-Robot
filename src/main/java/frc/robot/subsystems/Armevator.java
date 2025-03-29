@@ -213,7 +213,7 @@ public class Armevator extends SubsystemBase {
   private void setL4Shoot() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
-      armSetAngle(-30.0);
+      armSetAngle(0);
     }
   }
 
@@ -319,7 +319,7 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
         () -> {
           stowArmAlgae();
-          elevatorSetPosition(2.5);
+          stowElevator();
         },
         this);
   }
