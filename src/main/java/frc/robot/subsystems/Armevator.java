@@ -259,7 +259,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean isArmOnPosition() {
-    return Math.abs(getArmAngle()) < 35.0;
+    return Math.abs(getArmAngle()) < 30.0;
   }
 
   public boolean isArmOnAlgaePosition() {
