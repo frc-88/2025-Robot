@@ -42,7 +42,7 @@ public class DriveCommands {
   private static final double ANGLE_KD = 0.01;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
-  private static final double DRIVE_KP = 4.0;
+  private static final double DRIVE_KP = 5.0;
   private static final double DRIVE_KD = 0.0;
   private static final double DRIVE_MAX_VELOCITY = 3.0;
   private static final double DRIVE_MAX_ACCELERATION = 3.0;
@@ -196,7 +196,7 @@ public class DriveCommands {
               driveControllerY.reset(
                   drive.flipIfRed(drive.getPose()).getY(),
                   drive.getChassisVelocity().vyMetersPerSecond);
-            });
+            }).until(() -> Math.abs(poseSupplier.get().getX() - drive.getPose().getX()) < 0.03 && Math.abs(poseSupplier.get().getY() - drive.getPose().getY()) < 0.03);
   }
   /**
    * Field relative drive command using joystick for linear control and PID for angular control.

@@ -509,9 +509,10 @@ public class RobotContainer {
         new ConditionalCommand(
             m_doghouse.shootL1(),
             new ConditionalCommand(
-                m_doghouse.shootFullSpeedFactory(delay),
-                m_doghouse.shootFactory(delay),
-                () -> mode == 4),
+                    m_doghouse.shootFullSpeedFactory(delay),
+                    m_doghouse.shootFactory(delay),
+                    () -> mode == 4)
+                .andThen(m_doghouse.algaePickupFactory()),
             () -> mode == 1),
         new WaitCommand(0.15)
             .andThen(
@@ -519,7 +520,7 @@ public class RobotContainer {
                     new ParallelCommandGroup(
                         m_armevator.stowThenalgae(() -> drive.getTargetSector()),
                         DriveCommands.driveToPose(
-                            () -> drive.getTargetAlgaePoseFromSector(), drive)),
+                            () -> drive.getTargetAlgaePoseFromSector(), drive).andThen(driverControl())),
                     m_armevator.stowFactory(),
                     () -> getAlgae)),
         new InstantCommand(() -> drive.enableAutoAim()),
