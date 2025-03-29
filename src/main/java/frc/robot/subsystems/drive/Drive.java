@@ -23,6 +23,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
@@ -49,6 +50,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -57,10 +59,14 @@ import frc.robot.Constants.Mode;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -77,54 +83,55 @@ public class Drive extends SubsystemBase {
   public int m_currentPathOdd = 10;
   public int m_currentPose = 0;
   public Pose2d nextPose = new Pose2d();
-  static final double ODOMETRY_FREQUENCY =
-      new CANBus(TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD() ? 250.0 : 100.0;
-  public static final double DRIVE_BASE_RADIUS =
+  static final double ODOMETRY_FREQUENCY = new CANBus(TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD()
+      ? 250.0
+      : 100.0;
+  public static final double DRIVE_BASE_RADIUS = Math.max(
       Math.max(
-          Math.max(
-              Math.hypot(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
-              Math.hypot(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY)),
-          Math.max(
-              Math.hypot(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
-              Math.hypot(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
+          Math.hypot(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
+          Math.hypot(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY)),
+      Math.max(
+          Math.hypot(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
+          Math.hypot(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
 
   // PathPlanner config constants
   private static final double ROBOT_MASS_KG = 74.088;
   private static final double ROBOT_MOI = 6.883;
   private static final double WHEEL_COF = 1.2;
-  private static final RobotConfig PP_CONFIG =
-      new RobotConfig(
-          ROBOT_MASS_KG,
-          ROBOT_MOI,
-          new ModuleConfig(
-              TunerConstants.FrontLeft.WheelRadius,
-              TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
-              WHEEL_COF,
-              DCMotor.getKrakenX60Foc(1)
-                  .withReduction(TunerConstants.FrontLeft.DriveMotorGearRatio),
-              TunerConstants.FrontLeft.SlipCurrent,
-              1),
-          getModuleTranslations());
+  private static final RobotConfig PP_CONFIG = new RobotConfig(
+      ROBOT_MASS_KG,
+      ROBOT_MOI,
+      new ModuleConfig(
+          TunerConstants.FrontLeft.WheelRadius,
+          TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
+          WHEEL_COF,
+          DCMotor.getKrakenX60Foc(1)
+              .withReduction(TunerConstants.FrontLeft.DriveMotorGearRatio),
+          TunerConstants.FrontLeft.SlipCurrent,
+          1),
+      getModuleTranslations());
+
+  private final Map<Integer, Pose2d> REEF_CORAL_POSES;
 
   static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine sysId;
-  private final Alert gyroDisconnectedAlert =
-      new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
+  private final Alert gyroDisconnectedAlert = new Alert("Disconnected gyro, using kinematics as fallback.",
+      AlertType.kError);
 
   private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(getModuleTranslations());
   private Rotation2d rawGyroRotation = new Rotation2d();
   private SwerveModulePosition[] lastModulePositions = // For delta tracking
       new SwerveModulePosition[] {
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition()
+          new SwerveModulePosition(),
+          new SwerveModulePosition(),
+          new SwerveModulePosition(),
+          new SwerveModulePosition()
       };
-  private SwerveDrivePoseEstimator poseEstimator =
-      new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+  private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
+      lastModulePositions, new Pose2d());
   private boolean m_autoaim = true;
 
   public Drive(
@@ -138,6 +145,8 @@ public class Drive extends SubsystemBase {
     modules[1] = new Module(frModuleIO, 1, TunerConstants.FrontRight);
     modules[2] = new Module(blModuleIO, 2, TunerConstants.BackLeft);
     modules[3] = new Module(brModuleIO, 3, TunerConstants.BackRight);
+
+    REEF_CORAL_POSES = weAreRed() ? Constants.REEF_CORAL_POSES_RED : Constants.REEF_CORAL_POSES_BLUE;
 
     // Usage reporting for swerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
@@ -168,15 +177,14 @@ public class Drive extends SubsystemBase {
         });
 
     // Configure SysId
-    sysId =
-        new SysIdRoutine(
-            new SysIdRoutine.Config(
-                null,
-                null,
-                null,
-                (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
-            new SysIdRoutine.Mechanism(
-                (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+    sysId = new SysIdRoutine(
+        new SysIdRoutine.Config(
+            null,
+            null,
+            null,
+            (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
+        new SysIdRoutine.Mechanism(
+            (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
 
     for (int i = 1; i < 13; i++) {
       try {
@@ -232,23 +240,19 @@ public class Drive extends SubsystemBase {
   }
 
   private boolean isNearReef() {
-    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
-        < 2.0;
+    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 2.0;
   }
 
   public boolean isShootingDistance() {
-    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
-        < 1.40;
+    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 1.40;
   }
 
   public boolean isElevatorDistance() {
-    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
-        < 2.5;
+    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 2.5;
   }
 
   public boolean isAtTarget() {
-    return flipIfRed(getPose()).getTranslation().getDistance(getTargetPose().getTranslation())
-            < 0.07
+    return flipIfRed(getPose()).getTranslation().getDistance(getTargetPose().getTranslation()) < 0.07
         && Math.abs(flipIfRed(getPose()).relativeTo(getTargetPose()).getY()) < 0.1;
   }
 
@@ -275,45 +279,8 @@ public class Drive extends SubsystemBase {
   }
 
   private Command pathFind(int i) {
-    if (i == 1) {
-      return new InstantCommand(() -> m_currentPose = 1)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE1, Constants.CONSTRAINTS));
-    } else if (i == 2) {
-      return new InstantCommand(() -> m_currentPose = 2)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE2, Constants.CONSTRAINTS));
-    } else if (i == 3) {
-      return new InstantCommand(() -> m_currentPose = 3)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE3, Constants.CONSTRAINTS));
-    } else if (i == 4) {
-      return new InstantCommand(() -> m_currentPose = 4)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE4, Constants.CONSTRAINTS));
-    } else if (i == 5) {
-      return new InstantCommand(() -> m_currentPose = 5)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE5, Constants.CONSTRAINTS));
-    } else if (i == 6) {
-      return new InstantCommand(() -> m_currentPose = 6)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE6, Constants.CONSTRAINTS));
-    } else if (i == 7) {
-      return new InstantCommand(() -> m_currentPose = 7)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE7, Constants.CONSTRAINTS));
-    } else if (i == 8) {
-      return new InstantCommand(() -> m_currentPose = 8)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE8, Constants.CONSTRAINTS));
-    } else if (i == 9) {
-      return new InstantCommand(() -> m_currentPose = 9)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE9, Constants.CONSTRAINTS));
-    } else if (i == 10) {
-      return new InstantCommand(() -> m_currentPose = 10)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE10, Constants.CONSTRAINTS));
-    } else if (i == 11) {
-      return new InstantCommand(() -> m_currentPose = 11)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE11, Constants.CONSTRAINTS));
-    } else if (i == 12) {
-      return new InstantCommand(() -> m_currentPose = 12)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(Constants.POSE12, Constants.CONSTRAINTS));
-    } else {
-      return new WaitCommand(1.0);
-    }
+    return new InstantCommand(() -> m_currentPose = i)
+        .andThen(AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(i), Constants.CONSTRAINTS));
   }
 
   public Command pathFindAlgae(int sector) {
@@ -335,30 +302,8 @@ public class Drive extends SubsystemBase {
   }
 
   public Pose2d getTargetPose() {
-    if (m_currentPose == 1) {
-      return Constants.POSE1;
-    } else if (m_currentPose == 2) {
-      return Constants.POSE2;
-    } else if (m_currentPose == 3) {
-      return Constants.POSE3;
-    } else if (m_currentPose == 4) {
-      return Constants.POSE4;
-    } else if (m_currentPose == 5) {
-      return Constants.POSE5;
-    } else if (m_currentPose == 6) {
-      return Constants.POSE6;
-    } else if (m_currentPose == 7) {
-      return Constants.POSE7;
-    } else if (m_currentPose == 8) {
-      return Constants.POSE8;
-    } else if (m_currentPose == 9) {
-      return Constants.POSE9;
-    } else if (m_currentPose == 10) {
-      return Constants.POSE10;
-    } else if (m_currentPose == 11) {
-      return Constants.POSE11;
-    } else if (m_currentPose == 12) {
-      return Constants.POSE12;
+    if (m_currentPose >= 1 & m_currentPose <= 12) {
+      return REEF_CORAL_POSES.get(m_currentPose);
     } else {
       return new Pose2d();
     }
@@ -366,9 +311,9 @@ public class Drive extends SubsystemBase {
 
   private Command pathFindMoving(int i) {
     if (i == 5) {
-      return AutoBuilder.pathfindToPoseFlipped(Constants.POSE5, Constants.CONSTRAINTS, 0.3);
+      return AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(5), Constants.CONSTRAINTS, 0.3);
     } else {
-      return AutoBuilder.pathfindToPoseFlipped(Constants.POSE6, Constants.CONSTRAINTS, 0.3);
+      return AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(6), Constants.CONSTRAINTS, 0.3);
     }
   }
 
@@ -422,40 +367,29 @@ public class Drive extends SubsystemBase {
   }
 
   public int getTargetSector() {
-    int target = 0;
     double angle = getAngleToReef(nextPose());
     if (angle < 30.0 && angle > -30.0) {
-      target = 6;
+      return 6;
     } else if (angle > 30.0 && angle < 90.0) {
-      target = 5;
+      return 5;
     } else if (angle > 90.0 && angle < 150.0) {
-      target = 4;
+      return 4;
     } else if (angle > 150.0 || angle < -150.0) {
-      target = 3;
+      return 3;
     } else if (angle > -150.0 && angle < -90.0) {
-      target = 2;
+      return 2;
     } else if (angle > -90.0 && angle < -30.0) {
-      target = 1;
+      return 1;
     }
-    return target;
+    return 0;
+  }
+
+  public int getTargetPositionFromSector(boolean odd) {
+    return getTargetSector() * 2 - (odd ? 1 : 0);
   }
 
   public Pose2d getTargetPoseFromSector(boolean odd) {
-    double angle = getAngleToReef(nextPose());
-    if (angle < 30.0 && angle > -30.0) {
-      return odd ? Constants.POSE11 : Constants.POSE12;
-    } else if (angle > 30.0 && angle < 90.0) {
-      return odd ? Constants.POSE9 : Constants.POSE10;
-    } else if (angle > 90.0 && angle < 150.0) {
-      return odd ? Constants.POSE7 : Constants.POSE8;
-    } else if (angle > 150.0 || angle < -150.0) {
-      return odd ? Constants.POSE5 : Constants.POSE6;
-    } else if (angle > -150.0 && angle < -90.0) {
-      return odd ? Constants.POSE3 : Constants.POSE4;
-    } else if (angle > -90.0 && angle < -30.0) {
-      return odd ? Constants.POSE1 : Constants.POSE2;
-    }
-    return Pose2d.kZero;
+    return REEF_CORAL_POSES.get(getTargetPositionFromSector(odd));
   }
 
   public Pose2d getTargetAlgaePoseFromSector() {
@@ -477,113 +411,61 @@ public class Drive extends SubsystemBase {
   }
 
   public int getTargetSectorNow() {
-    int target = 0;
     double angle = getAngleToReef(getPose());
     if (angle < 30.0 && angle > -30.0) {
-      target = 6;
+      return 6;
     } else if (angle > 30.0 && angle < 90.0) {
-      target = 5;
+      return 5;
     } else if (angle > 90.0 && angle < 150.0) {
-      target = 4;
+      return 4;
     } else if (angle > 150.0 || angle < -150.0) {
-      target = 3;
+      return 3;
     } else if (angle > -150.0 && angle < -90.0) {
-      target = 2;
+      return 2;
     } else if (angle > -90.0 && angle < -30.0) {
-      target = 1;
+      return 1;
     }
-    return target;
+    return 0;
+  }
+
+  public int getTargetPositionFromSectorNow(boolean odd) {
+    return getTargetSectorNow() * 2 - (odd ? 1 : 0);
   }
 
   public Command scoreOnReef(boolean odd) {
-    return new ConditionalCommand(
-        odd ? getPath(1) : getPath(2),
-        new ConditionalCommand(
-            odd ? getPath(3) : getPath(4),
-            new ConditionalCommand(
-                odd ? getPath(5) : getPath(6),
-                new ConditionalCommand(
-                    odd ? getPath(7) : getPath(8),
-                    new ConditionalCommand(
-                        odd ? getPath(9) : getPath(10),
-                        new ConditionalCommand(
-                            odd ? getPath(11) : getPath(12),
-                            new WaitCommand(0.5),
-                            () -> getTargetSector() == 6),
-                        () -> getTargetSector() == 5),
-                    () -> getTargetSector() == 4),
-                () -> getTargetSector() == 3),
-            () -> getTargetSector() == 2),
-        () -> getTargetSector() == 1);
+    return new SelectCommand<>(
+        IntStream.rangeClosed(1, 12)
+            .boxed()
+            .collect(Collectors.toMap(i -> i, this::getPath)),
+        () -> getTargetPositionFromSector(odd));
+
   }
 
   public Command pathFind(boolean odd) {
-    return new ConditionalCommand(
-        odd ? drivePathFind(1) : drivePathFind(2),
-        new ConditionalCommand(
-            odd ? drivePathFind(3) : drivePathFind(4),
-            new ConditionalCommand(
-                odd ? drivePathFind(5) : drivePathFind(6),
-                new ConditionalCommand(
-                    odd ? drivePathFind(7) : drivePathFind(8),
-                    new ConditionalCommand(
-                        odd ? drivePathFind(9) : drivePathFind(10),
-                        new ConditionalCommand(
-                            odd ? drivePathFind(11) : drivePathFind(12),
-                            new WaitCommand(0.5),
-                            () -> getTargetSector() == 6),
-                        () -> getTargetSector() == 5),
-                    () -> getTargetSector() == 4),
-                () -> getTargetSector() == 3),
-            () -> getTargetSector() == 2),
-        () -> getTargetSector() == 1);
+    return new SelectCommand<>(
+        IntStream.rangeClosed(1, 12)
+            .boxed()
+            .collect(Collectors.toMap(i -> i, this::drivePathFind)),
+        () -> getTargetPositionFromSector(odd));
   }
 
   public Command reef(boolean odd, IntSupplier mode) {
     return new ConditionalCommand(
         algae(),
-        new ConditionalCommand(
-            odd ? pathFind(1) : pathFind(2),
-            new ConditionalCommand(
-                odd ? pathFind(3) : pathFind(4),
-                new ConditionalCommand(
-                    odd ? pathFind(5) : pathFind(6),
-                    new ConditionalCommand(
-                        odd ? pathFind(7) : pathFind(8),
-                        new ConditionalCommand(
-                            odd ? pathFind(9) : pathFind(10),
-                            new ConditionalCommand(
-                                odd ? pathFind(11) : pathFind(12),
-                                new WaitCommand(1.0),
-                                () -> getTargetSectorNow() == 6),
-                            () -> getTargetSectorNow() == 5),
-                        () -> getTargetSectorNow() == 4),
-                    () -> getTargetSectorNow() == 3),
-                () -> getTargetSectorNow() == 2),
-            () -> getTargetSectorNow() == 1),
+        new SelectCommand<>(
+            IntStream.rangeClosed(1, 12)
+                .boxed()
+                .collect(Collectors.toMap(i -> i, this::pathFind)),
+            () -> getTargetPositionFromSectorNow(odd)),
         () -> mode.getAsInt() == 1);
   }
 
   public Command algae() {
-    return new ConditionalCommand(
-        pathFindAlgae(1),
-        new ConditionalCommand(
-            pathFindAlgae(2),
-            new ConditionalCommand(
-                pathFindAlgae(3),
-                new ConditionalCommand(
-                    pathFindAlgae(4),
-                    new ConditionalCommand(
-                        pathFindAlgae(5),
-                        new ConditionalCommand(
-                            pathFindAlgae(6),
-                            new WaitCommand(1.0),
-                            () -> getTargetSectorNow() == 6),
-                        () -> getTargetSectorNow() == 5),
-                    () -> getTargetSectorNow() == 4),
-                () -> getTargetSectorNow() == 3),
-            () -> getTargetSectorNow() == 2),
-        () -> getTargetSectorNow() == 1);
+    return new SelectCommand<>(
+        IntStream.rangeClosed(1, 6)
+            .boxed()
+            .collect(Collectors.toMap(i -> i, this::pathFindAlgae)),
+        this::getTargetSectorNow);
   }
 
   public Command reefMoving(boolean odd) {
@@ -614,8 +496,7 @@ public class Drive extends SubsystemBase {
     }
 
     // Update odometry
-    double[] sampleTimestamps =
-        modules[0].getOdometryTimestamps(); // All signals are sampled together
+    double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
     int sampleCount = sampleTimestamps.length;
     for (int i = 0; i < sampleCount; i++) {
       // Read wheel positions and deltas from each module
@@ -623,11 +504,10 @@ public class Drive extends SubsystemBase {
       SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
       for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
         modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
-        moduleDeltas[moduleIndex] =
-            new SwerveModulePosition(
-                modulePositions[moduleIndex].distanceMeters
-                    - lastModulePositions[moduleIndex].distanceMeters,
-                modulePositions[moduleIndex].angle);
+        moduleDeltas[moduleIndex] = new SwerveModulePosition(
+            modulePositions[moduleIndex].distanceMeters
+                - lastModulePositions[moduleIndex].distanceMeters,
+            modulePositions[moduleIndex].angle);
         lastModulePositions[moduleIndex] = modulePositions[moduleIndex];
       }
 
@@ -704,8 +584,10 @@ public class Drive extends SubsystemBase {
   }
 
   /**
-   * Stops the drive and turns the modules to an X arrangement to resist movement. The modules will
-   * return to their normal orientations the next time a nonzero velocity is requested.
+   * Stops the drive and turns the modules to an X arrangement to resist movement.
+   * The modules will
+   * return to their normal orientations the next time a nonzero velocity is
+   * requested.
    */
   public void stopWithX() {
     Rotation2d[] headings = new Rotation2d[4];
@@ -728,7 +610,10 @@ public class Drive extends SubsystemBase {
     return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(sysId.dynamic(direction));
   }
 
-  /** Returns the module states (turn angles and drive velocities) for all of the modules. */
+  /**
+   * Returns the module states (turn angles and drive velocities) for all of the
+   * modules.
+   */
   @AutoLogOutput(key = "SwerveStates/Measured")
   private SwerveModuleState[] getModuleStates() {
     SwerveModuleState[] states = new SwerveModuleState[4];
@@ -738,7 +623,10 @@ public class Drive extends SubsystemBase {
     return states;
   }
 
-  /** Returns the module positions (turn angles and drive positions) for all of the modules. */
+  /**
+   * Returns the module positions (turn angles and drive positions) for all of the
+   * modules.
+   */
   private SwerveModulePosition[] getModulePositions() {
     SwerveModulePosition[] states = new SwerveModulePosition[4];
     for (int i = 0; i < 4; i++) {
@@ -766,7 +654,10 @@ public class Drive extends SubsystemBase {
     return values;
   }
 
-  /** Returns the average velocity of the modules in rotations/sec (Phoenix native units). */
+  /**
+   * Returns the average velocity of the modules in rotations/sec (Phoenix native
+   * units).
+   */
   public double getFFCharacterizationVelocity() {
     double output = 0.0;
     for (int i = 0; i < 4; i++) {
@@ -813,10 +704,10 @@ public class Drive extends SubsystemBase {
   /** Returns an array of module translations. */
   public static Translation2d[] getModuleTranslations() {
     return new Translation2d[] {
-      new Translation2d(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
-      new Translation2d(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
-      new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
-      new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
+        new Translation2d(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
+        new Translation2d(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
+        new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
+        new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
     };
   }
 }
