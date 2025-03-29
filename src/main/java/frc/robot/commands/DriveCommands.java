@@ -38,10 +38,14 @@ import java.util.function.Supplier;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
-  private static final double ANGLE_KP = 6.0;
-  private static final double ANGLE_KD = 0.0;
+  private static final double ANGLE_KP = 10.0;
+  private static final double ANGLE_KD = 0.01;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
+  private static final double DRIVE_KP = 5.0;
+  private static final double DRIVE_KD = 0.0;
+  private static final double DRIVE_MAX_VELOCITY = 3.0;
+  private static final double DRIVE_MAX_ACCELERATION = 3.0;
   private static final double FF_START_DELAY = 2.0; // Secs
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
@@ -122,6 +126,74 @@ public class DriveCommands {
         drive);
   }
 
+  public static Command driveToPose(Supplier<Pose2d> poseSupplier, Drive drive) {
+
+    // Create PID controller
+    ProfiledPIDController angleController =
+        new ProfiledPIDController(
+            ANGLE_KP,
+            0.0,
+            ANGLE_KD,
+            new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
+    angleController.enableContinuousInput(-Math.PI, Math.PI);
+    angleController.setTolerance(1.0);
+
+    ProfiledPIDController driveControllerX =
+        new ProfiledPIDController(
+            DRIVE_KP,
+            0.0,
+            DRIVE_KD,
+            new TrapezoidProfile.Constraints(DRIVE_MAX_VELOCITY, DRIVE_MAX_ACCELERATION));
+    driveControllerX.setTolerance(0.02);
+
+    ProfiledPIDController driveControllerY =
+        new ProfiledPIDController(
+            DRIVE_KP,
+            0.0,
+            DRIVE_KD,
+            new TrapezoidProfile.Constraints(DRIVE_MAX_VELOCITY, DRIVE_MAX_ACCELERATION));
+    driveControllerY.setTolerance(0.02);
+
+    // Construct command
+    return Commands.run(
+            () -> {
+              Rotation2d rotation = poseSupplier.get().getRotation();
+              Pose2d targetPose = poseSupplier.get();
+
+              // Calculate angular speed
+              double omega =
+                  angleController.calculate(
+                      drive.getRotation().getRadians(), rotation.getRadians());
+
+              double velocityx =
+                  driveControllerX.calculate(
+                      drive.flipIfRed(drive.getPose()).getX(), targetPose.getX());
+              double velocityy =
+                  driveControllerY.calculate(
+                      drive.flipIfRed(drive.getPose()).getY(), targetPose.getY());
+
+              // Convert to field relative speeds & send command
+              ChassisSpeeds speeds = new ChassisSpeeds(velocityx, velocityy, omega);
+              boolean isFlipped =
+                  DriverStation.getAlliance().isPresent()
+                      && DriverStation.getAlliance().get() == Alliance.Red;
+              drive.runVelocity(
+                  ChassisSpeeds.fromFieldRelativeSpeeds(
+                      speeds,
+                      isFlipped
+                          ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                          : drive.getRotation()));
+            },
+            drive)
+
+        // Reset PID controller when command starts
+        .beforeStarting(
+            () -> {
+              angleController.reset(drive.getRotation().getRadians());
+              driveControllerX.reset(drive.flipIfRed(drive.getPose()).getX());
+              driveControllerY.reset(drive.flipIfRed(drive.getPose()).getY());
+            });
+  }
   /**
    * Field relative drive command using joystick for linear control and PID for angular control.
    * Possible use cases include snapping to an angle, aiming at a vision target, or controlling
@@ -141,7 +213,7 @@ public class DriveCommands {
             ANGLE_KD,
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
     angleController.enableContinuousInput(-Math.PI, Math.PI);
-    angleController.setTolerance(0.2);
+    angleController.setTolerance(1.0);
 
     // Construct command
     return Commands.run(
