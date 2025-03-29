@@ -170,7 +170,7 @@ public class DriveCommands {
                       drive.flipIfRed(drive.getPose()).getX(), targetPose.getX());
               double velocityy =
                   driveControllerY.calculate(
-                      drive.flipIfRed(drive.getPose()).getX(), targetPose.getY());
+                      drive.flipIfRed(drive.getPose()).getY(), targetPose.getY());
 
               // Convert to field relative speeds & send command
               ChassisSpeeds speeds = new ChassisSpeeds(velocityx, velocityy, omega);
