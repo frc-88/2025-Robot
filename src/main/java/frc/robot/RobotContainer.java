@@ -662,8 +662,6 @@ public class RobotContainer {
         shootCommand(delay));
   }
 
-  
-
   public Command reefAuto(boolean odd, double delay) {
     return new SequentialCommandGroup(
         new ParallelDeadlineGroup(

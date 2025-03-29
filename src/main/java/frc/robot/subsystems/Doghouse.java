@@ -7,9 +7,12 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.ForwardLimitSourceValue;
+import com.ctre.phoenix6.signals.ForwardLimitTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
@@ -21,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 
@@ -44,6 +48,8 @@ public class Doghouse extends SubsystemBase {
       new DoublePreferenceConstant("Doghouse/Manipulator/ShootSpeed", -0.3);
   private final DoublePreferenceConstant p_manipulatorCurrentLimit =
       new DoublePreferenceConstant("Doghouse/Manipulator/CurrentLimit", 120);
+  private final PIDPreferenceConstants p_manipulatorPID =
+      new PIDPreferenceConstants("Doghouse/Manipulator/PID");
 
   private final DutyCycleOut m_funnelRequest = new DutyCycleOut(0.0);
   private final DutyCycleOut m_manipulatorRequest = new DutyCycleOut(0.0);
@@ -55,6 +61,7 @@ public class Doghouse extends SubsystemBase {
   private boolean m_algaeCaptured = false;
   private Debouncer m_algaeDebouncer = new Debouncer(1.0);
 
+  private PositionVoltage request = new PositionVoltage(0.0);
   // who made the doghouse?
   // and why is it named like that?
   // ask us in the pit!
@@ -71,7 +78,18 @@ public class Doghouse extends SubsystemBase {
     TalonFXConfiguration manipulatorConfiguration = new TalonFXConfiguration();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimit =
         p_manipulatorCurrentLimit.getValue();
+    manipulatorConfiguration.Slot0.kP = p_manipulatorPID.getKP().getValue();
+    manipulatorConfiguration.Slot0.kI = p_manipulatorPID.getKI().getValue();
+    manipulatorConfiguration.Slot0.kD = p_manipulatorPID.getKD().getValue();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
+    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitAutosetPositionEnable = true;
+    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitAutosetPositionValue = 0;
+    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitType =
+        ForwardLimitTypeValue.NormallyOpen;
+    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitSource =
+        ForwardLimitSourceValue.RemoteCANrange;
+    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitRemoteSensorID =
+        Constants.DOGHOUSE_CANRANGE;
     m_manipulator.getConfigurator().apply(manipulatorConfiguration);
     m_manipulator.setNeutralMode(NeutralModeValue.Brake);
     configureCANrange();
@@ -201,7 +219,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorHoldPosition() {
-    setManipulatorSpeed(-0.1);
+    m_manipulator.setControl(request.withPosition(0.0));
   }
 
   private void setAlgae() {
@@ -258,7 +276,7 @@ public class Doghouse extends SubsystemBase {
               manipulatorIn();
               funnelGo();
             } else if (hasCoral() & !isBlocked()) {
-              manipulatorStop();
+              manipulatorHoldPosition();
               funnelStop();
             } else if (isBlocked()) {
               manipulatorSlow();
