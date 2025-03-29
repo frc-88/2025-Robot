@@ -175,7 +175,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorSlow() {
-    setManipulatorSpeed(-0.14);
+    setManipulatorSpeed(-0.12);
   }
 
   private void manipulatorAlgaeSlow() {
@@ -197,7 +197,11 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorL1Speed() {
-    setManipulatorSpeed(-0.15);
+    setManipulatorSpeed(-0.1);
+  }
+
+  private void manipulatorHoldPosition() {
+    setManipulatorSpeed(-0.1);
   }
 
   private void setAlgae() {
@@ -298,14 +302,14 @@ public class Doghouse extends SubsystemBase {
             });
   }
 
-  public Command shootFullSpeedFactory() {
+  public Command shootFullSpeedFactory(double delay) {
     return new RunCommand(
             () -> {
               manipulatorFullSpeed();
               algaeMode = false;
             },
             this)
-        .withTimeout(1.0)
+        .withTimeout(delay)
         .andThen(
             () -> {
               manipulatorStop();

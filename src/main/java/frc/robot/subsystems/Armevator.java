@@ -205,15 +205,17 @@ public class Armevator extends SubsystemBase {
 
   private void setL4() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
-    if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
+    if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 6.0)) {
       armSetAngle(Constants.ARM_L4_ANGLE);
+    } else {
+      armSetAngle(Constants.ARM_L4_SAFE_ANGLE);
     }
   }
 
   private void setL4Shoot() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
-      armSetAngle(-30.0);
+      armSetAngle(0);
     }
   }
 
@@ -257,7 +259,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean isArmOnPosition() {
-    return Math.abs(getArmAngle()) < 27.0;
+    return Math.abs(getArmAngle()) < 35.0;
   }
 
   public boolean isArmOnAlgaePosition() {
@@ -311,6 +313,26 @@ public class Armevator extends SubsystemBase {
     }
   }
 
+  public void setAlgaeElevatorPosition(IntSupplier sector) {
+    if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
+      elevatorSetPosition(14.5);
+    } else {
+      elevatorSetPosition(7.0);
+    }
+  }
+
+  public boolean elevatorAtAlgaePositon(IntSupplier sector) {
+    if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
+      return Math.abs(getElevatorPositionInches() - 14.5) < 0.5;
+    } else {
+      return Math.abs(getElevatorPositionInches() - 7.0) < 0.5;
+    }
+  }
+
+  public void armGotoAlgaePickup(IntSupplier sector) {
+    armSetAngle(30.0);
+  }
+
   public Command stowArmFactory() {
     return new RunCommand(() -> stowArm(), this);
   }
@@ -319,7 +341,7 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
         () -> {
           stowArmAlgae();
-          elevatorSetPosition(2.5);
+          stowElevator();
         },
         this);
   }
@@ -495,6 +517,24 @@ public class Armevator extends SubsystemBase {
           }
         },
         this);
+  }
+
+  public Command stowThenalgae(IntSupplier sector) {
+    return new SequentialCommandGroup(
+        new RunCommand(() -> armGoToZero(), this).until(() -> isArmOnPosition()),
+        new RunCommand(
+                () -> {
+                  armGoToZero();
+                  setAlgaeElevatorPosition(sector);
+                },
+                this)
+            .until(() -> elevatorAtAlgaePositon(sector)),
+        new RunCommand(
+            () -> {
+              armGotoAlgaePickup();
+              setAlgaeElevatorPosition(sector);
+            },
+            this));
   }
 
   @Override
