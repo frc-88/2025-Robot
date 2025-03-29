@@ -23,7 +23,6 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
-import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
@@ -66,7 +65,6 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -83,33 +81,34 @@ public class Drive extends SubsystemBase {
   public int m_currentPathOdd = 10;
   public int m_currentPose = 0;
   public Pose2d nextPose = new Pose2d();
-  static final double ODOMETRY_FREQUENCY = new CANBus(TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD()
-      ? 250.0
-      : 100.0;
-  public static final double DRIVE_BASE_RADIUS = Math.max(
+  static final double ODOMETRY_FREQUENCY =
+      new CANBus(TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD() ? 250.0 : 100.0;
+  public static final double DRIVE_BASE_RADIUS =
       Math.max(
-          Math.hypot(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
-          Math.hypot(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY)),
-      Math.max(
-          Math.hypot(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
-          Math.hypot(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
+          Math.max(
+              Math.hypot(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
+              Math.hypot(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY)),
+          Math.max(
+              Math.hypot(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
+              Math.hypot(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
 
   // PathPlanner config constants
   private static final double ROBOT_MASS_KG = 74.088;
   private static final double ROBOT_MOI = 6.883;
   private static final double WHEEL_COF = 1.2;
-  private static final RobotConfig PP_CONFIG = new RobotConfig(
-      ROBOT_MASS_KG,
-      ROBOT_MOI,
-      new ModuleConfig(
-          TunerConstants.FrontLeft.WheelRadius,
-          TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
-          WHEEL_COF,
-          DCMotor.getKrakenX60Foc(1)
-              .withReduction(TunerConstants.FrontLeft.DriveMotorGearRatio),
-          TunerConstants.FrontLeft.SlipCurrent,
-          1),
-      getModuleTranslations());
+  private static final RobotConfig PP_CONFIG =
+      new RobotConfig(
+          ROBOT_MASS_KG,
+          ROBOT_MOI,
+          new ModuleConfig(
+              TunerConstants.FrontLeft.WheelRadius,
+              TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
+              WHEEL_COF,
+              DCMotor.getKrakenX60Foc(1)
+                  .withReduction(TunerConstants.FrontLeft.DriveMotorGearRatio),
+              TunerConstants.FrontLeft.SlipCurrent,
+              1),
+          getModuleTranslations());
 
   private final Map<Integer, Pose2d> REEF_CORAL_POSES;
 
@@ -118,20 +117,20 @@ public class Drive extends SubsystemBase {
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine sysId;
-  private final Alert gyroDisconnectedAlert = new Alert("Disconnected gyro, using kinematics as fallback.",
-      AlertType.kError);
+  private final Alert gyroDisconnectedAlert =
+      new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
 
   private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(getModuleTranslations());
   private Rotation2d rawGyroRotation = new Rotation2d();
   private SwerveModulePosition[] lastModulePositions = // For delta tracking
       new SwerveModulePosition[] {
-          new SwerveModulePosition(),
-          new SwerveModulePosition(),
-          new SwerveModulePosition(),
-          new SwerveModulePosition()
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition()
       };
-  private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
-      lastModulePositions, new Pose2d());
+  private SwerveDrivePoseEstimator poseEstimator =
+      new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
   private boolean m_autoaim = true;
 
   public Drive(
@@ -146,7 +145,8 @@ public class Drive extends SubsystemBase {
     modules[2] = new Module(blModuleIO, 2, TunerConstants.BackLeft);
     modules[3] = new Module(brModuleIO, 3, TunerConstants.BackRight);
 
-    REEF_CORAL_POSES = weAreRed() ? Constants.REEF_CORAL_POSES_RED : Constants.REEF_CORAL_POSES_BLUE;
+    REEF_CORAL_POSES =
+        weAreRed() ? Constants.REEF_CORAL_POSES_RED : Constants.REEF_CORAL_POSES_BLUE;
 
     // Usage reporting for swerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
@@ -177,14 +177,15 @@ public class Drive extends SubsystemBase {
         });
 
     // Configure SysId
-    sysId = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            null,
-            null,
-            null,
-            (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
-        new SysIdRoutine.Mechanism(
-            (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+    sysId =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                null,
+                null,
+                (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
 
     for (int i = 1; i < 13; i++) {
       try {
@@ -240,19 +241,23 @@ public class Drive extends SubsystemBase {
   }
 
   private boolean isNearReef() {
-    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 2.0;
+    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
+        < 2.0;
   }
 
   public boolean isShootingDistance() {
-    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 1.40;
+    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
+        < 1.40;
   }
 
   public boolean isElevatorDistance() {
-    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation()) < 2.5;
+    return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
+        < 2.5;
   }
 
   public boolean isAtTarget() {
-    return flipIfRed(getPose()).getTranslation().getDistance(getTargetPose().getTranslation()) < 0.07
+    return flipIfRed(getPose()).getTranslation().getDistance(getTargetPose().getTranslation())
+            < 0.07
         && Math.abs(flipIfRed(getPose()).relativeTo(getTargetPose()).getY()) < 0.1;
   }
 
@@ -434,18 +439,13 @@ public class Drive extends SubsystemBase {
 
   public Command scoreOnReef(boolean odd) {
     return new SelectCommand<>(
-        IntStream.rangeClosed(1, 12)
-            .boxed()
-            .collect(Collectors.toMap(i -> i, this::getPath)),
+        IntStream.rangeClosed(1, 12).boxed().collect(Collectors.toMap(i -> i, this::getPath)),
         () -> getTargetPositionFromSector(odd));
-
   }
 
   public Command pathFind(boolean odd) {
     return new SelectCommand<>(
-        IntStream.rangeClosed(1, 12)
-            .boxed()
-            .collect(Collectors.toMap(i -> i, this::drivePathFind)),
+        IntStream.rangeClosed(1, 12).boxed().collect(Collectors.toMap(i -> i, this::drivePathFind)),
         () -> getTargetPositionFromSector(odd));
   }
 
@@ -453,18 +453,14 @@ public class Drive extends SubsystemBase {
     return new ConditionalCommand(
         algae(),
         new SelectCommand<>(
-            IntStream.rangeClosed(1, 12)
-                .boxed()
-                .collect(Collectors.toMap(i -> i, this::pathFind)),
+            IntStream.rangeClosed(1, 12).boxed().collect(Collectors.toMap(i -> i, this::pathFind)),
             () -> getTargetPositionFromSectorNow(odd)),
         () -> mode.getAsInt() == 1);
   }
 
   public Command algae() {
     return new SelectCommand<>(
-        IntStream.rangeClosed(1, 6)
-            .boxed()
-            .collect(Collectors.toMap(i -> i, this::pathFindAlgae)),
+        IntStream.rangeClosed(1, 6).boxed().collect(Collectors.toMap(i -> i, this::pathFindAlgae)),
         this::getTargetSectorNow);
   }
 
@@ -496,7 +492,8 @@ public class Drive extends SubsystemBase {
     }
 
     // Update odometry
-    double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
+    double[] sampleTimestamps =
+        modules[0].getOdometryTimestamps(); // All signals are sampled together
     int sampleCount = sampleTimestamps.length;
     for (int i = 0; i < sampleCount; i++) {
       // Read wheel positions and deltas from each module
@@ -504,10 +501,11 @@ public class Drive extends SubsystemBase {
       SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
       for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
         modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
-        moduleDeltas[moduleIndex] = new SwerveModulePosition(
-            modulePositions[moduleIndex].distanceMeters
-                - lastModulePositions[moduleIndex].distanceMeters,
-            modulePositions[moduleIndex].angle);
+        moduleDeltas[moduleIndex] =
+            new SwerveModulePosition(
+                modulePositions[moduleIndex].distanceMeters
+                    - lastModulePositions[moduleIndex].distanceMeters,
+                modulePositions[moduleIndex].angle);
         lastModulePositions[moduleIndex] = modulePositions[moduleIndex];
       }
 
@@ -584,10 +582,8 @@ public class Drive extends SubsystemBase {
   }
 
   /**
-   * Stops the drive and turns the modules to an X arrangement to resist movement.
-   * The modules will
-   * return to their normal orientations the next time a nonzero velocity is
-   * requested.
+   * Stops the drive and turns the modules to an X arrangement to resist movement. The modules will
+   * return to their normal orientations the next time a nonzero velocity is requested.
    */
   public void stopWithX() {
     Rotation2d[] headings = new Rotation2d[4];
@@ -610,10 +606,7 @@ public class Drive extends SubsystemBase {
     return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(sysId.dynamic(direction));
   }
 
-  /**
-   * Returns the module states (turn angles and drive velocities) for all of the
-   * modules.
-   */
+  /** Returns the module states (turn angles and drive velocities) for all of the modules. */
   @AutoLogOutput(key = "SwerveStates/Measured")
   private SwerveModuleState[] getModuleStates() {
     SwerveModuleState[] states = new SwerveModuleState[4];
@@ -623,10 +616,7 @@ public class Drive extends SubsystemBase {
     return states;
   }
 
-  /**
-   * Returns the module positions (turn angles and drive positions) for all of the
-   * modules.
-   */
+  /** Returns the module positions (turn angles and drive positions) for all of the modules. */
   private SwerveModulePosition[] getModulePositions() {
     SwerveModulePosition[] states = new SwerveModulePosition[4];
     for (int i = 0; i < 4; i++) {
@@ -654,10 +644,7 @@ public class Drive extends SubsystemBase {
     return values;
   }
 
-  /**
-   * Returns the average velocity of the modules in rotations/sec (Phoenix native
-   * units).
-   */
+  /** Returns the average velocity of the modules in rotations/sec (Phoenix native units). */
   public double getFFCharacterizationVelocity() {
     double output = 0.0;
     for (int i = 0; i < 4; i++) {
@@ -704,10 +691,10 @@ public class Drive extends SubsystemBase {
   /** Returns an array of module translations. */
   public static Translation2d[] getModuleTranslations() {
     return new Translation2d[] {
-        new Translation2d(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
-        new Translation2d(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
-        new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
-        new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
+      new Translation2d(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
+      new Translation2d(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
+      new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
+      new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
     };
   }
 }
