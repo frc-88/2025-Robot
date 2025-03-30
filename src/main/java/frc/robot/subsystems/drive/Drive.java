@@ -57,6 +57,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
+import frc.robot.util.ReefTrax;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -132,6 +133,7 @@ public class Drive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
   private boolean m_autoaim = true;
+  private ReefTrax reeftrax = new ReefTrax();
 
   public Drive(
       GyroIO gyroIO,
@@ -298,7 +300,11 @@ public class Drive extends SubsystemBase {
 
   public Command pathFind(int i) {
     return new InstantCommand(() -> m_currentPose = i)
-        .andThen(AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(i), Constants.CONSTRAINTS));
+        .andThen(
+            new ConditionalCommand(
+                AutoBuilder.pathfindToPoseFlipped(reeftrax.getRedPose(i), Constants.CONSTRAINTS),
+                AutoBuilder.pathfindToPoseFlipped(reeftrax.getBluePose(i), Constants.CONSTRAINTS),
+                () -> weAreRed()));
   }
 
   public Command pathFindAuto(int i) {
@@ -334,7 +340,7 @@ public class Drive extends SubsystemBase {
 
   public Pose2d getTargetPose() {
     if (m_currentPose >= 1 & m_currentPose <= 12) {
-      return REEF_CORAL_POSES.get(m_currentPose);
+      return reeftrax.getPose(m_currentPose);
     } else {
       return new Pose2d();
     }
