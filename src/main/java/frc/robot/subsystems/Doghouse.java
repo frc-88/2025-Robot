@@ -53,7 +53,7 @@ public class Doghouse extends SubsystemBase {
 
   private final DutyCycleOut m_funnelRequest = new DutyCycleOut(0.0);
   private final DutyCycleOut m_manipulatorRequest = new DutyCycleOut(0.0);
-  private final TorqueCurrentFOC m_algaePickupRequest = new TorqueCurrentFOC(-95.0);
+  private final TorqueCurrentFOC m_algaePickupRequest = new TorqueCurrentFOC(-60.0);
 
   private boolean algaeMode = false;
 

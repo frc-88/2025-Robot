@@ -270,7 +270,7 @@ public class Drive extends SubsystemBase {
   }
 
   public boolean shouldShootAlgae() {
-    return flipIfRed(getPose()).getX() > 7.28;
+    return flipIfRed(getPose()).getX() > 7.00;
   }
 
   private Command getPath(int i) {
@@ -403,6 +403,10 @@ public class Drive extends SubsystemBase {
 
   public Pose2d getTargetPoseFromSector(boolean odd) {
     return REEF_CORAL_POSES.get(getTargetPositionFromSector(odd));
+  }
+
+  public double getDistanceToPose(boolean odd) {
+    return flipIfRed(getPose()).relativeTo(getTargetPoseFromSector(odd)).getTranslation().getNorm();
   }
 
   public Pose2d getTargetAlgaePoseFromSector() {
