@@ -320,6 +320,19 @@ public class Drive extends SubsystemBase {
                 Constants.REEF_CORAL_L1_POSES.get(i), Constants.CONSTRAINTS));
   }
 
+  public Command pathFindAuto(int i) {
+    return new InstantCommand(() -> m_currentPose = i)
+        .andThen(
+            AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(i), Constants.AUTO_CONSTRAINTS));
+  }
+
+  public Command pathFindToL1(int i) {
+    return new InstantCommand(() -> m_currentPose = i)
+        .andThen(
+            AutoBuilder.pathfindToPoseFlipped(
+                Constants.REEF_CORAL_L1_POSES.get(i), Constants.CONSTRAINTS));
+  }
+
   public Command pathFindAlgae(int sector) {
     if (sector == 3) {
       return AutoBuilder.pathfindToPoseFlipped(Constants.SECTOR3ALGAE, Constants.CONSTRAINTS);
