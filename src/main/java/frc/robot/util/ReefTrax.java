@@ -6,7 +6,6 @@ package frc.robot.util;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -29,6 +28,16 @@ public class ReefTrax {
   private DoublePreferenceConstant[] blueOffsetRight = new DoublePreferenceConstant[12];
   private DoublePreferenceConstant[] redOffsetForward = new DoublePreferenceConstant[12];
   private DoublePreferenceConstant[] redOffsetRight = new DoublePreferenceConstant[12];
+
+  // initialize blue/red global forward/right offset preferences
+  private DoublePreferenceConstant blueGlobalOffsetForward =
+      new DoublePreferenceConstant("ReefTrax/Blue/All/Forward", 0.0);
+  private DoublePreferenceConstant blueGlobalOffsetRight =
+      new DoublePreferenceConstant("ReefTrax/Blue/All/Right", 0.0);
+  private DoublePreferenceConstant redGlobalOffsetForward =
+      new DoublePreferenceConstant("ReefTrax/Red/All/Forward", 0.0);
+  private DoublePreferenceConstant redGlobalOffsetRight =
+      new DoublePreferenceConstant("ReefTrax/Red/All/Right", 0.0);
 
   public ReefTrax() {
     for (int pole = 1; pole < 13; pole++) {
@@ -57,6 +66,7 @@ public class ReefTrax {
       redOffsetRight[pole - 1] =
           new DoublePreferenceConstant("ReefTrax/Red/" + pole + "/Right", 0.0);
     }
+
     // ReefTrax
     SmartDashboard.putData(
         "ReefTrax:Dump", new InstantCommand(() -> dumpReef()).ignoringDisable(true));
@@ -92,20 +102,28 @@ public class ReefTrax {
       offset =
           new Translation2d(
               0.0
-                  + redOffsetForward[pole - 1].getValue() * Math.cos(targetAngle)
-                  + redOffsetRight[pole - 1].getValue() * Math.sin(targetAngle),
+                  + (redGlobalOffsetForward.getValue() + redOffsetForward[pole - 1].getValue())
+                      * Math.cos(targetAngle)
+                  + (redGlobalOffsetRight.getValue() + redOffsetRight[pole - 1].getValue())
+                      * Math.sin(targetAngle),
               0.0
-                  + redOffsetForward[pole - 1].getValue() * Math.sin(targetAngle)
-                  - redOffsetRight[pole - 1].getValue() * Math.cos(targetAngle));
+                  + (redGlobalOffsetForward.getValue() + redOffsetForward[pole - 1].getValue())
+                      * Math.sin(targetAngle)
+                  - (redGlobalOffsetRight.getValue() + redOffsetRight[pole - 1].getValue())
+                      * Math.cos(targetAngle));
     } else {
       offset =
           new Translation2d(
               0.0
-                  + blueOffsetForward[pole - 1].getValue() * Math.cos(targetAngle)
-                  + blueOffsetRight[pole - 1].getValue() * Math.sin(targetAngle),
+                  + (blueGlobalOffsetForward.getValue() + blueOffsetForward[pole - 1].getValue())
+                      * Math.cos(targetAngle)
+                  + (blueGlobalOffsetRight.getValue() + blueOffsetRight[pole - 1].getValue())
+                      * Math.sin(targetAngle),
               0.0
-                  + blueOffsetForward[pole - 1].getValue() * Math.sin(targetAngle)
-                  - blueOffsetRight[pole - 1].getValue() * Math.cos(targetAngle));
+                  + (blueGlobalOffsetForward.getValue() + blueOffsetForward[pole - 1].getValue())
+                      * Math.sin(targetAngle)
+                  - (blueGlobalOffsetRight.getValue() + blueOffsetRight[pole - 1].getValue())
+                      * Math.cos(targetAngle));
     }
 
     return new Pose2d(
@@ -119,13 +137,18 @@ public class ReefTrax {
     offset =
         new Translation2d(
             0.0
-                - redOffsetForward[pole - 1].getValue() * Math.cos(targetAngle)
-                + redOffsetRight[pole - 1].getValue() * Math.sin(targetAngle),
+                + (redGlobalOffsetForward.getValue() + redOffsetForward[pole - 1].getValue())
+                    * Math.cos(targetAngle)
+                + (redGlobalOffsetRight.getValue() + redOffsetRight[pole - 1].getValue())
+                    * Math.sin(targetAngle),
             0.0
-                + redOffsetForward[pole - 1].getValue() * Math.sin(targetAngle)
-                + redOffsetRight[pole - 1].getValue() * Math.cos(targetAngle));
+                + (redGlobalOffsetForward.getValue() + redOffsetForward[pole - 1].getValue())
+                    * Math.sin(targetAngle)
+                - (redGlobalOffsetRight.getValue() + redOffsetRight[pole - 1].getValue())
+                    * Math.cos(targetAngle));
 
-    return baseReef[pole - 1].transformBy(new Transform2d(offset, new Rotation2d()));
+    return new Pose2d(
+        baseReef[pole - 1].getTranslation().plus(offset), baseReef[pole - 1].getRotation());
   }
 
   public Pose2d getBluePose(int pole) {
@@ -134,12 +157,17 @@ public class ReefTrax {
     offset =
         new Translation2d(
             0.0
-                - blueOffsetForward[pole - 1].getValue() * Math.cos(targetAngle)
-                + blueOffsetRight[pole - 1].getValue() * Math.sin(targetAngle),
+                + (blueGlobalOffsetForward.getValue() + blueOffsetForward[pole - 1].getValue())
+                    * Math.cos(targetAngle)
+                + (blueGlobalOffsetRight.getValue() + blueOffsetRight[pole - 1].getValue())
+                    * Math.sin(targetAngle),
             0.0
-                + blueOffsetForward[pole - 1].getValue() * Math.sin(targetAngle)
-                + blueOffsetRight[pole - 1].getValue() * Math.cos(targetAngle));
+                + (blueGlobalOffsetForward.getValue() + blueOffsetForward[pole - 1].getValue())
+                    * Math.sin(targetAngle)
+                - (blueGlobalOffsetRight.getValue() + blueOffsetRight[pole - 1].getValue())
+                    * Math.cos(targetAngle));
 
-    return baseReef[pole - 1].transformBy(new Transform2d(offset, new Rotation2d()));
+    return new Pose2d(
+        baseReef[pole - 1].getTranslation().plus(offset), baseReef[pole - 1].getRotation());
   }
 }
