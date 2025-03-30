@@ -88,8 +88,6 @@ public class ReefTrax {
     Translation2d offset;
     double targetAngle = -Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360) + Math.PI;
 
-    System.out.println("ReefTrax/angle" + Math.toDegrees(targetAngle));
-
     if (weAreRed()) {
       offset =
           new Translation2d(
@@ -110,7 +108,8 @@ public class ReefTrax {
                   - blueOffsetRight[pole - 1].getValue() * Math.cos(targetAngle));
     }
 
-    return baseReef[pole - 1].transformBy(new Transform2d(offset, new Rotation2d()));
+    return new Pose2d(
+        baseReef[pole - 1].getTranslation().plus(offset), baseReef[pole - 1].getRotation());
   }
 
   public Pose2d getRedPose(int pole) {
