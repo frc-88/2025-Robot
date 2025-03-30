@@ -294,6 +294,10 @@ public class Armevator extends SubsystemBase {
     elevatorSetPosition(0.0);
   }
 
+  private void stowElevatorAlgae() {
+    elevatorSetPosition(11.0);
+  }
+
   private void goToOneInch() {
     elevatorSetPosition(1.0);
   }
@@ -323,9 +327,9 @@ public class Armevator extends SubsystemBase {
 
   public boolean elevatorAtAlgaePositon(IntSupplier sector) {
     if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
-      return Math.abs(getElevatorPositionInches() - 14.5) < 0.5;
+      return Math.abs(getElevatorPositionInches() - 14.5) < 0.2;
     } else {
-      return Math.abs(getElevatorPositionInches() - 7.0) < 0.5;
+      return Math.abs(getElevatorPositionInches() - 7.0) < 0.2;
     }
   }
 
@@ -341,7 +345,7 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(
         () -> {
           stowArmAlgae();
-          stowElevator();
+          stowElevatorAlgae();
         },
         this);
   }

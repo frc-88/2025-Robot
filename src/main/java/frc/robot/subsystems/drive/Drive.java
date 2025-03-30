@@ -263,8 +263,16 @@ public class Drive extends SubsystemBase {
         && Math.abs(flipIfRed(getPose()).relativeTo(getTargetPose()).getY()) < 0.1;
   }
 
+  public boolean isAtTarget5() {
+    return flipIfRed(getPose())
+                .getTranslation()
+                .getDistance(REEF_CORAL_POSES.get(5).getTranslation())
+            < 0.07
+        && Math.abs(flipIfRed(getPose()).relativeTo(REEF_CORAL_POSES.get(5)).getY()) < 0.1;
+  }
+
   public boolean shouldShootAlgae() {
-    return flipIfRed(getPose()).getX() > 7.28;
+    return flipIfRed(getPose()).getX() > 7.00;
   }
 
   private Command getPath(int i) {
@@ -401,6 +409,10 @@ public class Drive extends SubsystemBase {
 
   public Pose2d getTargetPoseFromSector(boolean odd) {
     return REEF_CORAL_POSES.get(getTargetPositionFromSector(odd));
+  }
+
+  public double getDistanceToPose(boolean odd) {
+    return flipIfRed(getPose()).relativeTo(getTargetPoseFromSector(odd)).getTranslation().getNorm();
   }
 
   public Pose2d getTargetAlgaePoseFromSector() {
@@ -547,8 +559,10 @@ public class Drive extends SubsystemBase {
     } else {
       m_currentPathOdd = 2;
     }
-    SmartDashboard.putNumber("CurrentPathOdd", m_currentPathOdd);
-    SmartDashboard.putBoolean("xPos", flipIfRed(getPose()).getX() > 7.48);
+    SmartDashboard.putNumber(
+        "Error x", Math.abs(REEF_CORAL_POSES.get(5).getX() - flipIfRed(getPose()).getX()));
+    SmartDashboard.putNumber(
+        "Error y", Math.abs(REEF_CORAL_POSES.get(5).getY() - flipIfRed(getPose()).getY()));
   }
 
   /**

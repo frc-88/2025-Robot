@@ -42,10 +42,10 @@ public class DriveCommands {
   private static final double ANGLE_KD = 0.01;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
-  private static final double DRIVE_KP = 5.0;
+  private static final double DRIVE_KP = 7.0;
   private static final double DRIVE_KD = 0.0;
   private static final double DRIVE_MAX_VELOCITY = 3.0;
-  private static final double DRIVE_MAX_ACCELERATION = 3.0;
+  private static final double DRIVE_MAX_ACCELERATION = 3.5;
   private static final double FF_START_DELAY = 2.0; // Secs
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
@@ -141,7 +141,7 @@ public class DriveCommands {
     ProfiledPIDController driveControllerX =
         new ProfiledPIDController(
             DRIVE_KP,
-            0.002,
+            0.003,
             DRIVE_KD,
             new TrapezoidProfile.Constraints(DRIVE_MAX_VELOCITY, DRIVE_MAX_ACCELERATION));
     driveControllerX.setTolerance(0.02);
@@ -149,7 +149,7 @@ public class DriveCommands {
     ProfiledPIDController driveControllerY =
         new ProfiledPIDController(
             DRIVE_KP,
-            0.002,
+            0.003,
             DRIVE_KD,
             new TrapezoidProfile.Constraints(DRIVE_MAX_VELOCITY, DRIVE_MAX_ACCELERATION));
     driveControllerY.setTolerance(0.02);
@@ -187,8 +187,9 @@ public class DriveCommands {
             drive)
         .until(
             () ->
-                Math.abs(poseSupplier.get().getX() - drive.getPose().getX()) < 0.04
-                    && Math.abs(poseSupplier.get().getY() - drive.getPose().getY()) < 0.04)
+                Math.abs(poseSupplier.get().getX() - drive.flipIfRed(drive.getPose()).getX()) < 0.01
+                    && Math.abs(poseSupplier.get().getY() - drive.flipIfRed(drive.getPose()).getY())
+                        < 0.01)
 
         // Reset PID controller when command starts
         .beforeStarting(
