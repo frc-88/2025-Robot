@@ -49,6 +49,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -58,10 +59,13 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
 import frc.robot.util.ReefTrax;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -107,6 +111,8 @@ public class Drive extends SubsystemBase {
               1),
           getModuleTranslations());
 
+  private final Map<Integer, Pose2d> REEF_CORAL_POSES;
+
   static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
@@ -140,6 +146,9 @@ public class Drive extends SubsystemBase {
     modules[1] = new Module(frModuleIO, 1, TunerConstants.FrontRight);
     modules[2] = new Module(blModuleIO, 2, TunerConstants.BackLeft);
     modules[3] = new Module(brModuleIO, 3, TunerConstants.BackRight);
+
+    REEF_CORAL_POSES =
+        weAreRed() ? Constants.REEF_CORAL_POSES_RED : Constants.REEF_CORAL_POSES_BLUE;
 
     // Usage reporting for swerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
@@ -276,46 +285,9 @@ public class Drive extends SubsystemBase {
     }
   }
 
-  private Command pathFind(int i) {
-    if (i == 1) {
-      return new InstantCommand(() -> m_currentPose = 1)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(1), Constants.CONSTRAINTS));
-    } else if (i == 2) {
-      return new InstantCommand(() -> m_currentPose = 2)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(2), Constants.CONSTRAINTS));
-    } else if (i == 3) {
-      return new InstantCommand(() -> m_currentPose = 3)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(3), Constants.CONSTRAINTS));
-    } else if (i == 4) {
-      return new InstantCommand(() -> m_currentPose = 4)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(4), Constants.CONSTRAINTS));
-    } else if (i == 5) {
-      return new InstantCommand(() -> m_currentPose = 5)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(5), Constants.CONSTRAINTS));
-    } else if (i == 6) {
-      return new InstantCommand(() -> m_currentPose = 6)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(6), Constants.CONSTRAINTS));
-    } else if (i == 7) {
-      return new InstantCommand(() -> m_currentPose = 7)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(7), Constants.CONSTRAINTS));
-    } else if (i == 8) {
-      return new InstantCommand(() -> m_currentPose = 8)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(8), Constants.CONSTRAINTS));
-    } else if (i == 9) {
-      return new InstantCommand(() -> m_currentPose = 9)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(9), Constants.CONSTRAINTS));
-    } else if (i == 10) {
-      return new InstantCommand(() -> m_currentPose = 10)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(10), Constants.CONSTRAINTS));
-    } else if (i == 11) {
-      return new InstantCommand(() -> m_currentPose = 11)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(11), Constants.CONSTRAINTS));
-    } else if (i == 12) {
-      return new InstantCommand(() -> m_currentPose = 12)
-          .andThen(AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(12), Constants.CONSTRAINTS));
-    } else {
-      return new WaitCommand(1.0);
-    }
+  public Command pathFind(int i) {
+    return new InstantCommand(() -> m_currentPose = i)
+        .andThen(AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(i), Constants.CONSTRAINTS));
   }
 
   public Command pathFindAlgae(int sector) {
@@ -337,30 +309,8 @@ public class Drive extends SubsystemBase {
   }
 
   public Pose2d getTargetPose() {
-    if (m_currentPose == 1) {
-      return reeftrax.getPose(1);
-    } else if (m_currentPose == 2) {
-      return reeftrax.getPose(2);
-    } else if (m_currentPose == 3) {
-      return reeftrax.getPose(3);
-    } else if (m_currentPose == 4) {
-      return reeftrax.getPose(4);
-    } else if (m_currentPose == 5) {
-      return reeftrax.getPose(5);
-    } else if (m_currentPose == 6) {
-      return reeftrax.getPose(6);
-    } else if (m_currentPose == 7) {
-      return reeftrax.getPose(7);
-    } else if (m_currentPose == 8) {
-      return reeftrax.getPose(8);
-    } else if (m_currentPose == 9) {
-      return reeftrax.getPose(9);
-    } else if (m_currentPose == 10) {
-      return reeftrax.getPose(10);
-    } else if (m_currentPose == 11) {
-      return reeftrax.getPose(11);
-    } else if (m_currentPose == 12) {
-      return reeftrax.getPose(12);
+    if (m_currentPose >= 1 & m_currentPose <= 12) {
+      return REEF_CORAL_POSES.get(m_currentPose);
     } else {
       return new Pose2d();
     }
@@ -368,9 +318,9 @@ public class Drive extends SubsystemBase {
 
   private Command pathFindMoving(int i) {
     if (i == 5) {
-      return AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(5), Constants.CONSTRAINTS, 0.3);
+      return AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(5), Constants.CONSTRAINTS, 0.3);
     } else {
-      return AutoBuilder.pathfindToPoseFlipped(reeftrax.getPose(6), Constants.CONSTRAINTS, 0.3);
+      return AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(6), Constants.CONSTRAINTS, 0.3);
     }
   }
 
@@ -424,150 +374,96 @@ public class Drive extends SubsystemBase {
   }
 
   public int getTargetSector() {
-    int target = 0;
     double angle = getAngleToReef(nextPose());
     if (angle < 30.0 && angle > -30.0) {
-      target = 6;
+      return 6;
     } else if (angle > 30.0 && angle < 90.0) {
-      target = 5;
+      return 5;
     } else if (angle > 90.0 && angle < 150.0) {
-      target = 4;
+      return 4;
     } else if (angle > 150.0 || angle < -150.0) {
-      target = 3;
+      return 3;
     } else if (angle > -150.0 && angle < -90.0) {
-      target = 2;
+      return 2;
     } else if (angle > -90.0 && angle < -30.0) {
-      target = 1;
+      return 1;
     }
-    return target;
+    return 0;
+  }
+
+  public int getTargetPositionFromSector(boolean odd) {
+    return getTargetSector() * 2 - (odd ? 1 : 0);
   }
 
   public Pose2d getTargetPoseFromSector(boolean odd) {
+    return REEF_CORAL_POSES.get(getTargetPositionFromSector(odd));
+  }
+
+  public Pose2d getTargetAlgaePoseFromSector() {
     double angle = getAngleToReef(nextPose());
     if (angle < 30.0 && angle > -30.0) {
-      return odd ? Constants.POSE11 : Constants.POSE12;
+      return Constants.SECTOR6ALGAE;
     } else if (angle > 30.0 && angle < 90.0) {
-      return odd ? Constants.POSE9 : Constants.POSE10;
+      return Constants.SECTOR5ALGAE;
     } else if (angle > 90.0 && angle < 150.0) {
-      return odd ? Constants.POSE7 : Constants.POSE8;
+      return Constants.SECTOR4ALGAE;
     } else if (angle > 150.0 || angle < -150.0) {
-      return odd ? Constants.POSE5 : Constants.POSE6;
+      return Constants.SECTOR3ALGAE;
     } else if (angle > -150.0 && angle < -90.0) {
-      return odd ? Constants.POSE3 : Constants.POSE4;
+      return Constants.SECTOR2ALGAE;
     } else if (angle > -90.0 && angle < -30.0) {
-      return odd ? Constants.POSE1 : Constants.POSE2;
+      return Constants.SECTOR1ALGAE;
     }
     return Pose2d.kZero;
   }
 
   public int getTargetSectorNow() {
-    int target = 0;
     double angle = getAngleToReef(getPose());
     if (angle < 30.0 && angle > -30.0) {
-      target = 6;
+      return 6;
     } else if (angle > 30.0 && angle < 90.0) {
-      target = 5;
+      return 5;
     } else if (angle > 90.0 && angle < 150.0) {
-      target = 4;
+      return 4;
     } else if (angle > 150.0 || angle < -150.0) {
-      target = 3;
+      return 3;
     } else if (angle > -150.0 && angle < -90.0) {
-      target = 2;
+      return 2;
     } else if (angle > -90.0 && angle < -30.0) {
-      target = 1;
+      return 1;
     }
-    return target;
+    return 0;
+  }
+
+  public int getTargetPositionFromSectorNow(boolean odd) {
+    return getTargetSectorNow() * 2 - (odd ? 1 : 0);
   }
 
   public Command scoreOnReef(boolean odd) {
-    return new ConditionalCommand(
-        odd ? getPath(1) : getPath(2),
-        new ConditionalCommand(
-            odd ? getPath(3) : getPath(4),
-            new ConditionalCommand(
-                odd ? getPath(5) : getPath(6),
-                new ConditionalCommand(
-                    odd ? getPath(7) : getPath(8),
-                    new ConditionalCommand(
-                        odd ? getPath(9) : getPath(10),
-                        new ConditionalCommand(
-                            odd ? getPath(11) : getPath(12),
-                            new WaitCommand(0.5),
-                            () -> getTargetSector() == 6),
-                        () -> getTargetSector() == 5),
-                    () -> getTargetSector() == 4),
-                () -> getTargetSector() == 3),
-            () -> getTargetSector() == 2),
-        () -> getTargetSector() == 1);
+    return new SelectCommand<>(
+        IntStream.rangeClosed(1, 12).boxed().collect(Collectors.toMap(i -> i, this::getPath)),
+        () -> getTargetPositionFromSector(odd));
   }
 
   public Command pathFind(boolean odd) {
-    return new ConditionalCommand(
-        odd ? drivePathFind(1) : drivePathFind(2),
-        new ConditionalCommand(
-            odd ? drivePathFind(3) : drivePathFind(4),
-            new ConditionalCommand(
-                odd ? drivePathFind(5) : drivePathFind(6),
-                new ConditionalCommand(
-                    odd ? drivePathFind(7) : drivePathFind(8),
-                    new ConditionalCommand(
-                        odd ? drivePathFind(9) : drivePathFind(10),
-                        new ConditionalCommand(
-                            odd ? drivePathFind(11) : drivePathFind(12),
-                            new WaitCommand(0.5),
-                            () -> getTargetSector() == 6),
-                        () -> getTargetSector() == 5),
-                    () -> getTargetSector() == 4),
-                () -> getTargetSector() == 3),
-            () -> getTargetSector() == 2),
-        () -> getTargetSector() == 1);
+    return new SelectCommand<>(
+        IntStream.rangeClosed(1, 12).boxed().collect(Collectors.toMap(i -> i, this::drivePathFind)),
+        () -> getTargetPositionFromSector(odd));
   }
 
   public Command reef(boolean odd, IntSupplier mode) {
     return new ConditionalCommand(
         algae(),
-        new ConditionalCommand(
-            odd ? pathFind(1) : pathFind(2),
-            new ConditionalCommand(
-                odd ? pathFind(3) : pathFind(4),
-                new ConditionalCommand(
-                    odd ? pathFind(5) : pathFind(6),
-                    new ConditionalCommand(
-                        odd ? pathFind(7) : pathFind(8),
-                        new ConditionalCommand(
-                            odd ? pathFind(9) : pathFind(10),
-                            new ConditionalCommand(
-                                odd ? pathFind(11) : pathFind(12),
-                                new WaitCommand(1.0),
-                                () -> getTargetSectorNow() == 6),
-                            () -> getTargetSectorNow() == 5),
-                        () -> getTargetSectorNow() == 4),
-                    () -> getTargetSectorNow() == 3),
-                () -> getTargetSectorNow() == 2),
-            () -> getTargetSectorNow() == 1),
+        new SelectCommand<>(
+            IntStream.rangeClosed(1, 12).boxed().collect(Collectors.toMap(i -> i, this::pathFind)),
+            () -> getTargetPositionFromSectorNow(odd)),
         () -> mode.getAsInt() == 1);
   }
 
   public Command algae() {
-    return new ConditionalCommand(
-        pathFindAlgae(1),
-        new ConditionalCommand(
-            pathFindAlgae(2),
-            new ConditionalCommand(
-                pathFindAlgae(3),
-                new ConditionalCommand(
-                    pathFindAlgae(4),
-                    new ConditionalCommand(
-                        pathFindAlgae(5),
-                        new ConditionalCommand(
-                            pathFindAlgae(6),
-                            new WaitCommand(1.0),
-                            () -> getTargetSectorNow() == 6),
-                        () -> getTargetSectorNow() == 5),
-                    () -> getTargetSectorNow() == 4),
-                () -> getTargetSectorNow() == 3),
-            () -> getTargetSectorNow() == 2),
-        () -> getTargetSectorNow() == 1);
+    return new SelectCommand<>(
+        IntStream.rangeClosed(1, 6).boxed().collect(Collectors.toMap(i -> i, this::pathFindAlgae)),
+        this::getTargetSectorNow);
   }
 
   public Command reefMoving(boolean odd) {

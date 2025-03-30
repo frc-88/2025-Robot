@@ -19,6 +19,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
+import java.util.Map;
 
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
@@ -44,10 +45,10 @@ public final class Constants {
 
   public static final double ARM_L4_ANGLE = 37.0;
   public static final double ARM_L4_SAFE_ANGLE = 23.0;
-  public static final double ELEVATOR_L4_HEIGHT = 28.875;
+  public static final double ELEVATOR_L4_HEIGHT = 28.4;
   public static final double ELEVATOR_L3_HEIGHT = 14.0 - 0.125;
   public static final double ELEVATOR_L2_HEIGHT = 5.375 + 0.25;
-  public static final double ALGAE_STOW_ANGLE = 35.0;
+  public static final double ALGAE_STOW_ANGLE = 0.0;
   // ARMEVATOR
   public static final int ELEVATOR_MAIN_MOTOR = 2;
   public static final int ELEVATOR_FOLLOWER_MOTOR = 3;
@@ -59,7 +60,7 @@ public final class Constants {
   public static final int REEF_CANRANGE = 5;
 
   public static final double ELEVATOR_ROTATIONS_TO_INCHES = ((2.256 * Math.PI) / 8.0);
-  public static final double ARM_ROTATIONS_TO_DEGREES = (360.0 / 47.25);
+  public static final double ARM_ROTATIONS_TO_DEGREES = (360.0 / 48.0);
 
   // DOGHOUSE
   public static final int DOGHOUSE_FUNNEL_MOTOR = 6;
@@ -89,57 +90,65 @@ public final class Constants {
           Rotation2d.fromDegrees(0.0));
 
   // Theoretical positions
-  // Pole	PoseX(m)	PoseY(m)
-  // 1	5.441	3.105
-  // 2	5.155	2.940
-  // 3	4.163	2.765
-  // 4	3.877	2.930
-  // 5	3.229	3.701
-  // 6	3.229	4.031
-  // 7	3.573	4.978
-  // 8	3.859	5.143
-  // 9	4.851	5.319
-  // 10	5.137	5.154
-  // 11	5.785	4.382
-  // 12	5.785	4.052
+  // Pole PoseX(m) PoseY(m)
+  // 1 5.441 3.105
+  // 2 5.155 2.940
+  // 3 4.163 2.765
+  // 4 3.877 2.930
+  // 5 3.229 3.701
+  // 6 3.229 4.031
+  // 7 3.573 4.978
+  // 8 3.859 5.143
+  // 9 4.851 5.319
+  // 10 5.137 5.154
+  // 11 5.785 4.382
+  // 12 5.785 4.052
 
   // WPI
-  // 5.427	3.028
-  // 5.142	2.863
-  // 4.133	2.713
-  // 3.847	2.878
-  // 3.169	3.701
-  // 3.169	4.031
-  // 3.543	5.031
-  // 3.829	5.196
-  // 4.881	5.371
-  // 5.167	5.206
-  // 5.845	4.382
-  // 5.845	4.052
-  public static final Pose2d POSE1 =
-      new Pose2d(5.427, 3.028, new Rotation2d(Units.degreesToRadians(120.0)));
-  public static final Pose2d POSE2 =
-      new Pose2d(5.168, 2.878, new Rotation2d(Units.degreesToRadians(120.0)));
-  public static final Pose2d POSE3 =
-      new Pose2d(4.133, 2.713, new Rotation2d(Units.degreesToRadians(60.0)));
-  public static final Pose2d POSE4 =
-      new Pose2d(3.837, 2.860, new Rotation2d(Units.degreesToRadians(60.0)));
-  public static final Pose2d POSE5 = new Pose2d(3.149, 3.701, new Rotation2d());
-  public static final Pose2d POSE6 = new Pose2d(3.149, 4.031, new Rotation2d());
-  public static final Pose2d POSE7 =
-      new Pose2d(3.485, 5.032, new Rotation2d(Units.degreesToRadians(-60.0)));
-  public static final Pose2d POSE8 =
-      new Pose2d(3.785, 5.170, new Rotation2d(Units.degreesToRadians(-60.0)));
-  public static final Pose2d POSE9 =
-      new Pose2d(4.881, 5.371, new Rotation2d(Units.degreesToRadians(-120.0)));
-  public static final Pose2d POSE10 =
-      new Pose2d(5.167, 5.206, new Rotation2d(Units.degreesToRadians(-120.0)));
-  public static final Pose2d POSE11 =
-      new Pose2d(5.845, 4.382, new Rotation2d(Units.degreesToRadians(180.0)));
-  public static final Pose2d POSE12 =
-      new Pose2d(5.845, 4.052, new Rotation2d(Units.degreesToRadians(180.0)));
+  // 5.427 3.028
+  // 5.142 2.863
+  // 4.133 2.713
+  // 3.847 2.878
+  // 3.169 3.701
+  // 3.169 4.031
+  // 3.543 5.031
+  // 3.829 5.196
+  // 4.881 5.371
+  // 5.167 5.206
+  // 5.845 4.382
+  // 5.845 4.052
 
-  public static Pose2d SECTOR3ALGAE = new Pose2d(3.2, 3.8, new Rotation2d());
+  public static final Map<Integer, Pose2d> REEF_CORAL_POSES_BLUE =
+      Map.ofEntries(
+          Map.entry(1, new Pose2d(5.427, 3.028, new Rotation2d(Units.degreesToRadians(120.0)))),
+          Map.entry(2, new Pose2d(5.168, 2.878, new Rotation2d(Units.degreesToRadians(120.0)))),
+          Map.entry(3, new Pose2d(4.133, 2.713, new Rotation2d(Units.degreesToRadians(60.0)))),
+          Map.entry(4, new Pose2d(3.837, 2.860, new Rotation2d(Units.degreesToRadians(60.0)))),
+          Map.entry(5, new Pose2d(3.149, 3.701, new Rotation2d())),
+          Map.entry(6, new Pose2d(3.149, 4.031, new Rotation2d())),
+          Map.entry(7, new Pose2d(3.485, 5.032, new Rotation2d(Units.degreesToRadians(-60.0)))),
+          Map.entry(8, new Pose2d(3.785, 5.170, new Rotation2d(Units.degreesToRadians(-60.0)))),
+          Map.entry(9, new Pose2d(4.881, 5.371, new Rotation2d(Units.degreesToRadians(-120.0)))),
+          Map.entry(10, new Pose2d(5.167, 5.206, new Rotation2d(Units.degreesToRadians(-120.0)))),
+          Map.entry(11, new Pose2d(5.845, 4.382, new Rotation2d(Units.degreesToRadians(180.0)))),
+          Map.entry(12, new Pose2d(5.845, 4.052, new Rotation2d(Units.degreesToRadians(180.0)))));
+
+  public static final Map<Integer, Pose2d> REEF_CORAL_POSES_RED =
+      Map.ofEntries(
+          Map.entry(1, new Pose2d(5.427, 3.028, new Rotation2d(Units.degreesToRadians(120.0)))),
+          Map.entry(2, new Pose2d(5.168, 2.878, new Rotation2d(Units.degreesToRadians(120.0)))),
+          Map.entry(3, new Pose2d(4.133, 2.713, new Rotation2d(Units.degreesToRadians(60.0)))),
+          Map.entry(4, new Pose2d(3.837, 2.860, new Rotation2d(Units.degreesToRadians(60.0)))),
+          Map.entry(5, new Pose2d(3.149, 3.701, new Rotation2d())),
+          Map.entry(6, new Pose2d(3.149, 4.031, new Rotation2d())),
+          Map.entry(7, new Pose2d(3.485, 5.032, new Rotation2d(Units.degreesToRadians(-60.0)))),
+          Map.entry(8, new Pose2d(3.785, 5.170, new Rotation2d(Units.degreesToRadians(-60.0)))),
+          Map.entry(9, new Pose2d(4.881, 5.371, new Rotation2d(Units.degreesToRadians(-120.0)))),
+          Map.entry(10, new Pose2d(5.167, 5.206, new Rotation2d(Units.degreesToRadians(-120.0)))),
+          Map.entry(11, new Pose2d(5.845, 4.382, new Rotation2d(Units.degreesToRadians(180.0)))),
+          Map.entry(12, new Pose2d(5.845, 4.052, new Rotation2d(Units.degreesToRadians(180.0)))));
+
+  public static Pose2d SECTOR3ALGAE = new Pose2d(3.2, 3.9, new Rotation2d());
   public static Pose2d SECTOR2ALGAE =
       new Pose2d(3.892, 2.778, new Rotation2d(Units.degreesToRadians(60.0)));
   public static Pose2d SECTOR6ALGAE =

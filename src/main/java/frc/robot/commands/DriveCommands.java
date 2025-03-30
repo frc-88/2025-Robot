@@ -136,12 +136,12 @@ public class DriveCommands {
             ANGLE_KD,
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
     angleController.enableContinuousInput(-Math.PI, Math.PI);
-    angleController.setTolerance(1.0);
+    angleController.setTolerance(0.017);
 
     ProfiledPIDController driveControllerX =
         new ProfiledPIDController(
             DRIVE_KP,
-            0.0,
+            0.002,
             DRIVE_KD,
             new TrapezoidProfile.Constraints(DRIVE_MAX_VELOCITY, DRIVE_MAX_ACCELERATION));
     driveControllerX.setTolerance(0.02);
@@ -149,7 +149,7 @@ public class DriveCommands {
     ProfiledPIDController driveControllerY =
         new ProfiledPIDController(
             DRIVE_KP,
-            0.0,
+            0.002,
             DRIVE_KD,
             new TrapezoidProfile.Constraints(DRIVE_MAX_VELOCITY, DRIVE_MAX_ACCELERATION));
     driveControllerY.setTolerance(0.02);
@@ -163,14 +163,14 @@ public class DriveCommands {
               // Calculate angular speed
               double omega =
                   angleController.calculate(
-                      drive.getRotation().getRadians(), rotation.getRadians());
+                      drive.getRotation().getRadians(), rotation.getRadians() + Math.PI);
 
               double velocityx =
                   driveControllerX.calculate(
                       drive.flipIfRed(drive.getPose()).getX(), targetPose.getX());
               double velocityy =
                   driveControllerY.calculate(
-                      drive.flipIfRed(drive.getPose()).getX(), targetPose.getY());
+                      drive.flipIfRed(drive.getPose()).getY(), targetPose.getY());
 
               // Convert to field relative speeds & send command
               ChassisSpeeds speeds = new ChassisSpeeds(velocityx, velocityy, omega);
@@ -185,13 +185,21 @@ public class DriveCommands {
                           : drive.getRotation()));
             },
             drive)
+        .until(
+            () ->
+                Math.abs(poseSupplier.get().getX() - drive.getPose().getX()) < 0.04
+                    && Math.abs(poseSupplier.get().getY() - drive.getPose().getY()) < 0.04)
 
         // Reset PID controller when command starts
         .beforeStarting(
             () -> {
               angleController.reset(drive.getRotation().getRadians());
-              driveControllerX.reset(drive.flipIfRed(drive.getPose()).getX());
-              driveControllerY.reset(drive.flipIfRed(drive.getPose()).getY());
+              driveControllerX.reset(
+                  drive.flipIfRed(drive.getPose()).getX(),
+                  drive.getChassisVelocity().vxMetersPerSecond);
+              driveControllerY.reset(
+                  drive.flipIfRed(drive.getPose()).getY(),
+                  drive.getChassisVelocity().vyMetersPerSecond);
             });
   }
   /**
