@@ -634,7 +634,7 @@ public class RobotContainer {
         new ConditionalCommand(
             DriveCommands.driveToPose(() -> drive.getTargetPoseFromSector(odd), drive),
             drive.reef(odd, () -> mode),
-            () -> drive.getDistanceToPose(odd) < 0.6096),
+            () -> drive.getDistanceToPose(odd) < 0.2),
         delay,
         teleop);
   }
@@ -679,7 +679,8 @@ public class RobotContainer {
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode)),
             m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
-        teleop ? shootCommand(delay) : shootCommandAuto(delay));
+        // teleop ? shootCommand(delay) : shootCommandAuto(delay));
+        shootCommand(delay));
   }
 
   public Command reefAuto(boolean odd, double delay) {
