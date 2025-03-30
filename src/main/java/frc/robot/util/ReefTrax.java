@@ -108,4 +108,31 @@ public class ReefTrax {
 
     return baseReef[pole - 1].transformBy(new Transform2d(offset, new Rotation2d()));
   }
+
+  public Pose2d getRedPose(int pole) {
+    Translation2d offset;
+    double targetAngle = Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360);
+
+    offset =
+        new Translation2d(
+            -redOffsetForward[pole - 1].getValue() * Math.cos(targetAngle)
+                + redOffsetRight[pole - 1].getValue() * Math.sin(targetAngle),
+            -redOffsetForward[pole - 1].getValue() * Math.sin(targetAngle)
+                - redOffsetRight[pole - 1].getValue() * Math.cos(targetAngle));
+
+    return baseReef[pole - 1].transformBy(new Transform2d(offset, new Rotation2d()));
+  }
+
+  public Pose2d getBluePose(int pole) {
+    Translation2d offset;
+    double targetAngle = Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360);
+    offset =
+        new Translation2d(
+            blueOffsetForward[pole - 1].getValue() * Math.cos(targetAngle)
+                + blueOffsetRight[pole - 1].getValue() * Math.sin(targetAngle),
+            blueOffsetForward[pole - 1].getValue() * Math.sin(targetAngle)
+                - blueOffsetRight[pole - 1].getValue() * Math.cos(targetAngle));
+
+    return baseReef[pole - 1].transformBy(new Transform2d(offset, new Rotation2d()));
+  }
 }

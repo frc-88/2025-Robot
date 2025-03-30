@@ -287,7 +287,11 @@ public class Drive extends SubsystemBase {
 
   public Command pathFind(int i) {
     return new InstantCommand(() -> m_currentPose = i)
-        .andThen(AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(i), Constants.CONSTRAINTS));
+        .andThen(
+            new ConditionalCommand(
+                AutoBuilder.pathfindToPoseFlipped(reeftrax.getRedPose(i), Constants.CONSTRAINTS),
+                AutoBuilder.pathfindToPoseFlipped(reeftrax.getBluePose(i), Constants.CONSTRAINTS),
+                () -> weAreRed()));
   }
 
   public Command pathFindAlgae(int sector) {
@@ -310,7 +314,7 @@ public class Drive extends SubsystemBase {
 
   public Pose2d getTargetPose() {
     if (m_currentPose >= 1 & m_currentPose <= 12) {
-      return REEF_CORAL_POSES.get(m_currentPose);
+      return reeftrax.getPose(m_currentPose);
     } else {
       return new Pose2d();
     }
