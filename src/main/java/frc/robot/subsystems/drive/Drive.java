@@ -276,7 +276,7 @@ public class Drive extends SubsystemBase {
   }
 
   public boolean shouldShootAlgae() {
-    return flipIfRed(getPose()).getX() > 7.00
+    return flipIfRed(getPose()).getX() > 6.7
         && flipIfRed(getPose()).getY() > (Constants.FIELD_WIDTH / 2.0);
   }
 
