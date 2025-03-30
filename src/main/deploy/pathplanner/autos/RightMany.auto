@@ -37,7 +37,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector1ToStation"
+                              "pathName": "Sector1ToSector2"
                             }
                           },
                           {
@@ -82,7 +82,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector2ToStation"
+                              "pathName": "Sector2ToSector2"
                             }
                           },
                           {
@@ -119,7 +119,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Sector2ToStation"
+                  "pathName": "Sector2ToSector3"
                 }
               },
               {

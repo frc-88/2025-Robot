@@ -8,27 +8,48 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.1847874414871185,
-        "y": 2.0806261932938996
+        "x": 3.0259440841935197,
+        "y": 1.5098621251233204
       },
       "isLocked": false,
       "linkedName": "Sector2"
     },
     {
       "anchor": {
-        "x": 1.5326198630136987,
-        "y": 0.7193493150684935
+        "x": 1.6128688747158637,
+        "y": 0.663863818067739
       },
       "prevControl": {
-        "x": 1.8807305461287582,
-        "y": 0.9691136978189842
+        "x": 2.2529377647634243,
+        "y": 0.2201904713497218
+      },
+      "nextControl": {
+        "x": 1.344494942078388,
+        "y": 0.8498912327985141
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.629005728969338,
+        "y": 3.873358581333464
+      },
+      "prevControl": {
+        "x": 2.1968516925844805,
+        "y": 3.871587317142118
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "RightCoralStation"
+      "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1,
+      "rotationDegrees": 52.94938383006005
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -42,7 +63,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 55.0
+    "rotation": 0.6541407746482952
   },
   "reversed": false,
   "folder": null,
