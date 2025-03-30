@@ -315,7 +315,7 @@ public class Armevator extends SubsystemBase {
 
   public void setAlgaeElevatorPosition(IntSupplier sector) {
     if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
-      elevatorSetPosition(14.5);
+      elevatorSetPosition(11.0);
     } else {
       elevatorSetPosition(7.0);
     }
@@ -323,9 +323,9 @@ public class Armevator extends SubsystemBase {
 
   public boolean elevatorAtAlgaePositon(IntSupplier sector) {
     if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
-      return Math.abs(getElevatorPositionInches() - 14.5) < 0.5;
+      return Math.abs(getElevatorPositionInches() - 11.0) < 0.2;
     } else {
-      return Math.abs(getElevatorPositionInches() - 7.0) < 0.5;
+      return Math.abs(getElevatorPositionInches() - 7.0) < 0.2;
     }
   }
 

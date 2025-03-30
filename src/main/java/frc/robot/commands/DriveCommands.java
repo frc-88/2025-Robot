@@ -187,8 +187,9 @@ public class DriveCommands {
             drive)
         .until(
             () ->
-                Math.abs(poseSupplier.get().getX() - drive.getPose().getX()) < 0.04
-                    && Math.abs(poseSupplier.get().getY() - drive.getPose().getY()) < 0.04)
+                Math.abs(poseSupplier.get().getX() - drive.flipIfRed(drive.getPose()).getX()) < 0.02
+                    && Math.abs(poseSupplier.get().getY() - drive.flipIfRed(drive.getPose()).getY())
+                        < 0.02)
 
         // Reset PID controller when command starts
         .beforeStarting(

@@ -253,6 +253,10 @@ public class Doghouse extends SubsystemBase {
             });
   }
 
+  public Command algae() {
+    return new RunCommand(() -> algaePickup(), this);
+  }
+
   public Command setAlgaeSlowFactory() {
     return new RunCommand(() -> manipulatorAlgaeSlow(), this);
   }

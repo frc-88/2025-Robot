@@ -148,7 +148,7 @@ public final class Constants {
           Map.entry(11, new Pose2d(5.845, 4.382, new Rotation2d(Units.degreesToRadians(180.0)))),
           Map.entry(12, new Pose2d(5.845, 4.052, new Rotation2d(Units.degreesToRadians(180.0)))));
 
-  public static Pose2d SECTOR3ALGAE = new Pose2d(3.2, 3.9, new Rotation2d());
+  public static Pose2d SECTOR3ALGAE = new Pose2d(3.2, 3.8, new Rotation2d());
   public static Pose2d SECTOR2ALGAE =
       new Pose2d(3.892, 2.778, new Rotation2d(Units.degreesToRadians(60.0)));
   public static Pose2d SECTOR6ALGAE =
@@ -158,6 +158,18 @@ public final class Constants {
   public static Pose2d SECTOR5ALGAE =
       new Pose2d(5.002, 5.255, new Rotation2d(Units.degreesToRadians(-120.0)));
   public static Pose2d SECTOR4ALGAE =
+      new Pose2d(3.716, 5.0605, new Rotation2d(Units.degreesToRadians(-60.0)));
+
+  public static Pose2d SECTOR3L1 = new Pose2d(3.2, 3.9, new Rotation2d());
+  public static Pose2d SECTOR2L1 =
+      new Pose2d(3.892, 2.778, new Rotation2d(Units.degreesToRadians(60.0)));
+  public static Pose2d SECTOR6L1 =
+      new Pose2d(5.7825, 4.16, new Rotation2d(Units.degreesToRadians(180.0)));
+  public static Pose2d SECTOR1L1 =
+      new Pose2d(5.298, 3.0225, new Rotation2d(Units.degreesToRadians(120.0)));
+  public static Pose2d SECTOR5L1 =
+      new Pose2d(5.002, 5.255, new Rotation2d(Units.degreesToRadians(-120.0)));
+  public static Pose2d SECTOR4L1 =
       new Pose2d(3.716, 5.0605, new Rotation2d(Units.degreesToRadians(-60.0)));
 
   public static final Pose2d POSE5MOVING = new Pose2d(3.08, 3.154, new Rotation2d());

@@ -348,8 +348,12 @@ public class RobotContainer {
     controller
         .povRight()
         .onTrue(DriveCommands.driveToPose(() -> drive.getTargetAlgaePoseFromSector(), drive));
-
-    controller.rightTrigger().onTrue(shootCommand(1.0));
+    controller
+        .povLeft()
+        .onTrue(
+            reefMoving(true)
+                .andThen(DriveCommands.driveMoving(() -> 0.0, () -> 0.8, () -> 0.0, drive)));
+    controller.rightTrigger().onTrue(shootCommand(0.5).andThen(onShoot()));
     controller
         .leftTrigger()
         .onTrue(m_doghouse.shootAlgaeFactory())
@@ -359,7 +363,7 @@ public class RobotContainer {
         .onTrue(
             new ConditionalCommand(
                 algae(),
-                reef(true, 1.0, true),
+                reef(true, 0.5, true).andThen(onShoot()),
                 () -> !m_doghouse.hasCoral() && !m_doghouse.isBlocked()))
         .onFalse(
             new ConditionalCommand(
@@ -371,7 +375,7 @@ public class RobotContainer {
         .onTrue(
             new ConditionalCommand(
                 algae(),
-                reef(false, 1.0, true),
+                reef(false, 0.5, true).andThen(onShoot()),
                 () -> !m_doghouse.hasCoral() && !m_doghouse.isBlocked()))
         .onFalse(
             new ConditionalCommand(
@@ -509,14 +513,13 @@ public class RobotContainer {
   }
 
   private Command shootCommand(double delay) {
-    return new ParallelCommandGroup(
+    return new ParallelDeadlineGroup(
         new ConditionalCommand(
             m_doghouse.shootL1(),
             new ConditionalCommand(
-                    m_doghouse.shootFullSpeedFactory(delay),
-                    m_doghouse.shootFactory(delay),
-                    () -> mode == 4)
-                .andThen(m_doghouse.algaePickupFactory()),
+                m_doghouse.shootFullSpeedFactory(delay),
+                m_doghouse.shootFactory(delay),
+                () -> mode == 4),
             () -> mode == 1),
         new WaitCommand(0.15)
             .andThen(
@@ -722,14 +725,28 @@ public class RobotContainer {
                         reefDebouncer.calculate(m_doghouse.getIsReefDetected())
                             && m_armevator.atMode(() -> mode)
                             && drive.isAtTarget()),
-                new WaitUntilCommand(() -> m_armevator.atMode(() -> mode) && drive.isAtTarget()),
+                new WaitUntilCommand(() -> m_armevator.atMode(() -> mode) && drive.isAtTarget5()),
                 () -> mode == 4),
-            drive
-                .reefMoving(odd)
-                .andThen(DriveCommands.driveMoving(() -> 0.0, () -> 0.3, () -> 0.0, drive)),
+            DriveCommands.driveMoving(() -> 0.0, () -> 0.8, () -> 0.0, drive),
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode))),
-        shootCommand(1.0));
+        shootCommand(0.5));
+  }
+
+  public Command onShoot() {
+    return new ConditionalCommand(
+        new ParallelCommandGroup(
+            m_armevator.stowThenalgae(() -> drive.getTargetSector()),
+            DriveCommands.driveToPose(() -> drive.getTargetAlgaePoseFromSector(), drive)
+                .withTimeout(1.0)
+                .andThen(driverControl()),
+            m_doghouse.algae()),
+        new ParallelCommandGroup(
+                m_armevator.stowFactory(),
+                autoAim(),
+                m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
+            .withTimeout(2.0),
+        () -> getAlgae);
   }
 
   public void teleopInit() {
