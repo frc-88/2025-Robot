@@ -80,6 +80,7 @@ public final class Constants {
 
   // AUTOMATION
   public static final PathConstraints CONSTRAINTS = new PathConstraints(2.75, 2.25, 8.0, 20.0);
+  public static final PathConstraints AUTO_CONSTRAINTS = new PathConstraints(3.0, 2.75, 8.0, 20.0);
 
   public static final double FIELD_WIDTH = 8.05;
   public static final double FIELD_LENGTH = 17.55;
@@ -160,7 +161,16 @@ public final class Constants {
   public static Pose2d SECTOR4ALGAE =
       new Pose2d(3.716, 5.0605, new Rotation2d(Units.degreesToRadians(-60.0)));
 
-  public static Pose2d SECTOR3L1 = new Pose2d(3.2, 3.9, new Rotation2d());
+  public static Map<Integer, Pose2d> REEF_CORAL_L1_POSES =
+      Map.ofEntries(
+          Map.entry(1, new Pose2d(4.868, 2.774, new Rotation2d(Units.degreesToRadians(120.0)))),
+          Map.entry(2, new Pose2d(3.590, 3.095, new Rotation2d(Units.degreesToRadians(60.0)))),
+          Map.entry(3, new Pose2d(3.25, 4.34, new Rotation2d())),
+          Map.entry(4, new Pose2d(4.146, 5.309, new Rotation2d(Units.degreesToRadians(-60.0)))),
+          Map.entry(5, new Pose2d(5.424, 4.988, new Rotation2d(Units.degreesToRadians(-120.0)))),
+          Map.entry(6, new Pose2d(5.785, 3.721, new Rotation2d(Units.degreesToRadians(180.0)))));
+
+  public static Pose2d SECTOR3L1 = new Pose2d(3.25, 4.34, new Rotation2d());
   public static Pose2d SECTOR2L1 =
       new Pose2d(3.892, 2.778, new Rotation2d(Units.degreesToRadians(60.0)));
   public static Pose2d SECTOR6L1 =

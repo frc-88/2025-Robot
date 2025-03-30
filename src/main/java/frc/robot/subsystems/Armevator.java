@@ -242,6 +242,10 @@ public class Armevator extends SubsystemBase {
         && Math.abs(getArmAngle() - Constants.ARM_L4_ANGLE) < 1.0;
   }
 
+  public boolean atShootHeight() {
+    return getElevatorPositionInches() > 20.0;
+  }
+
   private void elevatorStop() {
     m_elevatorMain.setControl(new DutyCycleOut(0.0));
   }
@@ -473,8 +477,11 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(() -> armGotoPrefPosition(), this);
   }
 
-  public Command defaultCommand() {
-    return new ConditionalCommand(stowFactory(), calibrateBothFactory(), () -> m_calibrated);
+  public Command defaultCommand(BooleanSupplier isAlgae) {
+    return new ConditionalCommand(
+        new ConditionalCommand(AlgaestowFactory(), stowFactory(), isAlgae),
+        calibrateBothFactory(),
+        () -> m_calibrated);
   }
 
   public Command shootInNetFactory() {
@@ -496,14 +503,15 @@ public class Armevator extends SubsystemBase {
   public Command scoreAll(IntSupplier mode) {
     return new RunCommand(
         () -> {
-          if (mode.getAsInt() == 2 || mode.getAsInt() == 1) {
+          if (mode.getAsInt() == 2) {
             setL2();
           } else if (mode.getAsInt() == 3) {
             setL3();
           } else if (mode.getAsInt() == 4) {
             setL4();
           } else {
-
+            armGoToZero();
+            stowElevator();
           }
         },
         this);
