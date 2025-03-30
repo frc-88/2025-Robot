@@ -271,8 +271,13 @@ public class Drive extends SubsystemBase {
         && Math.abs(flipIfRed(getPose()).relativeTo(REEF_CORAL_POSES.get(5)).getY()) < 0.1;
   }
 
+  public boolean isFacingForward() {
+    return Math.abs(flipIfRed(getPose()).getRotation().getDegrees()) < 10.0;
+  }
+
   public boolean shouldShootAlgae() {
-    return flipIfRed(getPose()).getX() > 7.00;
+    return flipIfRed(getPose()).getX() > 7.00
+        && flipIfRed(getPose()).getY() > (Constants.FIELD_WIDTH / 2.0);
   }
 
   private Command getPath(int i) {
@@ -302,6 +307,19 @@ public class Drive extends SubsystemBase {
                 () -> weAreRed()));
   }
 
+  public Command pathFindAuto(int i) {
+    return new InstantCommand(() -> m_currentPose = i)
+        .andThen(
+            AutoBuilder.pathfindToPoseFlipped(REEF_CORAL_POSES.get(i), Constants.AUTO_CONSTRAINTS));
+  }
+
+  public Command pathFindToL1(int i) {
+    return new InstantCommand(() -> m_currentPose = i)
+        .andThen(
+            AutoBuilder.pathfindToPoseFlipped(
+                Constants.REEF_CORAL_L1_POSES.get(i), Constants.CONSTRAINTS));
+  }
+
   public Command pathFindAlgae(int sector) {
     if (sector == 3) {
       return AutoBuilder.pathfindToPoseFlipped(Constants.SECTOR3ALGAE, Constants.CONSTRAINTS);
@@ -326,6 +344,10 @@ public class Drive extends SubsystemBase {
     } else {
       return new Pose2d();
     }
+  }
+
+  public Pose2d getL1Pose() {
+    return Constants.REEF_CORAL_L1_POSES.get(getTargetSector());
   }
 
   private Command pathFindMoving(int i) {
@@ -411,8 +433,15 @@ public class Drive extends SubsystemBase {
     return REEF_CORAL_POSES.get(getTargetPositionFromSector(odd));
   }
 
-  public double getDistanceToPose(boolean odd) {
-    return flipIfRed(getPose()).relativeTo(getTargetPoseFromSector(odd)).getTranslation().getNorm();
+  public double getDistanceToPose(boolean odd, IntSupplier mode) {
+    if (mode.getAsInt() == 2 || mode.getAsInt() == 3 || mode.getAsInt() == 4) {
+      return flipIfRed(getPose())
+          .relativeTo(getTargetPoseFromSector(odd))
+          .getTranslation()
+          .getNorm();
+    } else {
+      return flipIfRed(getPose()).relativeTo(getL1Pose()).getTranslation().getNorm();
+    }
   }
 
   public Pose2d getTargetAlgaePoseFromSector() {
@@ -469,7 +498,11 @@ public class Drive extends SubsystemBase {
 
   public Command reef(boolean odd, IntSupplier mode) {
     return new ConditionalCommand(
-        algae(),
+        new SelectCommand<>(
+            IntStream.rangeClosed(1, 6)
+                .boxed()
+                .collect(Collectors.toMap(i -> i, this::pathFindToL1)),
+            () -> getTargetSector()),
         new SelectCommand<>(
             IntStream.rangeClosed(1, 12).boxed().collect(Collectors.toMap(i -> i, this::pathFind)),
             () -> getTargetPositionFromSectorNow(odd)),
