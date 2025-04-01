@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.PreferenceConstants;
 
 /** Add your docs here. */
 public class ReefTrax {
@@ -70,6 +71,9 @@ public class ReefTrax {
     // ReefTrax
     SmartDashboard.putData(
         "ReefTrax:Dump", new InstantCommand(() -> dumpReef()).ignoringDisable(true));
+    SmartDashboard.putData(
+        "ReefTrax:Update",
+        new InstantCommand(() -> PreferenceConstants.update()).ignoringDisable(true));
     SmartDashboard.putData(
         "ReefTrax:Reset Offsets",
         new InstantCommand(() -> resetReefOffsets()).ignoringDisable(true));
