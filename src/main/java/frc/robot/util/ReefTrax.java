@@ -90,7 +90,8 @@ public class ReefTrax {
 
   public void dumpReef() {
     for (int pole = 1; pole < 13; pole++) {
-      System.out.println("Pole " + pole + " = " + getPose(pole));
+      SmartDashboard.putString("ReefTrax/Red/" + pole, getRedPose(pole).toString());
+      SmartDashboard.putString("ReefTrax/Blue/" + pole, getBluePose(pole).toString());
     }
   }
 
@@ -132,7 +133,7 @@ public class ReefTrax {
 
   public Pose2d getRedPose(int pole) {
     Translation2d offset;
-    double targetAngle = Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360);
+    double targetAngle = -Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360) + Math.PI;
 
     offset =
         new Translation2d(
@@ -153,7 +154,7 @@ public class ReefTrax {
 
   public Pose2d getBluePose(int pole) {
     Translation2d offset;
-    double targetAngle = Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360);
+    double targetAngle = -Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360) + Math.PI;
     offset =
         new Translation2d(
             0.0
