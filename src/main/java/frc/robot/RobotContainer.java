@@ -223,7 +223,9 @@ public class RobotContainer {
     NamedCommands.registerCommand("Reef Odd", reef(true, 0.5, false));
     for (int i = 1; i <= 12; i++) {
       NamedCommands.registerCommand("Reef " + i, reef(i, 0.5, false));
-    }
+}
+    NamedCommands.registerCommand("Set Algae Mode",new InstantCommand(() -> getAlgae = true));
+    NamedCommands.registerCommand("Clear Algae Mode",new InstantCommand(() -> getAlgae = false));
 
     PathfindingCommand.warmupCommand().schedule();
     FollowPathCommand.warmupCommand().schedule();
