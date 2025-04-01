@@ -180,6 +180,10 @@ public class Doghouse extends SubsystemBase {
     setFunnelSpeed(-1.0);
   }
 
+  private void funnelBackwardsSlow() {
+    setFunnelSpeed(-0.2);
+  }
+
   private void manipulatorStop() {
     setManipulatorSpeed(0.0);
   }
@@ -271,11 +275,11 @@ public class Doghouse extends SubsystemBase {
           if (!algaeMode) {
             if (!elevatorDown.getAsBoolean() & !isBlocked()) {
               manipulatorStop();
-              funnelStop();
+              funnelBackwardsSlow();
               // maybe funnel slow backwards
             } else if (!elevatorDown.getAsBoolean() & isBlocked()) {
               manipulatorSlow();
-              funnelSlow();
+              funnelBackwardsSlow();
             } else if (!hasCoral()) {
               manipulatorIn();
               funnelGo();

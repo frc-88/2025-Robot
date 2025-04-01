@@ -167,6 +167,10 @@ public class Climber extends SubsystemBase {
     return (inches / Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH) * 1.21;
   }
 
+  public double getGasMotorPosition() {
+    return m_gasmotor.getPosition().getValueAsDouble() * Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH;
+  }
+
   @AutoLogOutput(key = "Climber/GripperPosition")
   public double getGripperPositionRotations() {
     return m_gripper.getPosition().getValueAsDouble();
@@ -422,11 +426,19 @@ public class Climber extends SubsystemBase {
 
   public Command prepClimber() {
     return new RunCommand(
-        () -> {
-          setGasMotorPositionRotations(p_gasmotorPositionRotations.getValue());
-          openGrabber();
-        },
-        this);
+            () -> {
+              setGasMotorPositionRotations(p_gasmotorPositionRotations.getValue());
+              // openGrabber();
+            },
+            this)
+        .until(() -> getGasMotorPosition() > 4.0)
+        .andThen(
+            new RunCommand(
+                () -> {
+                  setGasMotorPositionRotations(p_gasmotorPositionRotations.getValue());
+                  openGrabber();
+                },
+                this));
   }
 
   @Override

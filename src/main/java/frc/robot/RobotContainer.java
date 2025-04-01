@@ -219,8 +219,8 @@ public class RobotContainer {
     NamedCommands.registerCommand("Armevator Calibration", m_armevator.calibrateBothFactory());
     NamedCommands.registerCommand("Score Odd", scoreNoShoot(true));
     NamedCommands.registerCommand("Score Even", scoreNoShoot(false));
-    NamedCommands.registerCommand("Reef Even", reef(false, 0.15, false));
-    NamedCommands.registerCommand("Reef Odd", reef(true, 0.15, false));
+    NamedCommands.registerCommand("Reef Even", reef(false, 0.5, false));
+    NamedCommands.registerCommand("Reef Odd", reef(true, 0.5, false));
     for (int i = 1; i <= 12; i++) {
       NamedCommands.registerCommand("Reef " + i, reef(i, 0.5, false));
     }
@@ -540,7 +540,7 @@ public class RobotContainer {
   private Command shootCommandAuto(double delay) {
     return new ParallelDeadlineGroup(
         m_doghouse.shootFullSpeedFactory(delay),
-        new WaitCommand(0.25).andThen(m_armevator.stowFactory()),
+        new WaitCommand(0.15).andThen(m_armevator.stowFactory()),
         new InstantCommand(() -> drive.enableAutoAim()),
         new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose())));
   }
