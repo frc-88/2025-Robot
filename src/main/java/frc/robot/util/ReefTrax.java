@@ -96,39 +96,11 @@ public class ReefTrax {
   }
 
   public Pose2d getPose(int pole) {
-    Translation2d offset;
-    double targetAngle = -Math.toRadians((Math.floor((pole - 1) / 2.0) + 1) * 60 % 360) + Math.PI;
-
     if (weAreRed()) {
-      offset =
-          new Translation2d(
-              0.0
-                  + (redGlobalOffsetForward.getValue() + redOffsetForward[pole - 1].getValue())
-                      * Math.cos(targetAngle)
-                  + (redGlobalOffsetRight.getValue() + redOffsetRight[pole - 1].getValue())
-                      * Math.sin(targetAngle),
-              0.0
-                  + (redGlobalOffsetForward.getValue() + redOffsetForward[pole - 1].getValue())
-                      * Math.sin(targetAngle)
-                  - (redGlobalOffsetRight.getValue() + redOffsetRight[pole - 1].getValue())
-                      * Math.cos(targetAngle));
+      return getRedPose(pole);
     } else {
-      offset =
-          new Translation2d(
-              0.0
-                  + (blueGlobalOffsetForward.getValue() + blueOffsetForward[pole - 1].getValue())
-                      * Math.cos(targetAngle)
-                  + (blueGlobalOffsetRight.getValue() + blueOffsetRight[pole - 1].getValue())
-                      * Math.sin(targetAngle),
-              0.0
-                  + (blueGlobalOffsetForward.getValue() + blueOffsetForward[pole - 1].getValue())
-                      * Math.sin(targetAngle)
-                  - (blueGlobalOffsetRight.getValue() + blueOffsetRight[pole - 1].getValue())
-                      * Math.cos(targetAngle));
+      return getBluePose(pole);
     }
-
-    return new Pose2d(
-        baseReef[pole - 1].getTranslation().plus(offset), baseReef[pole - 1].getRotation());
   }
 
   public Pose2d getRedPose(int pole) {
