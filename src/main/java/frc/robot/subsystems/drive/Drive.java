@@ -257,8 +257,10 @@ public class Drive extends SubsystemBase {
         < 2.5;
   }
 
-  public boolean isAtTarget() {
-    return flipIfRed(getPose()).getTranslation().getDistance(getTargetPose().getTranslation())
+  public boolean isAtTarget(boolean odd) {
+    return flipIfRed(getPose())
+                .getTranslation()
+                .getDistance(getTargetPoseFromSector(odd).getTranslation())
             < 0.07
         && Math.abs(flipIfRed(getPose()).relativeTo(getTargetPose()).getY()) < 0.1;
   }

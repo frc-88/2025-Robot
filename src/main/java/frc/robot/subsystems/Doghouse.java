@@ -110,7 +110,7 @@ public class Doghouse extends SubsystemBase {
 
     reefRangecfg.ProximityParams.ProximityThreshold = 0.28;
     reefRangecfg.ProximityParams.ProximityHysteresis = 0.03;
-    reefRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 1300;
+    reefRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 5000.0;
 
     doghouscfg.ToFParams.UpdateFrequency = 50;
     coralRangecfg.ToFParams.UpdateFrequency = 50;

@@ -99,7 +99,7 @@ public class RobotContainer {
   private DoublePreferenceConstant p_amplitude = new DoublePreferenceConstant("Aplitude", 0);
   private DoublePreferenceConstant p_frequency = new DoublePreferenceConstant("Wavelength", 0);
 
-  private Debouncer reefDebouncer = new Debouncer(0.2);
+  private Debouncer reefDebouncer = new Debouncer(0.1);
   private boolean shootingAlgae = false;
   private boolean getAlgae = false;
   // public Trigger atL4 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL4());
@@ -652,14 +652,14 @@ public class RobotContainer {
             drive.reef(odd, () -> mode),
             () -> drive.getDistanceToPose(odd, () -> mode) < 0.4),
         delay,
-        teleop);
+        odd);
   }
 
   private Command reef(int i, double delay, boolean teleop) {
     return reefAuto(drive.pathFindAuto(i), delay);
   }
 
-  private Command reef(Command reefCommand, double delay, boolean teleop) {
+  private Command reef(Command reefCommand, double delay, boolean odd) {
     return new SequentialCommandGroup(
         new ParallelDeadlineGroup(
             new ConditionalCommand(
@@ -669,10 +669,10 @@ public class RobotContainer {
                             () ->
                                 reefDebouncer.calculate(m_doghouse.getIsReefDetected())
                                     && m_armevator.atMode(() -> mode)
-                                    && drive.isAtTarget()),
+                                    && drive.isAtTarget(odd)),
                         new WaitCommand(3.0)),
                     new WaitUntilCommand(
-                        () -> m_armevator.atMode(() -> mode) && drive.isAtTarget()),
+                        () -> m_armevator.atMode(() -> mode) && drive.isAtTarget(odd)),
                     () -> mode == 4),
                 new ConditionalCommand(
                     new ParallelRaceGroup(
@@ -717,9 +717,9 @@ public class RobotContainer {
                         () ->
                             reefDebouncer.calculate(m_doghouse.getIsReefDetected())
                                 && m_armevator.atMode(() -> mode)
-                                && drive.isAtTarget()),
+                                && drive.isAtTarget(odd)),
                     new WaitUntilCommand(
-                        () -> m_armevator.atMode(() -> mode) && drive.isAtTarget()),
+                        () -> m_armevator.atMode(() -> mode) && drive.isAtTarget(odd)),
                     () -> mode == 4),
                 new ConditionalCommand(
                     new WaitUntilCommand(
@@ -744,7 +744,7 @@ public class RobotContainer {
                     () ->
                         reefDebouncer.calculate(m_doghouse.getIsReefDetected())
                             && m_armevator.atMode(() -> mode)
-                            && drive.isAtTarget()),
+                            && drive.isAtTarget(odd)),
                 new WaitUntilCommand(() -> m_armevator.atMode(() -> mode) && drive.isAtTarget5()),
                 () -> mode == 4),
             DriveCommands.driveMoving(() -> 0.0, () -> 0.8, () -> 0.0, drive),

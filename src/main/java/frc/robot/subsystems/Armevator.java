@@ -522,10 +522,10 @@ public class Armevator extends SubsystemBase {
         () -> {
           if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
             armSetAngle(30.0);
-            elevatorSetPosition(14.5);
+            elevatorSetPosition(15.0);
           } else {
             armSetAngle(30.0);
-            elevatorSetPosition(7.0);
+            elevatorSetPosition(8.0);
           }
         },
         this);
