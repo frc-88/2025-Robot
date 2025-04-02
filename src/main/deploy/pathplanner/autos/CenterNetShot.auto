@@ -35,6 +35,12 @@
           }
         },
         {
+          "type": "path",
+          "data": {
+            "pathName": "NetShotToSafe"
+          }
+        },
+        {
           "type": "named",
           "data": {
             "name": "Clear Algae Mode"
