@@ -119,47 +119,61 @@ public final class Constants {
   // 5.845 4.382
   // 5.845 4.052
 
+  // WPI RED
+  // 5.427, 3.028,
+  // 5.168, 2.878,
+  // 4.133, 2.713,
+  // 3.837, 2.860,
+  // 3.149, 3.701,
+  // 3.149, 4.031,
+  // 3.485, 5.032,
+  // 3.785, 5.170,
+  // 4.881, 5.371,
+  // 5.167, 5.206
+  // 5.845, 4.382
+  // 5.845, 4.052
+
   public static final Map<Integer, Pose2d> REEF_CORAL_POSES_BLUE =
       Map.ofEntries(
-          Map.entry(1, new Pose2d(5.427, 3.028, new Rotation2d(Units.degreesToRadians(120.0)))),
-          Map.entry(2, new Pose2d(5.168, 2.878, new Rotation2d(Units.degreesToRadians(120.0)))),
-          Map.entry(3, new Pose2d(4.133, 2.713, new Rotation2d(Units.degreesToRadians(60.0)))),
-          Map.entry(4, new Pose2d(3.837, 2.860, new Rotation2d(Units.degreesToRadians(60.0)))),
-          Map.entry(5, new Pose2d(3.149, 3.701, new Rotation2d())),
-          Map.entry(6, new Pose2d(3.149, 4.031, new Rotation2d())),
-          Map.entry(7, new Pose2d(3.485, 5.032, new Rotation2d(Units.degreesToRadians(-60.0)))),
-          Map.entry(8, new Pose2d(3.785, 5.170, new Rotation2d(Units.degreesToRadians(-60.0)))),
-          Map.entry(9, new Pose2d(4.881, 5.371, new Rotation2d(Units.degreesToRadians(-120.0)))),
-          Map.entry(10, new Pose2d(5.167, 5.206, new Rotation2d(Units.degreesToRadians(-120.0)))),
-          Map.entry(11, new Pose2d(5.845, 4.382, new Rotation2d(Units.degreesToRadians(180.0)))),
-          Map.entry(12, new Pose2d(5.845, 4.052, new Rotation2d(Units.degreesToRadians(180.0)))));
+          Map.entry(1, new Pose2d(5.441, 3.105, new Rotation2d(Units.degreesToRadians(120.0)))),
+          Map.entry(2, new Pose2d(5.155, 2.940, new Rotation2d(Units.degreesToRadians(120.0)))),
+          Map.entry(3, new Pose2d(4.163, 2.765, new Rotation2d(Units.degreesToRadians(60.0)))),
+          Map.entry(4, new Pose2d(3.877, 2.930, new Rotation2d(Units.degreesToRadians(60.0)))),
+          Map.entry(5, new Pose2d(3.229, 3.701, new Rotation2d())),
+          Map.entry(6, new Pose2d(3.229, 4.031, new Rotation2d())),
+          Map.entry(7, new Pose2d(3.573, 4.978, new Rotation2d(Units.degreesToRadians(-60.0)))),
+          Map.entry(8, new Pose2d(3.859, 5.143, new Rotation2d(Units.degreesToRadians(-60.0)))),
+          Map.entry(9, new Pose2d(4.851, 5.319, new Rotation2d(Units.degreesToRadians(-120.0)))),
+          Map.entry(10, new Pose2d(5.137, 5.154, new Rotation2d(Units.degreesToRadians(-120.0)))),
+          Map.entry(11, new Pose2d(5.785, 4.382, new Rotation2d(Units.degreesToRadians(180.0)))),
+          Map.entry(12, new Pose2d(5.785, 4.052, new Rotation2d(Units.degreesToRadians(180.0)))));
 
   public static final Map<Integer, Pose2d> REEF_CORAL_POSES_RED =
       Map.ofEntries(
-          Map.entry(1, new Pose2d(5.427, 3.028, new Rotation2d(Units.degreesToRadians(120.0)))),
-          Map.entry(2, new Pose2d(5.168, 2.878, new Rotation2d(Units.degreesToRadians(120.0)))),
-          Map.entry(3, new Pose2d(4.133, 2.713, new Rotation2d(Units.degreesToRadians(60.0)))),
-          Map.entry(4, new Pose2d(3.837, 2.860, new Rotation2d(Units.degreesToRadians(60.0)))),
-          Map.entry(5, new Pose2d(3.149, 3.701, new Rotation2d())),
-          Map.entry(6, new Pose2d(3.149, 4.031, new Rotation2d())),
-          Map.entry(7, new Pose2d(3.485, 5.032, new Rotation2d(Units.degreesToRadians(-60.0)))),
-          Map.entry(8, new Pose2d(3.785, 5.170, new Rotation2d(Units.degreesToRadians(-60.0)))),
-          Map.entry(9, new Pose2d(4.881, 5.371, new Rotation2d(Units.degreesToRadians(-120.0)))),
-          Map.entry(10, new Pose2d(5.167, 5.206, new Rotation2d(Units.degreesToRadians(-120.0)))),
-          Map.entry(11, new Pose2d(5.845, 4.382, new Rotation2d(Units.degreesToRadians(180.0)))),
-          Map.entry(12, new Pose2d(5.845, 4.052, new Rotation2d(Units.degreesToRadians(180.0)))));
+          Map.entry(1, new Pose2d(5.441, 3.105, new Rotation2d(Units.degreesToRadians(120.0)))),
+          Map.entry(2, new Pose2d(5.155, 2.940, new Rotation2d(Units.degreesToRadians(120.0)))),
+          Map.entry(3, new Pose2d(4.163, 2.765, new Rotation2d(Units.degreesToRadians(60.0)))),
+          Map.entry(4, new Pose2d(3.877, 2.930, new Rotation2d(Units.degreesToRadians(60.0)))),
+          Map.entry(5, new Pose2d(3.229, 3.701, new Rotation2d())),
+          Map.entry(6, new Pose2d(3.229, 4.031, new Rotation2d())),
+          Map.entry(7, new Pose2d(3.573, 4.978, new Rotation2d(Units.degreesToRadians(-60.0)))),
+          Map.entry(8, new Pose2d(3.859, 5.143, new Rotation2d(Units.degreesToRadians(-60.0)))),
+          Map.entry(9, new Pose2d(4.851, 5.319, new Rotation2d(Units.degreesToRadians(-120.0)))),
+          Map.entry(10, new Pose2d(5.137, 5.154, new Rotation2d(Units.degreesToRadians(-120.0)))),
+          Map.entry(11, new Pose2d(5.785, 4.382, new Rotation2d(Units.degreesToRadians(180.0)))),
+          Map.entry(12, new Pose2d(5.785, 4.052, new Rotation2d(Units.degreesToRadians(180.0)))));
 
-  public static Pose2d SECTOR3ALGAE = new Pose2d(3.2, 3.85, new Rotation2d());
+  public static Pose2d SECTOR3ALGAE = new Pose2d(3.22, 3.855, new Rotation2d());
   public static Pose2d SECTOR2ALGAE =
-      new Pose2d(3.892, 2.778, new Rotation2d(Units.degreesToRadians(60.0)));
+      new Pose2d(4.005, 2.835, new Rotation2d(Units.degreesToRadians(60.0)));
   public static Pose2d SECTOR6ALGAE =
-      new Pose2d(5.7825, 4.16, new Rotation2d(Units.degreesToRadians(180.0)));
+      new Pose2d(5.76, 4.2, new Rotation2d(Units.degreesToRadians(180.0)));
   public static Pose2d SECTOR1ALGAE =
-      new Pose2d(5.298, 3.0225, new Rotation2d(Units.degreesToRadians(120.0)));
+      new Pose2d(5.275, 3.01, new Rotation2d(Units.degreesToRadians(120.0)));
   public static Pose2d SECTOR5ALGAE =
-      new Pose2d(5.002, 5.255, new Rotation2d(Units.degreesToRadians(-120.0)));
+      new Pose2d(4.975, 5.215, new Rotation2d(Units.degreesToRadians(-120.0)));
   public static Pose2d SECTOR4ALGAE =
-      new Pose2d(3.716, 5.0605, new Rotation2d(Units.degreesToRadians(-60.0)));
+      new Pose2d(3.7, 5.04, new Rotation2d(Units.degreesToRadians(-60.0)));
 
   public static Map<Integer, Pose2d> REEF_CORAL_L1_POSES =
       Map.ofEntries(

@@ -312,6 +312,7 @@ public class RobotContainer {
     SmartDashboard.putData("Score 2", scoreAuto(2));
     SmartDashboard.putData("Score 3", scoreAuto(3));
     SmartDashboard.putData("Score 4", scoreAuto(4));
+    SmartDashboard.putData("Wheel Radiua", DriveCommands.wheelRadiusCharacterization(drive));
     // SmartDashboard.putData("TripleL1Right", pathFinder.setGoalPosition(new
     // Translation2d(4.1148)));
   }
@@ -599,16 +600,21 @@ public class RobotContainer {
 
   public Command shootInNet() {
     // return m_armevator.shootInNetFactory();
-    return new ParallelCommandGroup(
-        new WaitUntilCommand(m_armevator::atShootHeight)
-            .andThen(
-                m_doghouse
-                    .shootAlgaeFactory()
-                    .alongWith(
-                        new InstantCommand(
-                            () -> Logger.recordOutput("AlgaeShot", drive.getPose())))),
-        m_armevator.shootInNetFactory(),
-        driverControl());
+    return new ParallelDeadlineGroup(
+            new WaitUntilCommand(m_armevator::atShootHeight)
+                .andThen(
+                    m_doghouse
+                        .shootAlgaeFactory()
+                        .alongWith(
+                            new InstantCommand(
+                                () -> Logger.recordOutput("AlgaeShot", drive.getPose())))),
+            m_armevator.shootInNetFactory(),
+            driverControl())
+        .andThen(
+            new ParallelCommandGroup(
+                m_armevator.stowFactory(),
+                driverControl(),
+                m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
   }
 
   private Command goToTiltAngleFactory() {
@@ -645,12 +651,17 @@ public class RobotContainer {
   private Command reef(boolean odd, double delay, boolean teleop) {
     return reef(
         new ConditionalCommand(
-            new ConditionalCommand(
-                DriveCommands.driveToPose(() -> drive.getL1Pose(), drive),
-                DriveCommands.driveToPose(() -> drive.getTargetPoseFromSector(odd), drive),
-                () -> mode == 1),
-            drive.reef(odd, () -> mode),
-            () -> drive.getDistanceToPose(odd, () -> mode) < 0.4),
+                new ConditionalCommand(
+                    DriveCommands.driveToPose(() -> drive.getL1Pose(), drive),
+                    DriveCommands.driveToPose(() -> drive.getTargetPoseFromSector(odd), drive),
+                    () -> mode == 1),
+                drive.reef(odd, () -> mode),
+                () -> drive.getDistanceToPose(odd, () -> mode) < 0.5)
+            .alongWith(
+                new InstantCommand(
+                    () ->
+                        Logger.recordOutput(
+                            "Distance To Target Pose", drive.getDistanceToPose(odd, () -> mode)))),
         delay,
         odd);
   }
@@ -670,7 +681,7 @@ public class RobotContainer {
                                 reefDebouncer.calculate(m_doghouse.getIsReefDetected())
                                     && m_armevator.atMode(() -> mode)
                                     && drive.isAtTarget(odd)),
-                        new WaitCommand(3.0)),
+                        new WaitCommand(2.5)),
                     new WaitUntilCommand(
                         () -> m_armevator.atMode(() -> mode) && drive.isAtTarget(odd)),
                     () -> mode == 4),
@@ -680,7 +691,7 @@ public class RobotContainer {
                             () ->
                                 reefDebouncer.calculate(m_doghouse.getIsReefDetected())
                                     && m_armevator.atMode(() -> mode)),
-                        new WaitCommand(3.0)),
+                        new WaitCommand(2.5)),
                     new WaitUntilCommand(
                         () -> m_armevator.atMode(() -> mode) && drive.isShootingDistance()),
                     () -> mode == 4),

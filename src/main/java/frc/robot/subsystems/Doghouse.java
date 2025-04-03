@@ -363,7 +363,7 @@ public class Doghouse extends SubsystemBase {
               algaeMode = false;
             },
             this)
-        .withTimeout(1.0);
+        .withTimeout(0.5);
   }
 
   public Command setAlgaeModeFactory() {

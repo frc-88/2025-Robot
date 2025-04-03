@@ -188,7 +188,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void armGotoAlgaePickup() {
-    armSetAngle(45.0);
+    armSetAngle(35.0);
   }
 
   private void armGotoPrefPosition() {
