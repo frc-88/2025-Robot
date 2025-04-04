@@ -102,11 +102,14 @@ public class RobotContainer {
   private Debouncer reefDebouncer = new Debouncer(0.1);
   private boolean shootingAlgae = false;
   private boolean getAlgae = false;
-  // public Trigger atL4 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL4());
-  // public Trigger atL3 = new Trigger(() -> hasCoralDebounced() && m_armevator.atL3());
+  // public Trigger atL4 = new Trigger(() -> hasCoralDebounced() &&
+  // m_armevator.atL4());
+  // public Trigger atL3 = new Trigger(() -> hasCoralDebounced() &&
+  // m_armevator.atL3());
   // public Trigger atL2 =
-  //     new Trigger(
-  //         () -> hasCoralDebounced() && m_armevator.atL2() && m_doghouse.getIsReefDetected());
+  // new Trigger(
+  // () -> hasCoralDebounced() && m_armevator.atL2() &&
+  // m_doghouse.getIsReefDetected());
   public int mode = 4;
 
   public RobotContainer() {
@@ -169,7 +172,8 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
-    // ready functions replaced with lambdas returning true for now...need to be implemented in each
+    // ready functions replaced with lambdas returning true for now...need to be
+    // implemented in each
     // subsystem
     lights =
         new Lights(
@@ -188,15 +192,17 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
     // autoChooser.addOption(
-    //     "Drive SysId (Quasistatic Forward)",
-    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // "Drive SysId (Quasistatic Forward)",
+    // drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
     // autoChooser.addOption(
-    //     "Drive SysId (Quasistatic Reverse)",
-    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    // "Drive SysId (Quasistatic Reverse)",
+    // drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
     // autoChooser.addOption(
-    //     "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // "Drive SysId (Dynamic Forward)",
+    // drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     // autoChooser.addOption(
-    //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // "Drive SysId (Dynamic Reverse)",
+    // drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // Configure the button bindings
     configureButtonBindings();
@@ -290,7 +296,8 @@ public class RobotContainer {
     SmartDashboard.putData("SetGasMotorRotations", climber.setGasMotorRotationsFactory());
     SmartDashboard.putData("StopGasMotor", climber.stopGasMotorFactory());
     // SmartDashboard.putData(
-    //     "CalibrateGasMotor", climber.calibrateGasMotorFactory().ignoringDisable(true));
+    // "CalibrateGasMotor",
+    // climber.calibrateGasMotorFactory().ignoringDisable(true));
     SmartDashboard.putData("SetPositionInches", climber.setGasMotorInchesFactory());
     SmartDashboard.putData(
         "Calibrate Encoder", climber.calibrateEncoderFactory().ignoringDisable(true));
@@ -667,7 +674,7 @@ public class RobotContainer {
   }
 
   private Command reef(int i, double delay, boolean teleop) {
-    return reefAuto(drive.pathFindAuto(i), delay);
+    return reefAuto(drive.pathFind(i), delay, i % 2 == 1);
   }
 
   private Command reef(Command reefCommand, double delay, boolean odd) {
@@ -710,13 +717,20 @@ public class RobotContainer {
         shootCommand(delay));
   }
 
-  public Command reefAuto(Command command, double delay) {
+  public Command reefAuto(Command reefCommand, double delay, boolean odd) {
     return new SequentialCommandGroup(
         new ParallelDeadlineGroup(
-            command,
-            new WaitUntilCommand(drive::isElevatorDistance)
-                .andThen(m_armevator.scoreAll(() -> mode))),
-        shootCommandAuto(delay));
+            new WaitUntilCommand(() -> m_armevator.atMode(() -> mode) && drive.isAtTarget(odd)),
+            reefCommand,
+            m_doghouse
+                .coralIntakeFactory(() -> m_armevator.isElevatorDown())
+                .until(() -> drive.isElevatorDistance() && m_doghouse.hasCoral())
+                .andThen(
+                    m_armevator
+                        .scoreAll(() -> mode)
+                        .alongWith(m_doghouse.autoLiftingElevatorFactory()))),
+        // teleop ? shootCommand(delay) : shootCommandAuto(delay));
+        shootCommand(delay));
   }
 
   private Command reefNoShoot(boolean odd) {
@@ -793,5 +807,9 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public void autoInit() {
+    m_doghouse.zeroManipulator();
   }
 }
