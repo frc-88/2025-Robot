@@ -313,7 +313,8 @@ public class Armevator extends SubsystemBase {
 
   public boolean atMode(IntSupplier i) {
     if (i.getAsInt() == 4) {
-      return Math.abs(getArmAngle() - Constants.ARM_L4_ANGLE) < 1.2;
+      return getArmAngle() > (Constants.ARM_L4_ANGLE - 1.2)
+          && getArmAngle() < (Constants.ARM_L4_ANGLE + 2.7);
     } else if (i.getAsInt() == 3) {
       return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L3_HEIGHT) < 1.0;
     } else {
