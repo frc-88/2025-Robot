@@ -19,7 +19,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Reef Even"
+            "name": "Reef 1"
           }
         },
         {
@@ -37,7 +37,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector1ToStation"
+                              "pathName": "Sector1ToSector2"
                             }
                           },
                           {
@@ -56,15 +56,9 @@
                       }
                     },
                     {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 0.01
-                      }
-                    },
-                    {
                       "type": "named",
                       "data": {
-                        "name": "Reef Even"
+                        "name": "Reef 4"
                       }
                     }
                   ]
@@ -88,7 +82,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector2ToStation"
+                              "pathName": "Sector2ToSector2"
                             }
                           },
                           {
@@ -107,15 +101,9 @@
                       }
                     },
                     {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 0.01
-                      }
-                    },
-                    {
                       "type": "named",
                       "data": {
-                        "name": "Reef Odd"
+                        "name": "Reef 3"
                       }
                     }
                   ]
@@ -131,32 +119,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Sector2ToStation"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Stow"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Get Coral"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "deadline",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "RightStationToSector3"
+                  "pathName": "Sector2ToSector3"
                 }
               },
               {
@@ -177,7 +140,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Reef Even"
+            "name": "Reef 5"
           }
         }
       ]

@@ -7,9 +7,12 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.ForwardLimitSourceValue;
+import com.ctre.phoenix6.signals.ForwardLimitTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
@@ -21,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 
@@ -44,10 +48,12 @@ public class Doghouse extends SubsystemBase {
       new DoublePreferenceConstant("Doghouse/Manipulator/ShootSpeed", -0.3);
   private final DoublePreferenceConstant p_manipulatorCurrentLimit =
       new DoublePreferenceConstant("Doghouse/Manipulator/CurrentLimit", 120);
+  private final PIDPreferenceConstants p_manipulatorPID =
+      new PIDPreferenceConstants("Doghouse/Manipulator/PID");
 
   private final DutyCycleOut m_funnelRequest = new DutyCycleOut(0.0);
   private final DutyCycleOut m_manipulatorRequest = new DutyCycleOut(0.0);
-  private final TorqueCurrentFOC m_algaePickupRequest = new TorqueCurrentFOC(-80.0);
+  private final TorqueCurrentFOC m_algaePickupRequest = new TorqueCurrentFOC(-60.0);
 
   private boolean algaeMode = false;
 
@@ -55,6 +61,7 @@ public class Doghouse extends SubsystemBase {
   private boolean m_algaeCaptured = false;
   private Debouncer m_algaeDebouncer = new Debouncer(1.0);
 
+  private PositionVoltage request = new PositionVoltage(0.0);
   // who made the doghouse?
   // and why is it named like that?
   // ask us in the pit!
@@ -71,7 +78,18 @@ public class Doghouse extends SubsystemBase {
     TalonFXConfiguration manipulatorConfiguration = new TalonFXConfiguration();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimit =
         p_manipulatorCurrentLimit.getValue();
+    manipulatorConfiguration.Slot0.kP = p_manipulatorPID.getKP().getValue();
+    manipulatorConfiguration.Slot0.kI = p_manipulatorPID.getKI().getValue();
+    manipulatorConfiguration.Slot0.kD = p_manipulatorPID.getKD().getValue();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
+    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitAutosetPositionEnable = true;
+    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitAutosetPositionValue = 0;
+    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitType =
+        ForwardLimitTypeValue.NormallyOpen;
+    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitSource =
+        ForwardLimitSourceValue.RemoteCANrange;
+    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitRemoteSensorID =
+        Constants.DOGHOUSE_CANRANGE;
     m_manipulator.getConfigurator().apply(manipulatorConfiguration);
     m_manipulator.setNeutralMode(NeutralModeValue.Brake);
     configureCANrange();
@@ -92,7 +110,7 @@ public class Doghouse extends SubsystemBase {
 
     reefRangecfg.ProximityParams.ProximityThreshold = 0.28;
     reefRangecfg.ProximityParams.ProximityHysteresis = 0.03;
-    reefRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 1300;
+    reefRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 5000.0;
 
     doghouscfg.ToFParams.UpdateFrequency = 50;
     coralRangecfg.ToFParams.UpdateFrequency = 50;
@@ -162,6 +180,10 @@ public class Doghouse extends SubsystemBase {
     setFunnelSpeed(-1.0);
   }
 
+  private void funnelBackwardsSlow() {
+    setFunnelSpeed(-0.2);
+  }
+
   private void manipulatorStop() {
     setManipulatorSpeed(0.0);
   }
@@ -175,7 +197,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorSlow() {
-    setManipulatorSpeed(-0.14);
+    setManipulatorSpeed(-0.12);
   }
 
   private void manipulatorAlgaeSlow() {
@@ -197,7 +219,11 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorL1Speed() {
-    setManipulatorSpeed(-0.15);
+    setManipulatorSpeed(-0.25);
+  }
+
+  private void manipulatorHoldPosition() {
+    m_manipulator.setControl(request.withPosition(0.0));
   }
 
   private void setAlgae() {
@@ -231,6 +257,10 @@ public class Doghouse extends SubsystemBase {
             });
   }
 
+  public Command algae() {
+    return new RunCommand(() -> algaePickup(), this);
+  }
+
   public Command setAlgaeSlowFactory() {
     return new RunCommand(() -> manipulatorAlgaeSlow(), this);
   }
@@ -245,16 +275,16 @@ public class Doghouse extends SubsystemBase {
           if (!algaeMode) {
             if (!elevatorDown.getAsBoolean() & !isBlocked()) {
               manipulatorStop();
-              funnelStop();
+              funnelBackwardsSlow();
               // maybe funnel slow backwards
             } else if (!elevatorDown.getAsBoolean() & isBlocked()) {
               manipulatorSlow();
-              funnelSlow();
+              funnelBackwardsSlow();
             } else if (!hasCoral()) {
               manipulatorIn();
               funnelGo();
             } else if (hasCoral() & !isBlocked()) {
-              manipulatorStop();
+              manipulatorHoldPosition();
               funnelStop();
             } else if (isBlocked()) {
               manipulatorSlow();
@@ -298,14 +328,14 @@ public class Doghouse extends SubsystemBase {
             });
   }
 
-  public Command shootFullSpeedFactory() {
+  public Command shootFullSpeedFactory(double delay) {
     return new RunCommand(
             () -> {
               manipulatorFullSpeed();
               algaeMode = false;
             },
             this)
-        .withTimeout(1.0)
+        .withTimeout(delay)
         .andThen(
             () -> {
               manipulatorStop();

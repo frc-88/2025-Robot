@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.263733552631578,
-        "y": 4.45797697368421
+        "x": 6.362452869610575,
+        "y": 4.33287825340297
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.5337993421052625,
-        "y": 4.765871710526316
+        "x": 7.4,
+        "y": 4.766
       },
       "prevControl": {
-        "x": 5.926973684210526,
-        "y": 4.765871710526316
+        "x": 5.758070962014052,
+        "y": 4.704799253704604
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "NetShot"
     }
   ],
   "rotationTargets": [],
@@ -33,8 +33,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 4.0,
-    "maxAcceleration": 4.5,
+    "maxVelocity": 3.0,
+    "maxAcceleration": 2.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 179.0608090542645
+    "rotation": -2.809927719134843
   },
   "reversed": false,
   "folder": null,
@@ -50,5 +50,5 @@
     "velocity": 0,
     "rotation": 179.0580167902427
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

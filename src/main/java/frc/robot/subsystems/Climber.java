@@ -33,6 +33,7 @@ import frc.robot.Constants;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 public class Climber extends SubsystemBase {
   private DoublePreferenceConstant p_grippermaxVelocity =
@@ -166,8 +167,18 @@ public class Climber extends SubsystemBase {
     return (inches / Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH) * 1.21;
   }
 
+  public double getGasMotorPosition() {
+    return m_gasmotor.getPosition().getValueAsDouble() * Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH;
+  }
+
+  @AutoLogOutput(key = "Climber/GripperPosition")
   public double getGripperPositionRotations() {
     return m_gripper.getPosition().getValueAsDouble();
+  }
+
+  @AutoLogOutput(key = "Climber/CageDistance")
+  private double getCageDistance() {
+    return m_canRange.getDistance().getValueAsDouble() * 100.0;
   }
 
   public boolean shouldClose() {
@@ -204,11 +215,13 @@ public class Climber extends SubsystemBase {
     return Math.abs(getGripperPositionRotations()) < 3.0;
   }
 
+  @AutoLogOutput(key = "Climber/Angle")
   public double getAngleOfClimber() {
     return m_climberEncoder.getPosition().getValueAsDouble()
         * Constants.CLIMBER_ENCODER_ROTATIONS_TO_ANGLE;
   }
 
+  @AutoLogOutput(key = "Climber/WinchPosition")
   public double getPositionGasMotorRotations() {
     return m_gasmotor.getPosition().getValueAsDouble();
   }
@@ -413,11 +426,19 @@ public class Climber extends SubsystemBase {
 
   public Command prepClimber() {
     return new RunCommand(
-        () -> {
-          setGasMotorPositionRotations(p_gasmotorPositionRotations.getValue());
-          openGrabber();
-        },
-        this);
+            () -> {
+              setGasMotorPositionRotations(p_gasmotorPositionRotations.getValue());
+              // openGrabber();
+            },
+            this)
+        .until(() -> getGasMotorPosition() > 4.0)
+        .andThen(
+            new RunCommand(
+                () -> {
+                  setGasMotorPositionRotations(p_gasmotorPositionRotations.getValue());
+                  openGrabber();
+                },
+                this));
   }
 
   @Override
@@ -436,7 +457,6 @@ public class Climber extends SubsystemBase {
     SmartDashboard.putBoolean(
         "Is braked", m_gripper.getControlMode().getValue() == ControlModeValue.StaticBrake);
     SmartDashboard.putBoolean("try to climb", shouldClose() && RobotState.isEnabled());
-    SmartDashboard.putNumber(
-        "canrange distance", m_canRange.getDistance().getValueAsDouble() * 100.0);
+    SmartDashboard.putNumber("canrange distance", getCageDistance());
   }
 }

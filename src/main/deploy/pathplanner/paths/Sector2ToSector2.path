@@ -3,35 +3,51 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.1787243150684934,
-        "y": 3.4840753424657533
+        "x": 3.426,
+        "y": 2.267
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.0052491168444746,
-        "y": 3.0913458548200423
+        "x": 2.710416620631813,
+        "y": 1.2293212450232482
       },
       "isLocked": false,
-      "linkedName": "ReefA"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.5326198630136987,
-        "y": 0.7193493150684935
+        "x": 1.4574914383561646,
+        "y": 0.7944777397260271
       },
       "prevControl": {
-        "x": 1.611907936085137,
-        "y": 1.08707029085227
+        "x": 1.7580051369863015,
+        "y": 0.5841181506849308
+      },
+      "nextControl": {
+        "x": 0.9283542371575816,
+        "y": 1.1648737805650358
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.5554378314229815,
+        "y": 2.3129784125109984
+      },
+      "prevControl": {
+        "x": 2.494263698630137,
+        "y": 1.5908390410958908
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "RightCoralStation"
+      "linkedName": null
     }
   ],
   "rotationTargets": [
     {
       "waypointRelativePos": 1,
-      "rotationDegrees": 55.0
+      "rotationDegrees": 52.94938383006005
     }
   ],
   "constraintZones": [],
@@ -46,14 +62,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
-    "rotation": 55.0
+    "velocity": 1.0,
+    "rotation": 53.47045945604319
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 58.11977401286697
   },
   "useDefaultConstraints": true
 }

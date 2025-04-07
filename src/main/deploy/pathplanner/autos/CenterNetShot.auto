@@ -19,38 +19,31 @@
         {
           "type": "named",
           "data": {
-            "name": "Score Odd"
+            "name": "Set Algae Mode"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Shoot"
+            "name": "Reef Odd"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CenterToNetShot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "NetShotToSafe"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Dealgae"
-          }
-        },
-        {
-          "type": "deadline",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CenterToNetShot"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Score Algae"
-                }
-              }
-            ]
+            "name": "Clear Algae Mode"
           }
         }
       ]
