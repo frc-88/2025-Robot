@@ -211,7 +211,7 @@ public class Drive extends SubsystemBase {
         && modules[3].isReady();
   }
 
-  private boolean weAreRed() {
+  public boolean weAreRed() {
     return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
   }
 
@@ -274,7 +274,7 @@ public class Drive extends SubsystemBase {
   }
 
   public boolean isFacingForward() {
-    return Math.abs(flipIfRed(getPose()).getRotation().getDegrees()) < 10.0;
+    return Math.abs(flipIfRed(getPose()).getRotation().getDegrees()) < 20.0;
   }
 
   public boolean shouldShootAlgae() {

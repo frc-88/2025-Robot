@@ -269,6 +269,15 @@ public class Doghouse extends SubsystemBase {
     return m_manipulator.getSupplyCurrent().getValueAsDouble() > 20.0;
   }
 
+  public Command autoLiftingElevatorFactory() {
+    return new RunCommand(
+        () -> {
+          funnelBackwards();
+          manipulatorHoldPosition();
+        },
+        this);
+  }
+
   public Command coralIntakeFactory(BooleanSupplier elevatorDown) {
     return new RunCommand(
         () -> {
@@ -363,7 +372,7 @@ public class Doghouse extends SubsystemBase {
               algaeMode = false;
             },
             this)
-        .withTimeout(1.0);
+        .withTimeout(0.5);
   }
 
   public Command setAlgaeModeFactory() {
@@ -384,5 +393,9 @@ public class Doghouse extends SubsystemBase {
     SmartDashboard.putBoolean("Doghouse/Is Blocked", isBlocked());
     SmartDashboard.putBoolean("Doghouse/Reef", m_reefRange.getIsDetected().getValue());
     SmartDashboard.putBoolean("isAlgae", algaeMode);
+  }
+
+  public void zeroManipulator() {
+    m_manipulator.setPosition(0);
   }
 }
