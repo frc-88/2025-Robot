@@ -153,7 +153,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void armCalibrate() {
-    m_arm.setPosition(m_encoder.getAbsolutePosition().getValueAsDouble() * 112.0);
+    m_arm.setPosition(m_encoder.getAbsolutePosition().getValueAsDouble() * 48.0);
   }
 
   private void elevatorCalibrate() {
