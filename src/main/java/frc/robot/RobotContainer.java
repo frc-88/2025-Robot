@@ -228,10 +228,11 @@ public class RobotContainer {
     NamedCommands.registerCommand("Reef Even", reef(false, 0.5, false));
     NamedCommands.registerCommand("Reef Odd", reef(true, 0.5, false));
     for (int i = 1; i <= 12; i++) {
-      NamedCommands.registerCommand("Reef " + i, reef(i, 0.5, false));
+      NamedCommands.registerCommand("Reef " + i, reef(i, 0.4, false));
     }
     NamedCommands.registerCommand("Set Algae Mode", new InstantCommand(() -> getAlgae = true));
     NamedCommands.registerCommand("Clear Algae Mode", new InstantCommand(() -> getAlgae = false));
+    NamedCommands.registerCommand("Go To L4", m_armevator.L4Factory());
 
     PathfindingCommand.warmupCommand().schedule();
     FollowPathCommand.warmupCommand().schedule();
@@ -720,17 +721,21 @@ public class RobotContainer {
   public Command reefAuto(Command reefCommand, double delay, boolean odd) {
     return new SequentialCommandGroup(
         new ParallelDeadlineGroup(
-            new WaitUntilCommand(() -> m_armevator.atMode(() -> mode) && drive.isAtTarget(odd)),
+            new WaitUntilCommand(
+                () ->
+                    (m_armevator.atMode(() -> mode)
+                            || (!m_doghouse.hasCoral() && !m_doghouse.isBlocked()))
+                        && drive.isAtTarget(odd)),
             reefCommand,
             m_doghouse
                 .coralIntakeFactory(() -> m_armevator.isElevatorDown())
-                .until(() -> drive.isElevatorDistance() && m_doghouse.hasCoral())
+                .until(() -> drive.isElevatorDistance(6) && m_doghouse.hasCoral())
                 .andThen(
                     m_armevator
                         .scoreAll(() -> mode)
                         .alongWith(m_doghouse.autoLiftingElevatorFactory()))),
         // teleop ? shootCommand(delay) : shootCommandAuto(delay));
-        shootCommand(delay));
+        shootCommand(delay).unless(() -> !m_doghouse.hasCoral() && !m_doghouse.isBlocked()));
   }
 
   private Command reefNoShoot(boolean odd) {

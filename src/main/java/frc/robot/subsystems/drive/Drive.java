@@ -252,9 +252,13 @@ public class Drive extends SubsystemBase {
         < 1.40;
   }
 
-  public boolean isElevatorDistance() {
+  public boolean isElevatorDistance(double distance) {
     return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
-        < 2.5;
+        < distance;
+  }
+
+  public boolean isElevatorDistance() {
+    return isElevatorDistance(2.5);
   }
 
   public boolean isAtTarget(boolean odd) {
@@ -378,6 +382,12 @@ public class Drive extends SubsystemBase {
     return angle;
   }
 
+  private double aimAtReefCenter() {
+    double angle = getAngleToReef(nextPose(0.5));
+    angle = weAreRed() ? angle : angle + 180.0;
+    return angle;
+  }
+
   public void enableAutoAim() {
     m_autoaim = true;
   }
@@ -389,24 +399,25 @@ public class Drive extends SubsystemBase {
   public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
     if (!m_autoaim) {
       return getPose().getRotation().getDegrees();
-    } else if (hasCoral.getAsBoolean()) {
-      return aimAtReef();
-    } else if (!isNearReef() && !(flipIfRed(getPose()).getX() > 4.4)) {
-      return aimAtStation();
-    } else if (flipIfRed(getPose()).getX() > 4.4) {
+    } else if (flipIfRed(getPose()).getX() > 7.0) {
       return getPose().getRotation().getDegrees();
     } else {
-      return getPose().getRotation().getDegrees();
+      // return aimAtReef();
+      return aimAtReefCenter();
     }
   }
 
-  public Pose2d nextPose() {
+  public Pose2d nextPose(double lookAhead) {
     Pose2d current = getPose();
     double x = getChassisSpeeds().vxMetersPerSecond;
     double y = getChassisSpeeds().vyMetersPerSecond;
 
     return new Pose2d(
-        current.getX() + (x * 0.1), current.getY() + (y * 0.1), current.getRotation());
+        current.getX() + (x * lookAhead), current.getY() + (y * lookAhead), current.getRotation());
+  }
+
+  public Pose2d nextPose() {
+    return nextPose(0.1);
   }
 
   public int getTargetSector() {
