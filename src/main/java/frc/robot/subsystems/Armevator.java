@@ -294,12 +294,20 @@ public class Armevator extends SubsystemBase {
     armGoToAlgaeStow();
   }
 
+  private void stowArmAlgaeProcessor() {
+    armSetAngle(55.0);
+  }
+
   private void stowElevator() {
     elevatorSetPosition(0.0);
   }
 
   private void stowElevatorAlgae() {
     elevatorSetPosition(11.0);
+  }
+
+  private void stowElevatorAlgaeProcessor() {
+    elevatorSetPosition(0.0);
   }
 
   private void goToOneInch() {
@@ -351,6 +359,17 @@ public class Armevator extends SubsystemBase {
         () -> {
           stowArmAlgae();
           stowElevatorAlgae();
+        },
+        this);
+  }
+
+  public Command stowProcessor() {
+    return new RunCommand(
+        () -> {
+          if (getElevatorPositionInches() < 5.0) {
+            stowArmAlgaeProcessor();
+          }
+          stowElevatorAlgaeProcessor();
         },
         this);
   }
@@ -478,9 +497,12 @@ public class Armevator extends SubsystemBase {
     return new RunCommand(() -> armGotoPrefPosition(), this);
   }
 
-  public Command defaultCommand(BooleanSupplier isAlgae) {
+  public Command defaultCommand(BooleanSupplier isAlgae, BooleanSupplier processor) {
     return new ConditionalCommand(
-        new ConditionalCommand(AlgaestowFactory(), stowFactory(), isAlgae),
+        new ConditionalCommand(
+            AlgaestowFactory(),
+            new ConditionalCommand(stowProcessor(), stowFactory(), processor),
+            isAlgae),
         calibrateBothFactory(),
         () -> m_calibrated);
   }
