@@ -107,12 +107,24 @@ public class DriveCommands {
   }
 
   public static Command driveMoving(
-      DoubleSupplier x, DoubleSupplier y, DoubleSupplier omega, Drive drive) {
+      DoubleSupplier x, DoubleSupplier y, Supplier<Rotation2d> angleSupplier, Drive drive) {
+
+    ProfiledPIDController angleController =
+        new ProfiledPIDController(
+            ANGLE_KP,
+            0.0,
+            ANGLE_KD,
+            new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
+    angleController.enableContinuousInput(-Math.PI, Math.PI);
+    angleController.setTolerance(0.017);
     return Commands.run(
         () -> {
           // Convert to field relative speeds & send command
-          ChassisSpeeds speeds =
-              new ChassisSpeeds(x.getAsDouble(), y.getAsDouble(), omega.getAsDouble());
+          double omega =
+              angleController.calculate(
+                  drive.getRotation().getRadians(),
+                  angleSupplier.get().getRadians() + (drive.weAreRed() ? Math.PI : 0.0));
+          ChassisSpeeds speeds = new ChassisSpeeds(x.getAsDouble(), y.getAsDouble(), omega);
           boolean isFlipped =
               DriverStation.getAlliance().isPresent()
                   && DriverStation.getAlliance().get() == Alliance.Red;
@@ -195,13 +207,13 @@ public class DriveCommands {
         // Reset PID controller when command starts
         .beforeStarting(
             () -> {
+              ChassisSpeeds speeds = drive.getChassisVelocity();
+              Translation2d translation =
+                  new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond)
+                      .rotateBy(drive.flipIfRed(drive.getPose()).getRotation());
               angleController.reset(drive.getRotation().getRadians());
-              driveControllerX.reset(
-                  drive.flipIfRed(drive.getPose()).getX(),
-                  drive.getChassisVelocity().vxMetersPerSecond);
-              driveControllerY.reset(
-                  drive.flipIfRed(drive.getPose()).getY(),
-                  drive.getChassisVelocity().vyMetersPerSecond);
+              driveControllerX.reset(drive.flipIfRed(drive.getPose()).getX(), translation.getX());
+              driveControllerY.reset(drive.flipIfRed(drive.getPose()).getY(), translation.getY());
             });
   }
   /**
