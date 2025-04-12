@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.936729452054794,
-        "y": 2.236943493150685
+        "x": 4.056934931506849,
+        "y": 2.462328767123288
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.4072357048253323,
-        "y": 1.4338272057630068
+        "x": 3.5274411842773867,
+        "y": 1.6592124797356098
       },
       "isLocked": false,
       "linkedName": "Sector2"
@@ -66,7 +66,21 @@
       "rotationDegrees": 52.94938383006005
     }
   ],
-  "constraintZones": [],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.8857142857142852,
+      "maxWaypointRelativePos": 2.2357142857142867,
+      "constraints": {
+        "maxVelocity": 1.5,
+        "maxAcceleration": 4.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
