@@ -375,7 +375,7 @@ public class RobotContainer {
         .onTrue(DriveCommands.driveToPose(() -> drive.getTargetAlgaePoseFromSector(), drive));
     controller
         .povLeft()
-        .onTrue(DriveCommands.driveThenScore(() -> drive.getTargetPoseFromSector(true), drive));
+        .onTrue(DriveCommands.driveThenScore(() -> Constants.REEF_CORAL_POSES_RED.get(6), drive));
     controller.rightTrigger().onTrue(shootCommand(0.5).andThen(onShoot()));
     controller
         .leftTrigger()
@@ -450,7 +450,7 @@ public class RobotContainer {
 
     controller
         .a()
-        .onTrue(DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
+        .onTrue(DriveCommands.driveMoving(() -> 1.3, () -> 0.0, () -> Rotation2d.kZero, drive))
         .onFalse(driverControl());
 
     controller.y().toggleOnTrue(driverControl());
@@ -647,7 +647,7 @@ public class RobotContainer {
                             new InstantCommand(
                                 () -> Logger.recordOutput("AlgaeShot", drive.getPose())))),
             m_armevator.shootInNetFactory(),
-            DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
+            DriveCommands.driveMoving(() -> 1.3, () -> 0.0, () -> Rotation2d.kZero, drive))
         .andThen(
             new ParallelCommandGroup(
                 m_armevator.stowFactory(),
@@ -728,10 +728,8 @@ public class RobotContainer {
     return reefAuto(drive.pathFind(i), delay, i % 2 == 1);
   }
 
-  
   private Command reef(Command reefCommand, double delay, boolean odd) {
     return new SequentialCommandGroup(
-
         new ParallelDeadlineGroup(
             new ConditionalCommand(
                 new ConditionalCommand(

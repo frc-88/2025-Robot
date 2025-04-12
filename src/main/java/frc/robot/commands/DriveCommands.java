@@ -54,6 +54,7 @@ public class DriveCommands {
 
   private static double m_distance = 0.0;
   private static Translation2d m_inital = Translation2d.kZero;
+  private static Pose2d m_target = Pose2d.kZero;
 
   private DriveCommands() {}
 
@@ -148,10 +149,10 @@ public class DriveCommands {
 
   public static Command driveThenScore(Supplier<Pose2d> poseSupplier, Drive drive) {
     return new SequentialCommandGroup(
-        drive(poseSupplier, drive).withTimeout(2.0),
+        drive(poseSupplier, drive).withTimeout(4.0),
         driveMoving(
-            () -> 0.8 * Math.cos(poseSupplier.get().getRotation().getRadians() + (Math.PI / 2.0)),
-            () -> 0.8 * Math.sin(poseSupplier.get().getRotation().getRadians() + (Math.PI / 2.0)),
+            () -> 1.5 * Math.cos(poseSupplier.get().getRotation().getRadians() + (Math.PI / 2.0)),
+            () -> -1.5 * Math.sin(poseSupplier.get().getRotation().getRadians() + (Math.PI / 2.0)),
             () -> Rotation2d.kZero,
             drive));
   }
@@ -165,15 +166,10 @@ public class DriveCommands {
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
     angleController.enableContinuousInput(-Math.PI, Math.PI);
     angleController.setTolerance(0.017);
-    ;
 
     ProfiledPIDController driveController =
-        new ProfiledPIDController(
-            DRIVE_KP,
-            0.0,
-            DRIVE_KD,
-            new TrapezoidProfile.Constraints(DRIVE_MAX_VELOCITY, DRIVE_MAX_ACCELERATION));
-    driveController.setTolerance(0.02);
+        new ProfiledPIDController(16.0, 0.0, DRIVE_KD, new TrapezoidProfile.Constraints(4.0, 4.0));
+    // driveController.setTolerance(0.02);
 
     return Commands.run(
             () -> {
@@ -181,8 +177,13 @@ public class DriveCommands {
               Pose2d currentPose = drive.flipIfRed(drive.getPose());
               Translation2d target =
                   m_inital.interpolate(
-                      targetPose.getTranslation(),
-                      1.0 - (Math.abs(currentPose.relativeTo(targetPose).getX()) / m_distance));
+                      m_target.getTranslation(),
+                      Math.exp(
+                          -3.0
+                              * Math.abs(
+                                  currentPose
+                                      .relativeTo(m_target)
+                                      .getX())) /*1.0 - (Math.abs(currentPose.relativeTo(m_target).getX()) / m_distance)*/);
 
               Translation2d direction = target.minus(currentPose.getTranslation());
               direction.div(direction.getNorm());
@@ -190,11 +191,11 @@ public class DriveCommands {
               double omega =
                   angleController.calculate(
                       drive.getRotation().getRadians(),
-                      targetPose.getRotation().getRadians() + (drive.weAreRed() ? Math.PI : 0.0));
+                      m_target.getRotation().getRadians() + (drive.weAreRed() ? Math.PI : 0.0));
               double speed =
                   driveController.calculate(
-                      currentPose.getTranslation().getDistance(m_inital), 0.0);
-              direction.times(speed);
+                      currentPose.getTranslation().getDistance(m_target.getTranslation()), 0.0);
+              direction.times(10.0);
 
               ChassisSpeeds speeds = new ChassisSpeeds(direction.getX(), direction.getY(), omega);
               boolean isFlipped =
@@ -211,8 +212,9 @@ public class DriveCommands {
             drive)
         .beforeStarting(
             () -> {
+              m_target = poseSupplier.get();
               angleController.reset(drive.getRotation().getRadians());
-              m_distance = Math.abs(drive.flipIfRed(drive.getPose()).relativeTo(poseSupplier.get()).getX());
+              m_distance = Math.abs(drive.flipIfRed(drive.getPose()).relativeTo(m_target).getX());
               Pose2d targetPose = poseSupplier.get();
               Pose2d currentPose = drive.flipIfRed(drive.getPose());
               //   Translation2d velocityVector =
@@ -225,10 +227,13 @@ public class DriveCommands {
               // double angle = Math.atan2(velocityVector.getY(), velocityVector.getX());
               // double extra = currentPose.relativeTo(targetPose).getX() * Math.tan(angle);
               m_inital =
-                  new Translation2d(0.0, currentPose.relativeTo(poseSupplier.get()).getY())
-                      .rotateBy(targetPose.getRotation())
-                      .plus(targetPose.getTranslation());
-              driveController.reset(currentPose.getTranslation().getDistance(m_inital));
+                  new Translation2d(0.0, currentPose.relativeTo(m_target).getY())
+                      .rotateBy(m_target.getRotation())
+                      .plus(m_target.getTranslation());
+              ChassisSpeeds speeds = drive.getChassisVelocity();
+              driveController.reset(
+                  currentPose.getTranslation().getDistance(m_inital),
+                  Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond));
             });
   }
 
