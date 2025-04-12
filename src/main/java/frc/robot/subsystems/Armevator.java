@@ -205,7 +205,7 @@ public class Armevator extends SubsystemBase {
 
   private void setL4() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
-    if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 6.0)) {
+    if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 10.0)) {
       armSetAngle(Constants.ARM_L4_ANGLE);
     } else {
       armSetAngle(Constants.ARM_L4_SAFE_ANGLE);
