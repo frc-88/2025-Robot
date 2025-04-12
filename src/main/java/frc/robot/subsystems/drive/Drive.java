@@ -383,7 +383,7 @@ public class Drive extends SubsystemBase {
   }
 
   private double aimAtReefCenter() {
-    double angle = getAngleToReef(nextPose(0.5));
+    double angle = getAngleToReef(getPose());
     angle = weAreRed() ? angle : angle + 180.0;
     return angle;
   }
@@ -401,6 +401,8 @@ public class Drive extends SubsystemBase {
       return getPose().getRotation().getDegrees();
     } else if (flipIfRed(getPose()).getX() > 7.0) {
       return getPose().getRotation().getDegrees();
+    } else if (!isNearReef() && !(flipIfRed(getPose()).getX() > 2.5) && !hasCoral.getAsBoolean()) {
+      return aimAtStation();
     } else {
       // return aimAtReef();
       return aimAtReefCenter();

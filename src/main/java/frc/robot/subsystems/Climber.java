@@ -452,7 +452,7 @@ public class Climber extends SubsystemBase {
     SmartDashboard.putNumber(
         "Climber CAN Range Distance", m_canRange.getDistance().getValueAsDouble() * 100.0);
     SmartDashboard.putNumber("Gripper Position", getGripperPositionRotations());
-    SmartDashboard.putBoolean("Sensor ouput", input.get());
+    SmartDashboard.putBoolean("Sensor output", !input.get());
     SmartDashboard.putBoolean("Grabbed", m_grabbed);
     SmartDashboard.putBoolean(
         "Is braked", m_gripper.getControlMode().getValue() == ControlModeValue.StaticBrake);
