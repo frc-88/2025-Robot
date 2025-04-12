@@ -29,12 +29,6 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "CenterBackoff"
-          }
-        },
-        {
           "type": "deadline",
           "data": {
             "commands": [

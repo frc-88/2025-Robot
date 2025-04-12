@@ -3,32 +3,37 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 6.6864297945205475,
-        "y": 4.6560787671232875
+        "x": 5.987955706599629,
+        "y": 4.1807603543122065
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.935145547945206,
-        "y": 4.986643835616438
+        "x": 6.359050482531863,
+        "y": 4.410479975885905
       },
       "isLocked": false,
-      "linkedName": "CenterMid"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.491095890410959,
-        "y": 5.722902397260274
+        "x": 6.714125279761825,
+        "y": 5.7678895370952095
       },
       "prevControl": {
-        "x": 5.153809931506849,
-        "y": 5.692851027397261
+        "x": 6.625710741895864,
+        "y": 5.3087080320807445
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "NetShot"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": -90.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -48,7 +53,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -135.0
+    "rotation": 179.77157763497246
   },
   "useDefaultConstraints": false
 }
