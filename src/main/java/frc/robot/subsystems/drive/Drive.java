@@ -134,6 +134,7 @@ public class Drive extends SubsystemBase {
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
   private boolean m_autoaim = true;
   private ReefTrax reeftrax = new ReefTrax();
+  private int jumpCounter = 0;
 
   public Drive(
       GyroIO gyroIO,
@@ -742,6 +743,12 @@ public class Drive extends SubsystemBase {
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
+
+    if (getPose().getTranslation().getDistance(visionRobotPoseMeters.getTranslation()) > 1.0) {
+      // big jump
+      Logger.recordOutput("Drive/Jump Count", ++jumpCounter);
+    }
+
     poseEstimator.addVisionMeasurement(
         visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
   }
