@@ -781,7 +781,11 @@ public class RobotContainer {
             reefCommand,
             m_doghouse
                 .coralIntakeFactory(() -> m_armevator.isElevatorDown())
-                .until(() -> drive.isElevatorDistance(3.0) && m_doghouse.hasCoral())
+                .until(
+                    () ->
+                        drive.isElevatorDistance(3.0)
+                            && m_doghouse.hasCoral()
+                            && !m_doghouse.isBlocked())
                 .andThen(
                     m_armevator
                         .scoreAll(() -> mode)
