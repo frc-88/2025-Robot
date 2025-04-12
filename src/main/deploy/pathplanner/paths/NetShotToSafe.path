@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.092123287671233,
-        "y": 5.512542808219178
+        "x": 6.976570941807873,
+        "y": 5.588212546390885
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.212069753401596,
-        "y": 6.384453272497657
+        "x": 6.0965174075382365,
+        "y": 6.460123010669364
       },
       "isLocked": false,
       "linkedName": "NetShot"
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -2.809927719134843
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

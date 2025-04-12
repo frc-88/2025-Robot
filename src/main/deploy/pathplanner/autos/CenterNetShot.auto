@@ -48,6 +48,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Shoot Algae"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "NetShotToSafe"
