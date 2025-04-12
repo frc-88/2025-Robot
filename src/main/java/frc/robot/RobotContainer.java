@@ -224,6 +224,8 @@ public class RobotContainer {
     NamedCommands.registerCommand("L3 Mode", new InstantCommand(() -> mode = 3));
     NamedCommands.registerCommand("L2 Mode", new InstantCommand(() -> mode = 2));
     NamedCommands.registerCommand("Stow", m_armevator.stowFactory().withTimeout(1.0));
+    NamedCommands.registerCommand(
+        "StowAlgae", m_armevator.defaultCommand(() -> getAlgae, () -> processor));
     NamedCommands.registerCommand("Armevator Calibration", m_armevator.calibrateBothFactory());
     NamedCommands.registerCommand("Score Odd", scoreNoShoot(true));
     NamedCommands.registerCommand("Score Even", scoreNoShoot(false));
@@ -232,7 +234,8 @@ public class RobotContainer {
     for (int i = 1; i <= 12; i++) {
       NamedCommands.registerCommand("Reef " + i, reef(i, 0.4, false));
     }
-    NamedCommands.registerCommand("Reef Algae Even", reef(true, 0.5, true).andThen(onShoot()));
+    NamedCommands.registerCommand(
+        "Reef Algae Even", reef(true, 0.5, true).andThen(onShoot().withTimeout(2.0)));
     NamedCommands.registerCommand("Set Algae Mode", new InstantCommand(() -> getAlgae = true));
     NamedCommands.registerCommand("Clear Algae Mode", new InstantCommand(() -> getAlgae = false));
     NamedCommands.registerCommand("Go To L4", m_armevator.L4Factory());
@@ -370,7 +373,11 @@ public class RobotContainer {
                 .andThen(
                     DriveCommands.driveMoving(
                         () -> 0.0, () -> 0.8, () -> new Rotation2d(), drive)));
-    controller.rightTrigger().onTrue(shootCommand(0.5).andThen(onShoot()));
+    controller
+        .rightTrigger()
+        .onTrue(
+            new SequentialCommandGroup(
+                new InstantCommand(() -> mayo = false), shootCommand(0.5).andThen(onShoot())));
     controller
         .leftTrigger()
         .onTrue(

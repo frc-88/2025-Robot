@@ -31,7 +31,20 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CenterToNetShot"
+            "pathName": "CenterBackoff"
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "CenterToNetShot"
+                }
+              }
+            ]
           }
         },
         {
