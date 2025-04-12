@@ -232,6 +232,7 @@ public class RobotContainer {
     for (int i = 1; i <= 12; i++) {
       NamedCommands.registerCommand("Reef " + i, reef(i, 0.4, false));
     }
+    NamedCommands.registerCommand("Reef Algae Even", reef(true, 0.5, true).andThen(onShoot()));
     NamedCommands.registerCommand("Set Algae Mode", new InstantCommand(() -> getAlgae = true));
     NamedCommands.registerCommand("Clear Algae Mode", new InstantCommand(() -> getAlgae = false));
     NamedCommands.registerCommand("Go To L4", m_armevator.L4Factory());
