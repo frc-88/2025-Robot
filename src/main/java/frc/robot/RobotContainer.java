@@ -238,7 +238,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("Reef Even", reef(false, 0.5, false));
     NamedCommands.registerCommand("Reef Odd", reef(true, 0.5, false));
     for (int i = 1; i <= 12; i++) {
-      NamedCommands.registerCommand("Reef " + i, reef(i, 0.35, false));
+      NamedCommands.registerCommand("Reef " + i, reef(i, 0.2, false));
     }
     NamedCommands.registerCommand(
         "Reef Algae Even", reef(true, 0.5, true).andThen(onShoot().withTimeout(2.0)));
