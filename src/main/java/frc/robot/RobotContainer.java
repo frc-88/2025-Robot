@@ -168,8 +168,13 @@ public class RobotContainer {
 
     shouldShootAlgae =
         new Trigger(
-            () -> DriverStation.isTeleop() && m_doghouse.isAlgaeMode() && drive.shouldShootAlgae() && drive.isFacingForward());
-    shouldStow = new Trigger(() -> DriverStation.isTeleop() && drive.shouldShootAlgae() && shootingAlgae);
+            () ->
+                DriverStation.isTeleop()
+                    && m_doghouse.isAlgaeMode()
+                    && drive.shouldShootAlgae()
+                    && drive.isFacingForward());
+    shouldStow =
+        new Trigger(() -> DriverStation.isTeleop() && drive.shouldShootAlgae() && shootingAlgae);
 
     registerNamedCommands();
     // Set up auto routines
