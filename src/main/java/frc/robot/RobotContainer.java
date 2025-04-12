@@ -443,16 +443,8 @@ public class RobotContainer {
 
     controller
         .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () ->
-                    Rotation2d.fromDegrees(
-                        (p_amplitude.getValue()
-                                * Math.sin((p_frequency.getValue() * 2.0) * Math.PI * timer.get()))
-                            + 90.0)));
+        .onTrue(DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
+        .onFalse(driverControl());
 
     controller.y().toggleOnTrue(driverControl());
 
@@ -648,7 +640,7 @@ public class RobotContainer {
                             new InstantCommand(
                                 () -> Logger.recordOutput("AlgaeShot", drive.getPose())))),
             m_armevator.shootInNetFactory(),
-            driverControl())
+            DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
         .andThen(
             new ParallelCommandGroup(
                 m_armevator.stowFactory(),
@@ -760,7 +752,7 @@ public class RobotContainer {
             reefCommand,
             m_doghouse
                 .coralIntakeFactory(() -> m_armevator.isElevatorDown())
-                .until(() -> drive.isElevatorDistance(6) && m_doghouse.hasCoral())
+                .until(() -> drive.isElevatorDistance(3.0) && m_doghouse.hasCoral())
                 .andThen(
                     m_armevator
                         .scoreAll(() -> mode)

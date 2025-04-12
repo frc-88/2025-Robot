@@ -118,24 +118,28 @@ public class DriveCommands {
     angleController.enableContinuousInput(-Math.PI, Math.PI);
     angleController.setTolerance(0.017);
     return Commands.run(
-        () -> {
-          // Convert to field relative speeds & send command
-          double omega =
-              angleController.calculate(
-                  drive.getRotation().getRadians(),
-                  angleSupplier.get().getRadians() + (drive.weAreRed() ? Math.PI : 0.0));
-          ChassisSpeeds speeds = new ChassisSpeeds(x.getAsDouble(), y.getAsDouble(), omega);
-          boolean isFlipped =
-              DriverStation.getAlliance().isPresent()
-                  && DriverStation.getAlliance().get() == Alliance.Red;
-          drive.runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(
-                  speeds,
-                  isFlipped
-                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                      : drive.getRotation()));
-        },
-        drive);
+            () -> {
+              // Convert to field relative speeds & send command
+              double omega =
+                  angleController.calculate(
+                      drive.getRotation().getRadians(),
+                      angleSupplier.get().getRadians() + (drive.weAreRed() ? Math.PI : 0.0));
+              ChassisSpeeds speeds = new ChassisSpeeds(x.getAsDouble(), y.getAsDouble(), omega);
+              boolean isFlipped =
+                  DriverStation.getAlliance().isPresent()
+                      && DriverStation.getAlliance().get() == Alliance.Red;
+              drive.runVelocity(
+                  ChassisSpeeds.fromFieldRelativeSpeeds(
+                      speeds,
+                      isFlipped
+                          ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                          : drive.getRotation()));
+            },
+            drive)
+        .beforeStarting(
+            () -> {
+              angleController.reset(drive.getRotation().getRadians());
+            });
   }
 
   public static Command driveToPose(Supplier<Pose2d> poseSupplier, Drive drive) {
