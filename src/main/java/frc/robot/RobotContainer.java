@@ -357,9 +357,7 @@ public class RobotContainer {
         .onTrue(DriveCommands.driveToPose(() -> drive.getTargetAlgaePoseFromSector(), drive));
     controller
         .povLeft()
-        .onTrue(
-            reefMoving(true)
-                .andThen(DriveCommands.driveMoving(() -> 0.0, () -> 0.8, () -> 0.0, drive)));
+        .onTrue(DriveCommands.driveThenScore(() -> drive.getTargetPoseFromSector(true), drive));
     controller.rightTrigger().onTrue(shootCommand(0.5).andThen(onShoot()));
     controller
         .leftTrigger()
@@ -678,8 +676,10 @@ public class RobotContainer {
     return reefAuto(drive.pathFind(i), delay, i % 2 == 1);
   }
 
+  
   private Command reef(Command reefCommand, double delay, boolean odd) {
     return new SequentialCommandGroup(
+
         new ParallelDeadlineGroup(
             new ConditionalCommand(
                 new ConditionalCommand(

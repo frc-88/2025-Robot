@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.drive.Drive;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -50,6 +51,9 @@ public class DriveCommands {
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
+
+  private static double m_distance = 0.0;
+  private static Translation2d m_inital = Translation2d.kZero;
 
   private DriveCommands() {}
 
@@ -124,6 +128,92 @@ public class DriveCommands {
                       : drive.getRotation()));
         },
         drive);
+  }
+
+  public static Command driveThenScore(Supplier<Pose2d> poseSupplier, Drive drive) {
+    return new SequentialCommandGroup(
+        drive(poseSupplier, drive).withTimeout(2.0),
+        driveMoving(
+            () -> 0.8 * Math.cos(poseSupplier.get().getRotation().getRadians() + (Math.PI / 2.0)),
+            () -> 0.8 * Math.sin(poseSupplier.get().getRotation().getRadians() + (Math.PI / 2.0)),
+            () -> 0.0,
+            drive));
+  }
+
+  public static Command drive(Supplier<Pose2d> poseSupplier, Drive drive) {
+    ProfiledPIDController angleController =
+        new ProfiledPIDController(
+            ANGLE_KP,
+            0.0,
+            ANGLE_KD,
+            new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
+    angleController.enableContinuousInput(-Math.PI, Math.PI);
+    angleController.setTolerance(0.017);
+    ;
+
+    ProfiledPIDController driveController =
+        new ProfiledPIDController(
+            DRIVE_KP,
+            0.0,
+            DRIVE_KD,
+            new TrapezoidProfile.Constraints(DRIVE_MAX_VELOCITY, DRIVE_MAX_ACCELERATION));
+    driveController.setTolerance(0.02);
+
+    return Commands.run(
+            () -> {
+              Pose2d targetPose = poseSupplier.get();
+              Pose2d currentPose = drive.flipIfRed(drive.getPose());
+              Translation2d target =
+                  m_inital.interpolate(
+                      targetPose.getTranslation(),
+                      1.0 - (Math.abs(currentPose.relativeTo(targetPose).getX()) / m_distance));
+
+              Translation2d direction = target.minus(currentPose.getTranslation());
+              direction.div(direction.getNorm());
+
+              double omega =
+                  angleController.calculate(
+                      drive.getRotation().getRadians(),
+                      targetPose.getRotation().getRadians() + (drive.weAreRed() ? Math.PI : 0.0));
+              double speed =
+                  driveController.calculate(
+                      currentPose.getTranslation().getDistance(m_inital), 0.0);
+              direction.times(speed);
+
+              ChassisSpeeds speeds = new ChassisSpeeds(direction.getX(), direction.getY(), omega);
+              boolean isFlipped =
+                  DriverStation.getAlliance().isPresent()
+                      && DriverStation.getAlliance().get() == Alliance.Red;
+
+              drive.runVelocity(
+                  ChassisSpeeds.fromFieldRelativeSpeeds(
+                      speeds,
+                      isFlipped
+                          ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                          : drive.getRotation()));
+            },
+            drive)
+        .beforeStarting(
+            () -> {
+              angleController.reset(drive.getRotation().getRadians());
+              m_distance = Math.abs(drive.flipIfRed(drive.getPose()).relativeTo(poseSupplier.get()).getX());
+              Pose2d targetPose = poseSupplier.get();
+              Pose2d currentPose = drive.flipIfRed(drive.getPose());
+              //   Translation2d velocityVector =
+              //       new Translation2d(
+              //               drive.getChassisVelocity().vxMetersPerSecond,
+              //               drive.getChassisVelocity().vyMetersPerSecond)
+              //           .rotateBy(currentPose.getRotation())
+              //           .rotateBy(targetPose.getRotation().unaryMinus());
+
+              // double angle = Math.atan2(velocityVector.getY(), velocityVector.getX());
+              // double extra = currentPose.relativeTo(targetPose).getX() * Math.tan(angle);
+              m_inital =
+                  new Translation2d(0.0, currentPose.relativeTo(poseSupplier.get()).getY())
+                      .rotateBy(targetPose.getRotation())
+                      .plus(targetPose.getTranslation());
+              driveController.reset(currentPose.getTranslation().getDistance(m_inital));
+            });
   }
 
   public static Command driveToPose(Supplier<Pose2d> poseSupplier, Drive drive) {
