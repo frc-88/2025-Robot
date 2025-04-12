@@ -48,15 +48,47 @@
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "NetShotToSafe"
+            "name": "Shoot Algae"
           }
         },
         {
-          "type": "named",
+          "type": "deadline",
           "data": {
-            "name": "Clear Algae Mode"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "NetShotToSafe"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Clear Algae Mode"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 0.4
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Stow"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         }
       ]

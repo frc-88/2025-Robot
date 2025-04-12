@@ -105,6 +105,12 @@
               }
             ]
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CenterBackoff"
+          }
         }
       ]
     }

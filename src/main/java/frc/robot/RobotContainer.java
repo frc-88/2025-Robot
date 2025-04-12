@@ -28,6 +28,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.Timer;
@@ -167,8 +168,13 @@ public class RobotContainer {
 
     shouldShootAlgae =
         new Trigger(
-            () -> m_doghouse.isAlgaeMode() && drive.shouldShootAlgae() && drive.isFacingForward());
-    shouldStow = new Trigger(() -> drive.shouldShootAlgae() && shootingAlgae);
+            () ->
+                DriverStation.isTeleop()
+                    && m_doghouse.isAlgaeMode()
+                    && drive.shouldShootAlgae()
+                    && drive.isFacingForward());
+    shouldStow =
+        new Trigger(() -> DriverStation.isTeleop() && drive.shouldShootAlgae() && shootingAlgae);
 
     registerNamedCommands();
     // Set up auto routines
@@ -239,6 +245,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("Set Algae Mode", new InstantCommand(() -> getAlgae = true));
     NamedCommands.registerCommand("Clear Algae Mode", new InstantCommand(() -> getAlgae = false));
     NamedCommands.registerCommand("Go To L4", m_armevator.L4Factory());
+    NamedCommands.registerCommand("Shoot Algae", shootInNet());
 
     PathfindingCommand.warmupCommand().schedule();
     FollowPathCommand.warmupCommand().schedule();
