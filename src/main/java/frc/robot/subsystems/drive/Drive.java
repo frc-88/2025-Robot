@@ -227,6 +227,15 @@ public class Drive extends SubsystemBase {
     return weAreRed() ? flipPose(pose) : pose;
   }
 
+  public Pose2d getPoseFlipped() {
+    return flipIfRed(getPose());
+  }
+
+  public Translation2d getChassisTranslation() {
+    ChassisSpeeds speeds = getChassisSpeeds();
+    return new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+  }
+
   private double aimAtStation() {
     if (getPose().getY() < (Constants.FIELD_WIDTH / 2.0)) {
       return weAreRed() ? 135.0 : 45;
@@ -274,7 +283,7 @@ public class Drive extends SubsystemBase {
                 .getTranslation()
                 .getDistance(REEF_CORAL_POSES.get(5).getTranslation())
             < 0.07
-        && Math.abs(flipIfRed(getPose()).relativeTo(REEF_CORAL_POSES.get(5)).getY()) < 0.1;
+        && Math.abs(flipIfRed(getPose()).relativeTo(REEF_CORAL_POSES.get(5)).getY()) < 0.15;
   }
 
   public boolean isFacingForward() {

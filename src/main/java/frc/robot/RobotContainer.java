@@ -370,12 +370,10 @@ public class RobotContainer {
         .button(20)
         .onTrue(new InstantCommand(() -> processor = true))
         .onFalse(new InstantCommand(() -> processor = false));
-    controller
-        .povRight()
-        .onTrue(DriveCommands.driveToPose(() -> drive.getTargetAlgaePoseFromSector(), drive));
+    controller.povRight().onTrue(reefMoving(true));
     controller
         .povLeft()
-        .onTrue(DriveCommands.driveThenScore(() -> Constants.REEF_CORAL_POSES_RED.get(6), drive));
+        .onTrue(DriveCommands.driveThenScore(() -> Constants.REEF_CORAL_POSES_RED.get(7), drive));
     controller.rightTrigger().onTrue(shootCommand(0.5).andThen(onShoot()));
     controller
         .leftTrigger()
@@ -831,7 +829,7 @@ public class RobotContainer {
                             && drive.isAtTarget(odd)),
                 new WaitUntilCommand(() -> m_armevator.atMode(() -> mode) && drive.isAtTarget5()),
                 () -> mode == 4),
-            DriveCommands.driveMoving(() -> 0.0, () -> 0.8, () -> new Rotation2d(), drive),
+            DriveCommands.driveThenScore(() -> Constants.REEF_CORAL_POSES_RED.get(5), drive),
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode))),
         shootCommand(0.5));
