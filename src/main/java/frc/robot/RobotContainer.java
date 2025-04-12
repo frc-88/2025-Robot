@@ -245,7 +245,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("Set Algae Mode", new InstantCommand(() -> getAlgae = true));
     NamedCommands.registerCommand("Clear Algae Mode", new InstantCommand(() -> getAlgae = false));
     NamedCommands.registerCommand("Go To L4", m_armevator.L4Factory());
-    NamedCommands.registerCommand("Shoot Algae", shootInNet());
+    NamedCommands.registerCommand("Shoot Algae", shootInNetAuto());
 
     PathfindingCommand.warmupCommand().schedule();
     FollowPathCommand.warmupCommand().schedule();
@@ -661,6 +661,26 @@ public class RobotContainer {
                 m_armevator.stowFactory(),
                 driverControl(),
                 m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
+  }
+
+  public Command shootInNetAuto() {
+    // return m_armevator.shootInNetFactory();
+    return new ParallelDeadlineGroup(
+            new WaitUntilCommand(m_armevator::atShootHeight)
+                .andThen(
+                    m_doghouse
+                        .shootAlgaeFactory()
+                        .alongWith(
+                            new InstantCommand(
+                                () -> Logger.recordOutput("AlgaeShot", drive.getPose())))),
+            m_armevator.shootInNetFactory(),
+            DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
+        .andThen(
+            new ParallelCommandGroup(
+                    m_armevator.stowFactory(),
+                    DriveCommands.driveMoving(() -> -1.0, () -> 0.0, () -> Rotation2d.kZero, drive),
+                    m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
+                .until(() -> m_armevator.isElevatorDown()));
   }
 
   private Command goToTiltAngleFactory() {
