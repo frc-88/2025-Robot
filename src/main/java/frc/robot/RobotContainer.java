@@ -383,6 +383,7 @@ public class RobotContainer {
     controller
         .povDown()
         .onTrue(DriveCommands.driveThenScore(() -> drive.getTargetPoseFromSector(true), drive));
+    controller.povRight().onTrue(reefMoving(true));
     controller.rightTrigger().onTrue(shootCommand(0.5).andThen(onShoot()));
     controller
         .leftTrigger()
