@@ -411,6 +411,11 @@ public class Drive extends SubsystemBase {
       return getPose().getRotation().getDegrees();
     } else if (flipIfRed(getPose()).getX() > 7.0) {
       return getPose().getRotation().getDegrees();
+    } else if (getPoseFlipped()
+            .getTranslation()
+            .getDistance(Constants.PROCESSOR_POSITION.getTranslation())
+        < 1.5) {
+      return getPose().getRotation().getDegrees();
     } else if (!isNearReef() && !(flipIfRed(getPose()).getX() > 2.5) && !hasCoral.getAsBoolean()) {
       return aimAtStation();
     } else {

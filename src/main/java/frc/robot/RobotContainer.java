@@ -365,20 +365,21 @@ public class RobotContainer {
         .onTrue(new InstantCommand(() -> getAlgae = true))
         .onFalse(new InstantCommand(() -> getAlgae = false));
     buttons.button(14).toggleOnTrue(driverControl());
-    buttons
-        .button(20)
-        .onTrue(new InstantCommand(() -> processor = true))
-        .onFalse(new InstantCommand(() -> processor = false));
+    buttons.button(20).onTrue(m_armevator.stowProcessor().alongWith(driverControl()));
     controller.povRight().onTrue(reefMoving(true));
     controller
         .povLeft()
         .onTrue(DriveCommands.driveThenScore(() -> Constants.REEF_CORAL_POSES_RED.get(7), drive));
+    controller
+        .povDown()
+        .onTrue(DriveCommands.driveThenScore(() -> drive.getTargetPoseFromSector(true), drive));
     controller.rightTrigger().onTrue(shootCommand(0.5).andThen(onShoot()));
     controller
         .leftTrigger()
         .onTrue(
             m_doghouse
                 .shootAlgaeFactory()
+                .andThen(m_armevator.stowFactory())
                 .alongWith(
                     new InstantCommand(() -> Logger.recordOutput("AlgaeShot", drive.getPose()))))
         .onFalse(drive.getDefaultCommand());
@@ -431,7 +432,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    m_armevator.setDefaultCommand(m_armevator.defaultCommand(() -> getAlgae, () -> processor));
+    m_armevator.setDefaultCommand(m_armevator.defaultCommand(() -> getAlgae));
     m_doghouse.setDefaultCommand(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()));
 
     // Default command, normal field-relative drive
