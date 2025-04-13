@@ -151,7 +151,7 @@ public class DriveCommands {
     return new SequentialCommandGroup(
         drive(poseSupplier, drive)
             .until(
-                () -> Math.abs(drive.getPoseFlipped().relativeTo(poseSupplier.get()).getX()) < 0.03
+                () -> Math.abs(drive.getPoseFlipped().relativeTo(poseSupplier.get()).getX()) < 0.06
                 /*&& (drive.getChassisTranslation().getAngle().getRadians()
                         - (poseSupplier.get().getRotation().getRadians()
                             - (Math.PI / 2.0))
