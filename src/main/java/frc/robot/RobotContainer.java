@@ -230,8 +230,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("L3 Mode", new InstantCommand(() -> mode = 3));
     NamedCommands.registerCommand("L2 Mode", new InstantCommand(() -> mode = 2));
     NamedCommands.registerCommand("Stow", m_armevator.stowFactory().withTimeout(1.0));
-    NamedCommands.registerCommand(
-        "StowAlgae", m_armevator.defaultCommand(() -> getAlgae, () -> processor));
+    NamedCommands.registerCommand("StowAlgae", m_armevator.AlgaestowFactory());
     NamedCommands.registerCommand("Armevator Calibration", m_armevator.calibrateBothFactory());
     NamedCommands.registerCommand("Score Odd", scoreNoShoot(true));
     NamedCommands.registerCommand("Score Even", scoreNoShoot(false));
