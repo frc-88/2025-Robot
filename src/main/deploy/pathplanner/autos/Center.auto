@@ -11,33 +11,27 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "L4 Mode"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Reef 12"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "CenterToReef"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "L4"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Stow"
+            "pathName": "CenterBackoff"
           }
         }
       ]
     }
   },
-  "resetOdom": true,
+  "resetOdom": false,
   "folder": null,
   "choreoAuto": false
 }
