@@ -62,6 +62,12 @@
                       }
                     },
                     {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 0.01
+                      }
+                    },
+                    {
                       "type": "named",
                       "data": {
                         "name": "Reef 8"
@@ -107,6 +113,12 @@
                       }
                     },
                     {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 0.01
+                      }
+                    },
+                    {
                       "type": "named",
                       "data": {
                         "name": "Reef 7"
@@ -123,44 +135,30 @@
           "data": {
             "commands": [
               {
-                "type": "sequential",
+                "type": "path",
                 "data": {
-                  "commands": [
-                    {
-                      "type": "deadline",
-                      "data": {
-                        "commands": [
-                          {
-                            "type": "path",
-                            "data": {
                               "pathName": "Sector4ToStation"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Stow"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Get Coral"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "Reef 6"
-                      }
-                    }
-                  ]
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Stow"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Get Coral"
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+                        "name": "Reef 6"
           }
         }
       ]
