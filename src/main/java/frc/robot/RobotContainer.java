@@ -242,8 +242,8 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "Reef Algae Even", 
         new ConditionalCommand(
-                algae().withTimeout(3.0),
-                reef(false, 0.5, true).andThen(onShoot().withTimeout(2.0)),
+                algae().withTimeout(1.5),
+                reef(false, 0.5, true).andThen(onShoot().withTimeout(1.8)),
                 () -> !m_doghouse.hasCoral() && !m_doghouse.isBlocked()));
     NamedCommands.registerCommand("Set Algae Mode", new InstantCommand(() -> getAlgae = true));
     NamedCommands.registerCommand("Clear Algae Mode", new InstantCommand(() -> getAlgae = false));
