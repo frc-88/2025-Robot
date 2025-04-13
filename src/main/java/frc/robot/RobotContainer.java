@@ -243,7 +243,7 @@ public class RobotContainer {
         "Reef Algae Even",
         new ConditionalCommand(
             algae().withTimeout(1.5),
-            reef(false, 0.5, true).andThen(onShoot().withTimeout(1.5)),
+            reef(false, 0.5, true).andThen(onShoot().withTimeout(1.2)),
             () -> !m_doghouse.hasCoral() && !m_doghouse.isBlocked()));
     NamedCommands.registerCommand(
         "Reef Algae Odd",
