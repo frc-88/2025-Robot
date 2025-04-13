@@ -587,6 +587,28 @@ public class RobotContainer {
         () -> !mayo);
   }
 
+  private Command shootCommandFast(double delay) {
+    return new ConditionalCommand(
+        new ParallelDeadlineGroup(
+            m_doghouse.shootFactory(delay),
+            new WaitCommand(0.15)
+                .andThen(
+                    new ConditionalCommand(
+                        new ParallelCommandGroup(
+                            m_armevator.stowThenalgae(() -> drive.getTargetSector()),
+                            new WaitCommand(0.25)
+                                .andThen(
+                                    DriveCommands.driveToPose(
+                                        () -> drive.getTargetAlgaePoseFromSector(), drive))
+                                .andThen(driverControl())),
+                        new ParallelCommandGroup(m_armevator.stowFactory(), autoAim()),
+                        () -> getAlgae)),
+            new InstantCommand(() -> drive.enableAutoAim()),
+            new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose()))),
+        driverControl(),
+        () -> !mayo);
+  }
+
   private Command shootCommandAuto(double delay) {
     return new ParallelDeadlineGroup(
         m_doghouse.shootFullSpeedFactory(delay),
@@ -677,17 +699,11 @@ public class RobotContainer {
             m_armevator.shootInNetFactory(),
             DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
         .andThen(
-            new ParallelDeadlineGroup(
-                    new WaitCommand(0.5),
+            new ParallelCommandGroup(
                     m_armevator.stowFactory(),
-                    DriveCommands.driveMoving(() -> -1.0, () -> 0.0, () -> Rotation2d.kZero, drive),
+                    DriveCommands.driveMoving(() -> -1.5, () -> 0.0, () -> Rotation2d.kZero, drive),
                     m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
-                .andThen(
-                    new ParallelCommandGroup(
-                            DriveCommands.driveMoving(
-                                () -> 0.5, () -> 0.0, () -> Rotation2d.kZero, drive),
-                            m_armevator.stowFactory())
-                        .withTimeout(1.5)));
+                .until(() -> m_armevator.isElevatorDown()));
   }
 
   private Command goToTiltAngleFactory() {
@@ -796,7 +812,7 @@ public class RobotContainer {
                 .coralIntakeFactory(() -> m_armevator.isElevatorDown())
                 .until(
                     () ->
-                        drive.isElevatorDistance(5.0)
+                        drive.isElevatorDistance(2.4)
                             && m_doghouse.hasCoral()
                             && !m_doghouse.isBlocked())
                 .andThen(
@@ -849,7 +865,7 @@ public class RobotContainer {
             DriveCommands.driveThenScore(() -> Constants.REEF_CORAL_POSES_RED.get(5), drive),
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode))),
-        shootCommand(0.5));
+        shootCommandFast(0.5));
   }
 
   public Command onShoot() {

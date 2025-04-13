@@ -154,6 +154,7 @@ public class DriveCommands {
   }
 
   public static Command driveThenScore(Supplier<Pose2d> poseSupplier, Drive drive) {
+
     return new SequentialCommandGroup(
         drive(poseSupplier, drive)
             .until(
@@ -169,11 +170,11 @@ public class DriveCommands {
         driveMoving(
             () ->
                 (drive.getPoseFlipped().relativeTo(m_target).getY() < 0.0 ? 1 : -1)
-                    * 1.5
+                    * 1.2
                     * poseSupplier.get().getRotation().plus(new Rotation2d(Math.PI / 2.0)).getCos(),
             () ->
                 (drive.getPoseFlipped().relativeTo(m_target).getY() < 0.0 ? 1 : -1)
-                    * 1.5
+                    * 1.2
                     * poseSupplier.get().getRotation().plus(new Rotation2d(Math.PI / 2.0)).getSin(),
             () -> m_target.getRotation(),
             drive));
@@ -190,7 +191,7 @@ public class DriveCommands {
     angleController.setTolerance(0.017);
 
     ProfiledPIDController driveController =
-        new ProfiledPIDController(3.0, 0.0, DRIVE_KD, new TrapezoidProfile.Constraints(2.5, 2.5));
+        new ProfiledPIDController(1.5, 0.0, DRIVE_KD, new TrapezoidProfile.Constraints(2.25, 2.0));
     // driveController.setTolerance(0.02);
 
     return Commands.run(
