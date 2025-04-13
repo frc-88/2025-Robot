@@ -53,6 +53,9 @@ public class DriveCommands {
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
 
   private static double m_distance = 0.0;
+  private static double m_x = 0.0;
+  private static double m_y = 0.0;
+  private static Rotation2d m_rotation = Rotation2d.kZero;
   private static Translation2d m_inital = Translation2d.kZero;
   private static Pose2d m_target = Pose2d.kZero;
 
@@ -128,8 +131,8 @@ public class DriveCommands {
               double omega =
                   angleController.calculate(
                       drive.getRotation().getRadians(),
-                      angleSupplier.get().getRadians() + (drive.weAreRed() ? Math.PI : 0.0));
-              ChassisSpeeds speeds = new ChassisSpeeds(x.getAsDouble(), y.getAsDouble(), omega);
+                      m_rotation.getRadians() + (drive.weAreRed() ? Math.PI : 0.0));
+              ChassisSpeeds speeds = new ChassisSpeeds(m_x, m_y, omega);
               boolean isFlipped =
                   DriverStation.getAlliance().isPresent()
                       && DriverStation.getAlliance().get() == Alliance.Red;
@@ -144,6 +147,9 @@ public class DriveCommands {
         .beforeStarting(
             () -> {
               angleController.reset(drive.getRotation().getRadians());
+              m_x = x.getAsDouble();
+              m_y = y.getAsDouble();
+              m_rotation = angleSupplier.get();
             });
   }
 
@@ -184,7 +190,7 @@ public class DriveCommands {
     angleController.setTolerance(0.017);
 
     ProfiledPIDController driveController =
-        new ProfiledPIDController(4.0, 0.0, DRIVE_KD, new TrapezoidProfile.Constraints(3.0, 3.0));
+        new ProfiledPIDController(3.0, 0.0, DRIVE_KD, new TrapezoidProfile.Constraints(2.5, 2.5));
     // driveController.setTolerance(0.02);
 
     return Commands.run(

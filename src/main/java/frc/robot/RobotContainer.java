@@ -237,19 +237,19 @@ public class RobotContainer {
     NamedCommands.registerCommand("Reef Even", reef(false, 0.5, false));
     NamedCommands.registerCommand("Reef Odd", reef(true, 0.5, false));
     for (int i = 1; i <= 12; i++) {
-      NamedCommands.registerCommand("Reef " + i, reef(i, 0.2, false));
+      NamedCommands.registerCommand("Reef " + i, reef(i, 0.5, false));
     }
     NamedCommands.registerCommand(
         "Reef Algae Even",
         new ConditionalCommand(
             algae().withTimeout(1.5),
-            reef(false, 0.5, true).andThen(onShoot().withTimeout(1.2)),
+            reef(false, 0.5, true).andThen(onShoot().withTimeout(1.0)),
             () -> !m_doghouse.hasCoral() && !m_doghouse.isBlocked()));
     NamedCommands.registerCommand(
         "Reef Algae Odd",
         new ConditionalCommand(
             algae().withTimeout(1.5),
-            reef(true, 0.5, true).andThen(onShoot().withTimeout(1.5)),
+            reef(true, 0.5, true).andThen(onShoot().withTimeout(1.0)),
             () -> !m_doghouse.hasCoral() && !m_doghouse.isBlocked()));
     NamedCommands.registerCommand("Set Algae Mode", new InstantCommand(() -> getAlgae = true));
     NamedCommands.registerCommand("Clear Algae Mode", new InstantCommand(() -> getAlgae = false));
@@ -677,11 +677,17 @@ public class RobotContainer {
             m_armevator.shootInNetFactory(),
             DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
         .andThen(
-            new ParallelDeadlineGroup(new WaitCommand(0.5),
+            new ParallelDeadlineGroup(
+                    new WaitCommand(0.5),
                     m_armevator.stowFactory(),
                     DriveCommands.driveMoving(() -> -1.0, () -> 0.0, () -> Rotation2d.kZero, drive),
                     m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
-                .andThen(DriveCommands.driveMoving(() -> 0.5, () -> 0.0, () -> Rotation2d.kZero, drive)));
+                .andThen(
+                    new ParallelCommandGroup(
+                            DriveCommands.driveMoving(
+                                () -> 0.5, () -> 0.0, () -> Rotation2d.kZero, drive),
+                            m_armevator.stowFactory())
+                        .withTimeout(1.5)));
   }
 
   private Command goToTiltAngleFactory() {
@@ -864,6 +870,7 @@ public class RobotContainer {
   public void teleopInit() {
     new SequentialCommandGroup(climber.calibrateFactory(), climber.calibrateGripperFactory())
         .schedule();
+    getAlgae = false;
   }
 
   public void disableInit() {}
