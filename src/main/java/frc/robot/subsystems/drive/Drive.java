@@ -279,8 +279,12 @@ public class Drive extends SubsystemBase {
         && Math.abs(flipIfRed(getPose()).relativeTo(getTargetPose()).getY()) < 0.1;
   }
 
-  public boolean isAtTarget5() {
-    return Math.abs(flipIfRed(getPose()).relativeTo(REEF_CORAL_POSES.get(5)).getY()) < 0.12;
+  public boolean isAtTarget6() {
+    return Math.abs(flipIfRed(getPose()).relativeTo(REEF_CORAL_POSES.get(6)).getY()) < 0.12;
+  }
+
+  public boolean isAtTargetPose(Pose2d pose) {
+    return Math.abs(flipIfRed(getPose()).relativeTo(pose).getY()) < 0.10;
   }
 
   public boolean isFacingForward() {

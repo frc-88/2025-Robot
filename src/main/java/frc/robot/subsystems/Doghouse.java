@@ -230,6 +230,10 @@ public class Doghouse extends SubsystemBase {
     setManipulatorSpeed(-0.25);
   }
 
+  private void manipulatorMedium() {
+    setManipulatorSpeed(-0.5);
+  }
+
   private void manipulatorHoldPosition() {
     m_manipulator.setControl(request.withPosition(0.0));
   }
@@ -367,6 +371,20 @@ public class Doghouse extends SubsystemBase {
             },
             this)
         .withTimeout(1.0)
+        .andThen(
+            () -> {
+              manipulatorStop();
+            });
+  }
+
+  public Command shootMedium(double delay) {
+    return new RunCommand(
+            () -> {
+              manipulatorMedium();
+              algaeMode = false;
+            },
+            this)
+        .withTimeout(delay)
         .andThen(
             () -> {
               manipulatorStop();

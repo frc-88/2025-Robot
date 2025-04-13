@@ -158,7 +158,11 @@ public class DriveCommands {
     return new SequentialCommandGroup(
         drive(poseSupplier, drive)
             .until(
-                () -> Math.abs(drive.getPoseFlipped().relativeTo(poseSupplier.get()).getX()) < 0.06
+                () ->
+                    Math.abs(drive.getPoseFlipped().relativeTo(poseSupplier.get()).getX()) < 0.05
+                        && Math.abs(drive.getPoseFlipped().relativeTo(poseSupplier.get()).getY())
+                            < 1.0
+
                 /*&& (drive.getChassisTranslation().getAngle().getRadians()
                         - (poseSupplier.get().getRotation().getRadians()
                             - (Math.PI / 2.0))
@@ -170,11 +174,11 @@ public class DriveCommands {
         driveMoving(
             () ->
                 (drive.getPoseFlipped().relativeTo(m_target).getY() < 0.0 ? 1 : -1)
-                    * 1.2
+                    * 1.0
                     * poseSupplier.get().getRotation().plus(new Rotation2d(Math.PI / 2.0)).getCos(),
             () ->
                 (drive.getPoseFlipped().relativeTo(m_target).getY() < 0.0 ? 1 : -1)
-                    * 1.2
+                    * 1.0
                     * poseSupplier.get().getRotation().plus(new Rotation2d(Math.PI / 2.0)).getSin(),
             () -> m_target.getRotation(),
             drive));
@@ -191,7 +195,7 @@ public class DriveCommands {
     angleController.setTolerance(0.017);
 
     ProfiledPIDController driveController =
-        new ProfiledPIDController(1.5, 0.0, DRIVE_KD, new TrapezoidProfile.Constraints(2.25, 2.0));
+        new ProfiledPIDController(1.5, 0.0, DRIVE_KD, new TrapezoidProfile.Constraints(2.3, 2.0));
     // driveController.setTolerance(0.02);
 
     return Commands.run(
@@ -255,7 +259,7 @@ public class DriveCommands {
               ChassisSpeeds speeds = drive.getChassisVelocity();
               driveController.reset(
                   currentPose.getTranslation().getDistance(m_inital),
-                  Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond));
+                  -Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond));
             });
   }
 

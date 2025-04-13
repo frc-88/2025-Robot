@@ -240,6 +240,8 @@ public class RobotContainer {
       NamedCommands.registerCommand("Reef " + i, reef(i, 0.5, false));
     }
     NamedCommands.registerCommand(
+        "Reef 10 Then Algae", reef(10, 0.5, false).andThen(onShoot().withTimeout(1.4)));
+    NamedCommands.registerCommand(
         "Reef Algae Even",
         new ConditionalCommand(
             algae().withTimeout(1.5),
@@ -377,9 +379,7 @@ public class RobotContainer {
     buttons.button(14).toggleOnTrue(driverControl());
     buttons.button(20).onTrue(m_armevator.stowProcessor().alongWith(driverControl()));
     controller.povRight().onTrue(reefMoving(true));
-    controller
-        .povLeft()
-        .onTrue(DriveCommands.driveThenScore(() -> Constants.REEF_CORAL_POSES_RED.get(7), drive));
+    controller.povLeft().onTrue(reefMoving(false));
     controller
         .povDown()
         .onTrue(DriveCommands.driveThenScore(() -> drive.getTargetPoseFromSector(true), drive));
@@ -590,7 +590,7 @@ public class RobotContainer {
   private Command shootCommandFast(double delay) {
     return new ConditionalCommand(
         new ParallelDeadlineGroup(
-            m_doghouse.shootFactory(delay),
+            m_doghouse.shootMedium(delay),
             new WaitCommand(0.15)
                 .andThen(
                     new ConditionalCommand(
@@ -858,11 +858,21 @@ public class RobotContainer {
                 new WaitUntilCommand(
                     () ->
                         reefDebouncer.calculate(m_doghouse.getIsReefDetected())
-                            && m_armevator.atMode(() -> mode)
-                            && drive.isAtTarget(odd)),
-                new WaitUntilCommand(() -> m_armevator.atMode(() -> mode) && drive.isAtTarget5()),
+                            && m_armevator.atMode(() -> mode)),
+                new WaitUntilCommand(
+                    () ->
+                        m_armevator.atMode(() -> mode)
+                            && drive.isAtTargetPose(
+                                odd
+                                    ? Constants.REEF_CORAL_POSES_RED.get(9)
+                                    : Constants.REEF_CORAL_POSES_RED.get(10))),
                 () -> mode == 4),
-            DriveCommands.driveThenScore(() -> Constants.REEF_CORAL_POSES_RED.get(5), drive),
+            DriveCommands.driveThenScore(
+                () ->
+                    odd
+                        ? Constants.REEF_CORAL_POSES_RED.get(9)
+                        : Constants.REEF_CORAL_POSES_RED.get(10),
+                drive),
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode))),
         shootCommandFast(0.5));
