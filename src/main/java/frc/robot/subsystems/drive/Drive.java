@@ -292,7 +292,7 @@ public class Drive extends SubsystemBase {
   }
 
   public boolean shouldShootAlgae() {
-    return flipIfRed(getPose()).getX() > 6.7
+    return flipIfRed(getPose()).getX() > 6.4
         && flipIfRed(getPose()).getY() > (Constants.FIELD_WIDTH / 2.0);
   }
 
@@ -392,7 +392,7 @@ public class Drive extends SubsystemBase {
     return angle;
   }
 
-  private double aimAtReefCenter() {
+  public double aimAtReefCenter() {
     double angle = getAngleToReef(getPose());
     angle = weAreRed() ? angle : angle + 180.0;
     return angle;
@@ -453,6 +453,10 @@ public class Drive extends SubsystemBase {
       return 1;
     }
     return 0;
+  }
+
+  public Pose2d getReefTraxPose(int pole) {
+    return reeftrax.getRedPose(pole);
   }
 
   public int getTargetPositionFromSector(boolean odd) {

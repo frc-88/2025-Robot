@@ -15,6 +15,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -58,6 +59,9 @@ public class DriveCommands {
   private static Rotation2d m_rotation = Rotation2d.kZero;
   private static Translation2d m_inital = Translation2d.kZero;
   private static Pose2d m_target = Pose2d.kZero;
+  private static ProfiledPIDController m_sideController =
+      new ProfiledPIDController(2.0, 0.0, 0.0, new TrapezoidProfile.Constraints(2.0, 2.0));
+  private static Debouncer m_targetDebouncer = new Debouncer(0.1);
 
   private DriveCommands() {}
 
@@ -159,9 +163,11 @@ public class DriveCommands {
         drive(poseSupplier, drive)
             .until(
                 () ->
-                    Math.abs(drive.getPoseFlipped().relativeTo(poseSupplier.get()).getX()) < 0.05
+                    m_targetDebouncer.calculate(
+                            Math.abs(drive.getPoseFlipped().relativeTo(poseSupplier.get()).getX())
+                                < 0.08)
                         && Math.abs(drive.getPoseFlipped().relativeTo(poseSupplier.get()).getY())
-                            < 1.0
+                            < 2.0
 
                 /*&& (drive.getChassisTranslation().getAngle().getRadians()
                         - (poseSupplier.get().getRotation().getRadians()
@@ -170,6 +176,7 @@ public class DriveCommands {
                 || drive.getChassisTranslation().getAngle().getRadians()
                         - (poseSupplier.get().getRotation().getRadians()
                             + (Math.PI / 2.0))
+                Math.max(0.2, m_sideController.calculate(-drive.getPoseFlipped().getTranslation().getDistance(m_target.getTranslation())))
                     < 0.14)*/ ),
         driveMoving(
             () ->
@@ -195,7 +202,8 @@ public class DriveCommands {
     angleController.setTolerance(0.017);
 
     ProfiledPIDController driveController =
-        new ProfiledPIDController(1.5, 0.0, DRIVE_KD, new TrapezoidProfile.Constraints(2.3, 2.0));
+        new ProfiledPIDController(
+            0.9, 0.002, DRIVE_KD, new TrapezoidProfile.Constraints(1.25, 0.6));
     // driveController.setTolerance(0.02);
 
     return Commands.run(
@@ -215,10 +223,13 @@ public class DriveCommands {
               Translation2d direction = target.minus(currentPose.getTranslation());
               Rotation2d angle = direction.getAngle();
 
+              double targetRotation =
+                  (drive.getPoseFlipped().getTranslation().getDistance(m_target.getTranslation())
+                          < 2.2
+                      ? (m_target.getRotation().getRadians() + (drive.weAreRed() ? Math.PI : 0.0))
+                      : Units.degreesToRadians(drive.aimAtReefCenter()));
               double omega =
-                  angleController.calculate(
-                      drive.getRotation().getRadians(),
-                      m_target.getRotation().getRadians() + (drive.weAreRed() ? Math.PI : 0.0));
+                  angleController.calculate(drive.getRotation().getRadians(), targetRotation);
               double speed =
                   driveController.calculate(-currentPose.getTranslation().getDistance(target), 0.0);
 

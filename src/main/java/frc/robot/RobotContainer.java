@@ -381,9 +381,9 @@ public class RobotContainer {
     controller.povRight().onTrue(reefMoving(true));
     controller.povLeft().onTrue(reefMoving(false));
     controller
-        .povDown()
+        .povUp()
         .onTrue(DriveCommands.driveThenScore(() -> drive.getTargetPoseFromSector(true), drive));
-    controller.povRight().onTrue(reefMoving(true));
+    controller.povDown().onTrue(reefMoving(true));
     controller.rightTrigger().onTrue(shootCommand(0.5).andThen(onShoot()));
     controller
         .leftTrigger()
@@ -459,7 +459,7 @@ public class RobotContainer {
 
     controller
         .a()
-        .onTrue(DriveCommands.driveMoving(() -> 1.3, () -> 0.0, () -> Rotation2d.kZero, drive))
+        .onTrue(DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
         .onFalse(driverControl());
 
     controller.y().toggleOnTrue(driverControl());
@@ -863,17 +863,11 @@ public class RobotContainer {
                     () ->
                         m_armevator.atMode(() -> mode)
                             && drive.isAtTargetPose(
-                                odd
-                                    ? Constants.REEF_CORAL_POSES_RED.get(9)
-                                    : Constants.REEF_CORAL_POSES_RED.get(10))),
+                                odd ? drive.getReefTraxPose(9) : drive.getReefTraxPose(10))),
                 () -> mode == 4),
             DriveCommands.driveThenScore(
-                () ->
-                    odd
-                        ? Constants.REEF_CORAL_POSES_RED.get(9)
-                        : Constants.REEF_CORAL_POSES_RED.get(10),
-                drive),
-            new WaitUntilCommand(drive::isElevatorDistance)
+                () -> odd ? drive.getReefTraxPose(9) : drive.getReefTraxPose(10), drive),
+            new WaitUntilCommand(() -> drive.isElevatorDistance(2.4))
                 .andThen(m_armevator.scoreAll(() -> mode))),
         shootCommandFast(0.5));
   }
