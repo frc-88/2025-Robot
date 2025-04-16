@@ -685,11 +685,14 @@ public class RobotContainer {
             m_armevator.shootInNetFactory(),
             DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
         .andThen(
-            new ParallelDeadlineGroup(new WaitCommand(0.5),
+            new ParallelDeadlineGroup(
+                    new WaitCommand(0.5),
                     m_armevator.stowFactory(),
                     DriveCommands.driveMoving(() -> -1.0, () -> 0.0, () -> Rotation2d.kZero, drive),
                     m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
-                .andThen(DriveCommands.driveMoving(() -> 0.5, () -> 0.0, () -> Rotation2d.kZero, drive)));
+                .andThen(
+                    DriveCommands.driveMoving(
+                        () -> 0.5, () -> 0.0, () -> Rotation2d.kZero, drive)));
   }
 
   private Command goToTiltAngleFactory() {
