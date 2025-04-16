@@ -778,7 +778,7 @@ public class RobotContainer {
                     () -> -controller.getLeftY() / 2.0,
                     () -> -controller.getLeftX() / 2.0,
                     () -> -controller.getRightX() / 2.0)),
-            new WaitUntilCommand(drive::isElevatorDistance)
+            new ParallelDeadlineGroup(new WaitUntilCommand(drive::isElevatorDistance), m_armevator.L3Factory())
                 .andThen(m_armevator.scoreAll(() -> mode)),
             m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
         // teleop ? shootCommand(delay) : shootCommandAuto(delay));
