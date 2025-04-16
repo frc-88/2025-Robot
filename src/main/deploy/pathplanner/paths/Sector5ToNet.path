@@ -3,37 +3,32 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.79,
-        "y": 2.86
+        "x": 5.137,
+        "y": 5.154
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.5995123462577934,
-        "y": 2.596542655743263
+        "x": 5.274692569587159,
+        "y": 5.669804470922074
       },
       "isLocked": false,
-      "linkedName": "ReefC"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.5326198630136987,
-        "y": 0.7193493150684935
+        "x": 6.487429540515647,
+        "y": 5.897840482549652
       },
       "prevControl": {
-        "x": 1.5854510443080496,
-        "y": 1.010542145313004
+        "x": 5.651704770381409,
+        "y": 5.966341869150724
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "RightCoralStation"
+      "linkedName": "NetShot"
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 1,
-      "rotationDegrees": 55.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -46,14 +41,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
-    "rotation": 59.99999999999999
+    "velocity": 0.4,
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": -119.99999999999999
   },
   "useDefaultConstraints": true
 }

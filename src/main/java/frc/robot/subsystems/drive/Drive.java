@@ -134,6 +134,7 @@ public class Drive extends SubsystemBase {
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
   private boolean m_autoaim = true;
   private ReefTrax reeftrax = new ReefTrax();
+  private int jumpCounter = 0;
 
   public Drive(
       GyroIO gyroIO,
@@ -227,6 +228,15 @@ public class Drive extends SubsystemBase {
     return weAreRed() ? flipPose(pose) : pose;
   }
 
+  public Pose2d getPoseFlipped() {
+    return flipIfRed(getPose());
+  }
+
+  public Translation2d getChassisTranslation() {
+    ChassisSpeeds speeds = getChassisSpeeds();
+    return new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+  }
+
   private double aimAtStation() {
     if (getPose().getY() < (Constants.FIELD_WIDTH / 2.0)) {
       return weAreRed() ? 135.0 : 45;
@@ -269,12 +279,12 @@ public class Drive extends SubsystemBase {
         && Math.abs(flipIfRed(getPose()).relativeTo(getTargetPose()).getY()) < 0.1;
   }
 
-  public boolean isAtTarget5() {
-    return flipIfRed(getPose())
-                .getTranslation()
-                .getDistance(REEF_CORAL_POSES.get(5).getTranslation())
-            < 0.07
-        && Math.abs(flipIfRed(getPose()).relativeTo(REEF_CORAL_POSES.get(5)).getY()) < 0.1;
+  public boolean isAtTarget6() {
+    return Math.abs(flipIfRed(getPose()).relativeTo(REEF_CORAL_POSES.get(6)).getY()) < 0.12;
+  }
+
+  public boolean isAtTargetPose(Pose2d pose) {
+    return Math.abs(flipIfRed(getPose()).relativeTo(pose).getY()) < 0.10;
   }
 
   public boolean isFacingForward() {
@@ -282,7 +292,7 @@ public class Drive extends SubsystemBase {
   }
 
   public boolean shouldShootAlgae() {
-    return flipIfRed(getPose()).getX() > 6.7
+    return flipIfRed(getPose()).getX() > 6.4
         && flipIfRed(getPose()).getY() > (Constants.FIELD_WIDTH / 2.0);
   }
 
@@ -382,7 +392,7 @@ public class Drive extends SubsystemBase {
     return angle;
   }
 
-  private double aimAtReefCenter() {
+  public double aimAtReefCenter() {
     double angle = getAngleToReef(getPose());
     angle = weAreRed() ? angle : angle + 180.0;
     return angle;
@@ -400,6 +410,11 @@ public class Drive extends SubsystemBase {
     if (!m_autoaim) {
       return getPose().getRotation().getDegrees();
     } else if (flipIfRed(getPose()).getX() > 7.0) {
+      return getPose().getRotation().getDegrees();
+    } else if (getPoseFlipped()
+            .getTranslation()
+            .getDistance(Constants.PROCESSOR_POSITION.getTranslation())
+        < 1.5) {
       return getPose().getRotation().getDegrees();
     } else if (!isNearReef() && !(flipIfRed(getPose()).getX() > 2.5) && !hasCoral.getAsBoolean()) {
       return aimAtStation();
@@ -438,6 +453,10 @@ public class Drive extends SubsystemBase {
       return 1;
     }
     return 0;
+  }
+
+  public Pose2d getReefTraxPose(int pole) {
+    return reeftrax.getRedPose(pole);
   }
 
   public int getTargetPositionFromSector(boolean odd) {
@@ -742,6 +761,12 @@ public class Drive extends SubsystemBase {
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
+
+    if (getPose().getTranslation().getDistance(visionRobotPoseMeters.getTranslation()) > 1.0) {
+      // big jump
+      Logger.recordOutput("Drive/Jump Count", ++jumpCounter);
+    }
+
     poseEstimator.addVisionMeasurement(
         visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
   }

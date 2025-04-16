@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
+import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -150,8 +151,15 @@ public class Doghouse extends SubsystemBase {
     m_funnel.setControl(m_funnelRequest.withOutput(output));
   }
 
-  private void setManipulatorSpeed(double output) {
+  private void setManipulatorSpeed(double output, boolean slowRamp) {
+    OpenLoopRampsConfigs config = new OpenLoopRampsConfigs();
+    config.DutyCycleOpenLoopRampPeriod = slowRamp ? 1 : 0;
+    m_manipulator.getConfigurator().apply(config);
     m_manipulator.setControl(m_manipulatorRequest.withOutput(output));
+  }
+
+  private void setManipulatorSpeed(double output) {
+    setManipulatorSpeed(output, false);
   }
 
   @AutoLogOutput(key = "DogHouse/hasCoral")
@@ -197,7 +205,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorSlow() {
-    setManipulatorSpeed(-0.12);
+    setManipulatorSpeed(-0.15, true);
   }
 
   private void manipulatorAlgaeSlow() {
@@ -220,6 +228,10 @@ public class Doghouse extends SubsystemBase {
 
   private void manipulatorL1Speed() {
     setManipulatorSpeed(-0.25);
+  }
+
+  private void manipulatorMedium() {
+    setManipulatorSpeed(-0.5);
   }
 
   private void manipulatorHoldPosition() {
@@ -359,6 +371,20 @@ public class Doghouse extends SubsystemBase {
             },
             this)
         .withTimeout(1.0)
+        .andThen(
+            () -> {
+              manipulatorStop();
+            });
+  }
+
+  public Command shootMedium(double delay) {
+    return new RunCommand(
+            () -> {
+              manipulatorMedium();
+              algaeMode = false;
+            },
+            this)
+        .withTimeout(delay)
         .andThen(
             () -> {
               manipulatorStop();

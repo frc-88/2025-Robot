@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.5554378314229815,
-        "y": 2.3129784125109984
+        "x": 4.056934931506849,
+        "y": 2.462328767123288
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.69241051434346,
-        "y": 2.6778805877489846
+        "x": 4.193907614427327,
+        "y": 2.827230942361274
       },
       "isLocked": false,
       "linkedName": "Sector2"
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": 58.11977401286697
   },
   "useDefaultConstraints": false
 }

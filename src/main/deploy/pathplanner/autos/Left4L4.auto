@@ -17,42 +17,29 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "Reef 12"
-          }
-        },
-        {
           "type": "deadline",
           "data": {
             "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LeftHeadStart"
+                }
+              },
               {
                 "type": "sequential",
                 "data": {
                   "commands": [
                     {
-                      "type": "deadline",
+                      "type": "wait",
                       "data": {
-                        "commands": [
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "Sector6ToLeftStation"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Stow"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Get Coral"
-                            }
-                          }
-                        ]
+                        "waitTime": 0.1
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Go To L4"
                       }
                     }
                   ]
@@ -62,6 +49,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Reef 9"
+          }
+        },
+        {
           "type": "deadline",
           "data": {
             "commands": [
@@ -76,7 +69,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "LeftStationToSector6"
+                              "pathName": "Sector5ToSector4"
                             }
                           },
                           {
@@ -97,7 +90,7 @@
                     {
                       "type": "named",
                       "data": {
-                        "name": "Reef 11"
+                        "name": "Reef 7"
                       }
                     }
                   ]
@@ -107,9 +100,79 @@
           }
         },
         {
-          "type": "path",
+          "type": "deadline",
           "data": {
-            "pathName": "CenterBackoff"
+            "commands": [
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "deadline",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "Sector4ToSector4"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Stow"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Get Coral"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Reef 8"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Sector4ToSector3"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Stow"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Get Coral"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Reef 6"
           }
         }
       ]

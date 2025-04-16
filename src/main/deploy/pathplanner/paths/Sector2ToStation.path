@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.5554378314229815,
-        "y": 2.3129784125109984
+        "x": 4.056934931506849,
+        "y": 2.462328767123288
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.1847874414871185,
-        "y": 2.0806261932938996
+        "x": 3.6862845415709855,
+        "y": 2.229976547906189
       },
       "isLocked": false,
       "linkedName": "Sector2"
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 1.0,
-    "rotation": 55.0
+    "rotation": 59.99999999999999
   },
   "reversed": false,
   "folder": null,
