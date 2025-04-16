@@ -131,7 +131,7 @@
               {
                 "type": "path",
                 "data": {
-                              "pathName": "Sector4ToStation"
+                  "pathName": "Sector4ToStation"
                 }
               },
               {
@@ -152,7 +152,7 @@
         {
           "type": "named",
           "data": {
-                        "name": "Reef 6"
+            "name": "Reef 6"
           }
         }
       ]

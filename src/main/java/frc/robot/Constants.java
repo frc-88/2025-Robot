@@ -195,6 +195,7 @@ public final class Constants {
       new Pose2d(5.002, 5.255, new Rotation2d(Units.degreesToRadians(-120.0)));
   public static Pose2d SECTOR4L1 =
       new Pose2d(3.716, 5.0605, new Rotation2d(Units.degreesToRadians(-60.0)));
+  public static Pose2d PROCESSOR_POSITION = new Pose2d(6.12, 0.0, new Rotation2d(Math.PI / 2.0));
 
   public static final Pose2d POSE5MOVING = new Pose2d(3.08, 3.154, new Rotation2d());
   public static final Pose2d POSE6MOVING = new Pose2d(3.08, 4.896, new Rotation2d());
