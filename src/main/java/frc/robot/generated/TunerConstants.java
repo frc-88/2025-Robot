@@ -20,15 +20,15 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 // https://v6.docs.ctr-electronics.com/en/stable/docs/tuner/tuner-swerve/index.html
 public class TunerConstants {
   // Default offsets below are for competition bot on 2/25
-  private static DoublePreferenceConstant p_frontLeftEncoderOffset =
+  public static DoublePreferenceConstant p_frontLeftEncoderOffset =
       new DoublePreferenceConstant("swervedrive/FrontLeft/Offset", 0.3330078125);
-  private static DoublePreferenceConstant p_frontRightEncoderOffset =
+  public static DoublePreferenceConstant p_frontRightEncoderOffset =
       new DoublePreferenceConstant("swervedrive/FrontRight/Offset", 0.361328125);
-  private static DoublePreferenceConstant p_backLeftEncoderOffset =
+  public static DoublePreferenceConstant p_backLeftEncoderOffset =
       new DoublePreferenceConstant("swervedrive/BackLeft/Offset", -0.03466796875);
-  private static DoublePreferenceConstant p_backRightEncoderOffset =
+  public static DoublePreferenceConstant p_backRightEncoderOffset =
       new DoublePreferenceConstant("swervedrive/BackRight/Offset", -0.091796875);
-  private static DoublePreferenceConstant p_driveCurrentLimit =
+  public static DoublePreferenceConstant p_driveCurrentLimit =
       new DoublePreferenceConstant("Drive Current Limit", 120.0);
 
   // Both sets of gains need to be tuned to your individual robot.

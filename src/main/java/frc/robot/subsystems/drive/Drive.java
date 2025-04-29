@@ -344,6 +344,33 @@ public class Drive extends SubsystemBase {
         () -> getTargetSector() == 1);
   }
 
+  private void zeroOffsets() {
+    modules[0].configureEncoder(0);
+    modules[1].configureEncoder(0);
+    modules[2].configureEncoder(0);
+    modules[3].configureEncoder(0);
+  }
+
+  private void recalibrateOffsets() {
+    TunerConstants.p_frontLeftEncoderOffset.setValue(-modules[0].getEncoderPosition());
+    TunerConstants.p_frontRightEncoderOffset.setValue(-modules[1].getEncoderPosition());
+    TunerConstants.p_backLeftEncoderOffset.setValue(-modules[2].getEncoderPosition());
+    TunerConstants.p_backRightEncoderOffset.setValue(-modules[3].getEncoderPosition());
+
+    modules[0].configureEncoder(TunerConstants.p_frontLeftEncoderOffset.getValue());
+    modules[1].configureEncoder(TunerConstants.p_frontRightEncoderOffset.getValue());
+    modules[2].configureEncoder(TunerConstants.p_backLeftEncoderOffset.getValue());
+    modules[3].configureEncoder(TunerConstants.p_backRightEncoderOffset.getValue());
+  }
+
+  public Command calibrateModuleOffsetsFactory() {
+    return new SequentialCommandGroup(
+            new InstantCommand(() -> zeroOffsets()),
+            new WaitCommand(5),
+            new InstantCommand(() -> recalibrateOffsets()))
+        .ignoringDisable(true);
+  }
+
   @Override
   public void periodic() {
     odometryLock.lock(); // Prevents odometry updates while reading data

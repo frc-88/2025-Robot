@@ -277,6 +277,9 @@ public class RobotContainer {
     SmartDashboard.putData("Prep Climber", climber.prepClimber());
     SmartDashboard.putData("Calibrate Gas Motor", climber.calibrateFactory());
 
+    // Pitcrew
+    SmartDashboard.putData("Calibrate Drive", drive.calibrateModuleOffsetsFactory());
+
     // Autos
     SmartDashboard.putData("TripleL1Right", getAutoPath("TripleL1Right"));
     SmartDashboard.putData("Score 5", scoreAuto(5));
