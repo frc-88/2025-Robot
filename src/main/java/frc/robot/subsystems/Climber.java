@@ -11,6 +11,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -78,6 +79,7 @@ public class Climber extends SubsystemBase {
 
   private MotionMagicVoltage m_motionMagic = new MotionMagicVoltage(0.0);
   private PositionDutyCycle position = new PositionDutyCycle(0.0);
+  private TorqueCurrentFOC current = new TorqueCurrentFOC(-100.0);
   private boolean isClimbing = false;
   private boolean m_calibrated = false;
   VisionIOLimelight vision = new VisionIOLimelight("", () -> new Rotation2d());
@@ -258,7 +260,8 @@ public class Climber extends SubsystemBase {
   }
 
   private void closeGrabber() {
-    setGripperAngle(-5.0);
+    // setGripperAngle(-5.0);
+    m_gripper.setControl(current);
   }
 
   private void stow() {

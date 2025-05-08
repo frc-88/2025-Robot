@@ -352,6 +352,10 @@ public class Armevator extends SubsystemBase {
     return Math.abs(getElevatorPositionInches() - 3.0) < 0.4;
   }
 
+  public boolean elevatorAboveDoghouse() {
+    return getElevatorPositionInches() > 24;
+  }
+
   public boolean elevatorAtZero() {
     return Math.abs(getElevatorPositionInches()) < 0.25;
   }
