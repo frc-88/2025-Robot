@@ -84,7 +84,7 @@ public class Doghouse extends SubsystemBase {
     manipulatorConfiguration.Slot0.kD = p_manipulatorPID.getKD().getValue();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
     manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitAutosetPositionEnable = true;
-    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitAutosetPositionValue = 0;
+    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitAutosetPositionValue = -.1;
     manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitType =
         ForwardLimitTypeValue.NormallyOpen;
     manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitSource =
@@ -109,7 +109,7 @@ public class Doghouse extends SubsystemBase {
     reefRangecfg.FovParams.FOVRangeX = 15.0;
     reefRangecfg.FovParams.FOVRangeY = 7.0;
 
-    reefRangecfg.ProximityParams.ProximityThreshold = 0.28;
+    reefRangecfg.ProximityParams.ProximityThreshold = 0.15;
     reefRangecfg.ProximityParams.ProximityHysteresis = 0.03;
     reefRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 5000.0;
 
@@ -153,7 +153,7 @@ public class Doghouse extends SubsystemBase {
 
   private void setManipulatorSpeed(double output, boolean slowRamp) {
     OpenLoopRampsConfigs config = new OpenLoopRampsConfigs();
-    config.DutyCycleOpenLoopRampPeriod = slowRamp ? 1 : 0;
+    config.DutyCycleOpenLoopRampPeriod = slowRamp ? .5 : 0;
     m_manipulator.getConfigurator().apply(config);
     m_manipulator.setControl(m_manipulatorRequest.withOutput(output));
   }
@@ -205,7 +205,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorSlow() {
-    setManipulatorSpeed(-0.15, true);
+    setManipulatorSpeed(-0.1, true);
   }
 
   private void manipulatorAlgaeSlow() {
@@ -240,6 +240,10 @@ public class Doghouse extends SubsystemBase {
 
   private void setAlgae() {
     algaeMode = true;
+  }
+
+  private void clearAlgae() {
+    algaeMode = false;
   }
 
   public boolean isAlgaeMode() {
@@ -403,6 +407,10 @@ public class Doghouse extends SubsystemBase {
 
   public Command setAlgaeModeFactory() {
     return new InstantCommand(() -> setAlgae(), this);
+  }
+
+  public Command clearAlgaeMode() {
+    return new InstantCommand(() -> clearAlgae(), this);
   }
 
   @Override

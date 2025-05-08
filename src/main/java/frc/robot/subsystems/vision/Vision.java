@@ -123,7 +123,7 @@ public class Vision extends SubsystemBase {
                 || observation.pose().getX() > aprilTagLayout.getFieldLength()
                 || observation.pose().getY() < 0.0
                 || observation.pose().getY() > aprilTagLayout.getFieldWidth()
-                || observation.averageTagDistance() > (cameraIndex == 0 ? 2.0 : 8.0);
+                || observation.averageTagDistance() > (cameraIndex == 0 ? 4.0 : 8.0);
 
         // Add pose to log
         robotPoses.add(observation.pose());

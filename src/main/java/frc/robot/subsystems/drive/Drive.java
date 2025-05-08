@@ -292,7 +292,7 @@ public class Drive extends SubsystemBase {
   }
 
   public boolean shouldShootAlgae() {
-    return flipIfRed(getPose()).getX() > 6.4
+    return flipIfRed(getPose()).getX() > 6.55
         && flipIfRed(getPose()).getY() > (Constants.FIELD_WIDTH / 2.0);
   }
 
@@ -765,6 +765,7 @@ public class Drive extends SubsystemBase {
     if (getPose().getTranslation().getDistance(visionRobotPoseMeters.getTranslation()) > 1.0) {
       // big jump
       Logger.recordOutput("Drive/Jump Count", ++jumpCounter);
+      Logger.recordOutput("Drive/Jump Pose", getPose());
     }
 
     poseEstimator.addVisionMeasurement(
