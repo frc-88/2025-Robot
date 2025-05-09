@@ -19,7 +19,7 @@ import frc.robot.util.preferenceconstants.PreferenceConstants;
 public class ReefTrax {
   private static final double REEF_X = 176.75;
   private static final double REEF_Y = 158.50;
-  private static final double REEF_ROBOT_DIST = 50.12;
+  private static final double REEF_ROBOT_DIST = 54.12;
   private static final double POLE_SEPARATION = 12.94;
   private static final double ROBOT_SCORE_OFFSET = 6.877;
 

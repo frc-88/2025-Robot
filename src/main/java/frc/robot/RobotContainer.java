@@ -586,7 +586,7 @@ public class RobotContainer {
             new ConditionalCommand(
                 m_doghouse.shootL1(),
                 new ConditionalCommand(
-                    m_doghouse.shootFullSpeedFactory(delay),
+                    m_doghouse.shootFactory(delay),
                     m_doghouse.shootFactory(delay),
                     () -> mode == 4),
                 () -> mode == 1),
