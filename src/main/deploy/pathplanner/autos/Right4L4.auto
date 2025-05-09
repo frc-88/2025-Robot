@@ -17,9 +17,41 @@
           }
         },
         {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RightHeadStart"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 0.1
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Go To L4"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "named",
           "data": {
-            "name": "Reef 9"
+            "name": "Reef 2"
           }
         },
         {
@@ -37,7 +69,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector5ToStation"
+                              "pathName": "Sector1ToSector2"
                             }
                           },
                           {
@@ -56,15 +88,9 @@
                       }
                     },
                     {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 0.01
-                      }
-                    },
-                    {
                       "type": "named",
                       "data": {
-                        "name": "Reef 8"
+                        "name": "Reef 4"
                       }
                     }
                   ]
@@ -88,7 +114,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector4ToStation"
+                              "pathName": "Sector2ToSector2"
                             }
                           },
                           {
@@ -107,15 +133,9 @@
                       }
                     },
                     {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 0.01
-                      }
-                    },
-                    {
                       "type": "named",
                       "data": {
-                        "name": "Reef 7"
+                        "name": "Reef 3"
                       }
                     }
                   ]
@@ -131,7 +151,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Sector4ToStation"
+                  "pathName": "Sector2ToSector3"
                 }
               },
               {
@@ -152,7 +172,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Reef 6"
+            "name": "Reef 5"
           }
         }
       ]

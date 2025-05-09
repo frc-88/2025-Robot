@@ -11,6 +11,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -34,6 +35,7 @@ import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 public class Climber extends SubsystemBase {
   private DoublePreferenceConstant p_grippermaxVelocity =
@@ -77,14 +79,16 @@ public class Climber extends SubsystemBase {
 
   private MotionMagicVoltage m_motionMagic = new MotionMagicVoltage(0.0);
   private PositionDutyCycle position = new PositionDutyCycle(0.0);
+  private TorqueCurrentFOC current = new TorqueCurrentFOC(-100.0);
   private boolean isClimbing = false;
   private boolean m_calibrated = false;
   VisionIOLimelight vision = new VisionIOLimelight("", () -> new Rotation2d());
 
   private Debouncer climberDebouncer = new Debouncer(1.0);
-  private Debouncer gripperDebouncer = new Debouncer(0.05);
+  private Debouncer gripperDebouncer = new Debouncer(0.06);
   public Trigger onDisable = new Trigger(() -> shouldEnableNeutralOnDisable());
   public Trigger shouldCloseTrigger = new Trigger(() -> shouldClose() && RobotState.isEnabled());
+  public boolean holdBearClaw = false;
   public Trigger shouldSoftCloseTrigger =
       new Trigger(() -> shouldSoftClose() && RobotState.isEnabled());
   // public Trigger forceCloseTrigger = new Trigger(() -> forceClose());
@@ -182,10 +186,13 @@ public class Climber extends SubsystemBase {
   }
 
   public boolean shouldClose() {
-    return !input.get()
-        && gripperDebouncer.calculate(
-            m_canRange.getDistance().getValueAsDouble() > 0.225
-                && m_canRange.getDistance().getValueAsDouble() < 0.235);
+    boolean ret =
+        !input.get()
+            && m_canRange.getDistance().getValueAsDouble() > 0.225
+            && m_canRange.getDistance().getValueAsDouble() < 0.235;
+
+    if (gripperDebouncer.calculate(ret)) holdBearClaw = true;
+    return ret || holdBearClaw;
   }
 
   public boolean shouldSoftClose() {
@@ -253,7 +260,8 @@ public class Climber extends SubsystemBase {
   }
 
   private void closeGrabber() {
-    setGripperAngle(-5.0);
+    // setGripperAngle(-5.0);
+    m_gripper.setControl(current);
   }
 
   private void stow() {
@@ -427,6 +435,7 @@ public class Climber extends SubsystemBase {
   public Command prepClimber() {
     return new RunCommand(
             () -> {
+              holdBearClaw = false;
               setGasMotorPositionRotations(p_gasmotorPositionRotations.getValue());
               // openGrabber();
             },
@@ -452,11 +461,12 @@ public class Climber extends SubsystemBase {
     SmartDashboard.putNumber(
         "Climber CAN Range Distance", m_canRange.getDistance().getValueAsDouble() * 100.0);
     SmartDashboard.putNumber("Gripper Position", getGripperPositionRotations());
-    SmartDashboard.putBoolean("Sensor ouput", input.get());
+    SmartDashboard.putBoolean("Sensor output", !input.get());
     SmartDashboard.putBoolean("Grabbed", m_grabbed);
     SmartDashboard.putBoolean(
         "Is braked", m_gripper.getControlMode().getValue() == ControlModeValue.StaticBrake);
     SmartDashboard.putBoolean("try to climb", shouldClose() && RobotState.isEnabled());
     SmartDashboard.putNumber("canrange distance", getCageDistance());
+    Logger.recordOutput("BearClaw", shouldClose());
   }
 }

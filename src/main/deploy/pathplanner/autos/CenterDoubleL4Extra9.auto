@@ -13,19 +13,58 @@
         {
           "type": "named",
           "data": {
-            "name": "L4 Mode"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
             "name": "Set Algae Mode"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Reef Algae Even"
+            "name": "L4 Mode"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Reef 11"
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "deadline",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "Sector6ToLeftStation"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Stow"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Get Coral"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         },
         {
@@ -35,7 +74,38 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CenterToNetShot"
+                  "pathName": "LeftStationToSector5"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Stow"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Get Coral"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Reef Algae Odd"
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Sector5ToNet"
                 }
               },
               {

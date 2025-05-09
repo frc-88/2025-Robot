@@ -45,6 +45,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
@@ -93,6 +94,8 @@ public class Drive extends SubsystemBase {
               Math.hypot(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
               Math.hypot(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
 
+  Field2d m_odomPose = new Field2d();
+
   // PathPlanner config constants
   private static final double ROBOT_MASS_KG = 74.088;
   private static final double ROBOT_MOI = 6.883;
@@ -134,6 +137,7 @@ public class Drive extends SubsystemBase {
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
   private boolean m_autoaim = true;
   private ReefTrax reeftrax = new ReefTrax();
+  private int jumpCounter = 0;
 
   public Drive(
       GyroIO gyroIO,
@@ -227,6 +231,15 @@ public class Drive extends SubsystemBase {
     return weAreRed() ? flipPose(pose) : pose;
   }
 
+  public Pose2d getPoseFlipped() {
+    return flipIfRed(getPose());
+  }
+
+  public Translation2d getChassisTranslation() {
+    ChassisSpeeds speeds = getChassisSpeeds();
+    return new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+  }
+
   private double aimAtStation() {
     if (getPose().getY() < (Constants.FIELD_WIDTH / 2.0)) {
       return weAreRed() ? 135.0 : 45;
@@ -252,9 +265,13 @@ public class Drive extends SubsystemBase {
         < 1.40;
   }
 
-  public boolean isElevatorDistance() {
+  public boolean isElevatorDistance(double distance) {
     return flipIfRed(getPose()).getTranslation().getDistance(Constants.REEF_POSE.getTranslation())
-        < 2.5;
+        < distance;
+  }
+
+  public boolean isElevatorDistance() {
+    return isElevatorDistance(2.5);
   }
 
   public boolean isAtTarget(boolean odd) {
@@ -265,12 +282,12 @@ public class Drive extends SubsystemBase {
         && Math.abs(flipIfRed(getPose()).relativeTo(getTargetPose()).getY()) < 0.1;
   }
 
-  public boolean isAtTarget5() {
-    return flipIfRed(getPose())
-                .getTranslation()
-                .getDistance(REEF_CORAL_POSES.get(5).getTranslation())
-            < 0.07
-        && Math.abs(flipIfRed(getPose()).relativeTo(REEF_CORAL_POSES.get(5)).getY()) < 0.1;
+  public boolean isAtTarget6() {
+    return Math.abs(flipIfRed(getPose()).relativeTo(REEF_CORAL_POSES.get(6)).getY()) < 0.12;
+  }
+
+  public boolean isAtTargetPose(Pose2d pose) {
+    return Math.abs(flipIfRed(getPose()).relativeTo(pose).getY()) < 0.10;
   }
 
   public boolean isFacingForward() {
@@ -278,7 +295,7 @@ public class Drive extends SubsystemBase {
   }
 
   public boolean shouldShootAlgae() {
-    return flipIfRed(getPose()).getX() > 6.7
+    return flipIfRed(getPose()).getX() > 6.55
         && flipIfRed(getPose()).getY() > (Constants.FIELD_WIDTH / 2.0);
   }
 
@@ -378,6 +395,12 @@ public class Drive extends SubsystemBase {
     return angle;
   }
 
+  public double aimAtReefCenter() {
+    double angle = getAngleToReef(getPose());
+    angle = weAreRed() ? angle : angle + 180.0;
+    return angle;
+  }
+
   public void enableAutoAim() {
     m_autoaim = true;
   }
@@ -389,24 +412,32 @@ public class Drive extends SubsystemBase {
   public double aimAtExpectedTarget(BooleanSupplier hasCoral) {
     if (!m_autoaim) {
       return getPose().getRotation().getDegrees();
-    } else if (hasCoral.getAsBoolean()) {
-      return aimAtReef();
-    } else if (!isNearReef() && !(flipIfRed(getPose()).getX() > 4.4)) {
+    } else if (flipIfRed(getPose()).getX() > 7.0) {
+      return getPose().getRotation().getDegrees();
+    } else if (getPoseFlipped()
+            .getTranslation()
+            .getDistance(Constants.PROCESSOR_POSITION.getTranslation())
+        < 1.5) {
+      return getPose().getRotation().getDegrees();
+    } else if (!isNearReef() && !(flipIfRed(getPose()).getX() > 2.5) && !hasCoral.getAsBoolean()) {
       return aimAtStation();
-    } else if (flipIfRed(getPose()).getX() > 4.4) {
-      return getPose().getRotation().getDegrees();
     } else {
-      return getPose().getRotation().getDegrees();
+      // return aimAtReef();
+      return aimAtReefCenter();
     }
   }
 
-  public Pose2d nextPose() {
+  public Pose2d nextPose(double lookAhead) {
     Pose2d current = getPose();
     double x = getChassisSpeeds().vxMetersPerSecond;
     double y = getChassisSpeeds().vyMetersPerSecond;
 
     return new Pose2d(
-        current.getX() + (x * 0.1), current.getY() + (y * 0.1), current.getRotation());
+        current.getX() + (x * lookAhead), current.getY() + (y * lookAhead), current.getRotation());
+  }
+
+  public Pose2d nextPose() {
+    return nextPose(0.1);
   }
 
   public int getTargetSector() {
@@ -425,6 +456,10 @@ public class Drive extends SubsystemBase {
       return 1;
     }
     return 0;
+  }
+
+  public Pose2d getReefTraxPose(int pole) {
+    return reeftrax.getRedPose(pole);
   }
 
   public int getTargetPositionFromSector(boolean odd) {
@@ -598,6 +633,8 @@ public class Drive extends SubsystemBase {
         "Error x", Math.abs(REEF_CORAL_POSES.get(5).getX() - flipIfRed(getPose()).getX()));
     SmartDashboard.putNumber(
         "Error y", Math.abs(REEF_CORAL_POSES.get(5).getY() - flipIfRed(getPose()).getY()));
+    m_odomPose.setRobotPose(getPose());
+    SmartDashboard.putData("Odometry Pose", m_odomPose);
   }
 
   /**
@@ -729,6 +766,13 @@ public class Drive extends SubsystemBase {
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
+
+    if (getPose().getTranslation().getDistance(visionRobotPoseMeters.getTranslation()) > 1.0) {
+      // big jump
+      Logger.recordOutput("Drive/Jump Count", ++jumpCounter);
+      Logger.recordOutput("Drive/Jump Pose", getPose());
+    }
+
     poseEstimator.addVisionMeasurement(
         visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
   }

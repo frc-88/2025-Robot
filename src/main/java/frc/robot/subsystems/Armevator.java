@@ -153,7 +153,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void armCalibrate() {
-    m_arm.setPosition(m_encoder.getAbsolutePosition().getValueAsDouble() * 112.0);
+    m_arm.setPosition(m_encoder.getAbsolutePosition().getValueAsDouble() * 48.0);
   }
 
   private void elevatorCalibrate() {
@@ -179,8 +179,29 @@ public class Armevator extends SubsystemBase {
     }
   }
 
+  private void elevatorSetPositionSlow(double position) {
+    if (m_safeToMove.getAsBoolean()) {
+      m_elevatorMain.setControl(
+          motionmagicrequest
+              .withPosition(position / Constants.ELEVATOR_ROTATIONS_TO_INCHES)
+              .withFeedForward(-3.0));
+    } else {
+      m_elevatorMain.setControl(
+          motionmagicrequest
+              .withPosition(m_elevatorMain.getPosition().getValueAsDouble())
+              .withFeedForward(0.056));
+    }
+  }
+
   private void armSetAngle(double angle) {
     m_arm.setControl(motionmagicrequest.withPosition(angle / Constants.ARM_ROTATIONS_TO_DEGREES));
+  }
+
+  private void armSetAngleSlow(double angle) {
+    m_arm.setControl(
+        motionmagicrequest
+            .withPosition(angle / Constants.ARM_ROTATIONS_TO_DEGREES)
+            .withFeedForward(-0.25));
   }
 
   private void armGoToTiltAngle() {
@@ -205,7 +226,7 @@ public class Armevator extends SubsystemBase {
 
   private void setL4() {
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
-    if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 6.0)) {
+    if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 10.0)) {
       armSetAngle(Constants.ARM_L4_ANGLE);
     } else {
       armSetAngle(Constants.ARM_L4_SAFE_ANGLE);
@@ -294,12 +315,28 @@ public class Armevator extends SubsystemBase {
     armGoToAlgaeStow();
   }
 
+  private void stowArmAlgaeProcessor() {
+    armSetAngleSlow(30.0);
+  }
+
+  private void stowArmAlgaeProcessor(double position) {
+    armSetAngleSlow(position);
+  }
+
   private void stowElevator() {
     elevatorSetPosition(0.0);
   }
 
   private void stowElevatorAlgae() {
     elevatorSetPosition(11.0);
+  }
+
+  private void stowElevatorAlgaeProcessor() {
+    elevatorSetPositionSlow(0.0);
+  }
+
+  private void stowElevatorAlgaeProcessor(double position) {
+    elevatorSetPositionSlow(position);
   }
 
   private void goToOneInch() {
@@ -311,10 +348,22 @@ public class Armevator extends SubsystemBase {
     stowElevator();
   }
 
+  public boolean elevatorAtProcessorPosition() {
+    return Math.abs(getElevatorPositionInches() - 3.0) < 0.4;
+  }
+
+  public boolean elevatorAboveDoghouse() {
+    return getElevatorPositionInches() > 24;
+  }
+
+  public boolean elevatorAtZero() {
+    return Math.abs(getElevatorPositionInches()) < 0.25;
+  }
+
   public boolean atMode(IntSupplier i) {
     if (i.getAsInt() == 4) {
       return getArmAngle() > (Constants.ARM_L4_ANGLE - 1.2)
-          && getArmAngle() < (Constants.ARM_L4_ANGLE + 2.7);
+          && getArmAngle() < (Constants.ARM_L4_ANGLE + 2.9);
     } else if (i.getAsInt() == 3) {
       return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L3_HEIGHT) < 1.0;
     } else {
@@ -353,6 +402,32 @@ public class Armevator extends SubsystemBase {
           stowElevatorAlgae();
         },
         this);
+  }
+
+  public Command stowProcessor() {
+    return new RunCommand(
+            () -> {
+              if (getArmAngle() > 22.0) {
+                stowElevatorAlgaeProcessor(3.0);
+              }
+              stowArmAlgaeProcessor();
+            },
+            this)
+        .until(() -> elevatorAtProcessorPosition())
+        .andThen(
+            new RunCommand(
+                    () -> {
+                      stowElevatorAlgaeProcessor();
+                      stowArmAlgaeProcessor();
+                    })
+                .until(() -> elevatorAtZero())
+                .andThen(
+                    new RunCommand(
+                        () -> {
+                          stowElevatorAlgaeProcessor();
+                          stowArmAlgaeProcessor(55.0);
+                        },
+                        this)));
   }
 
   public Command stowBothFactory() {

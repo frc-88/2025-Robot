@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
+import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -108,7 +109,7 @@ public class Doghouse extends SubsystemBase {
     reefRangecfg.FovParams.FOVRangeX = 15.0;
     reefRangecfg.FovParams.FOVRangeY = 7.0;
 
-    reefRangecfg.ProximityParams.ProximityThreshold = 0.28;
+    reefRangecfg.ProximityParams.ProximityThreshold = 0.15;
     reefRangecfg.ProximityParams.ProximityHysteresis = 0.03;
     reefRangecfg.ProximityParams.MinSignalStrengthForValidMeasurement = 5000.0;
 
@@ -150,8 +151,15 @@ public class Doghouse extends SubsystemBase {
     m_funnel.setControl(m_funnelRequest.withOutput(output));
   }
 
-  private void setManipulatorSpeed(double output) {
+  private void setManipulatorSpeed(double output, boolean slowRamp) {
+    OpenLoopRampsConfigs config = new OpenLoopRampsConfigs();
+    config.DutyCycleOpenLoopRampPeriod = slowRamp ? .2 : 0;
+    m_manipulator.getConfigurator().apply(config);
     m_manipulator.setControl(m_manipulatorRequest.withOutput(output));
+  }
+
+  private void setManipulatorSpeed(double output) {
+    setManipulatorSpeed(output, false);
   }
 
   @AutoLogOutput(key = "DogHouse/hasCoral")
@@ -197,7 +205,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorSlow() {
-    setManipulatorSpeed(-0.12);
+    setManipulatorSpeed(-0.1, true);
   }
 
   private void manipulatorAlgaeSlow() {
@@ -222,12 +230,20 @@ public class Doghouse extends SubsystemBase {
     setManipulatorSpeed(-0.25);
   }
 
-  private void manipulatorHoldPosition() {
-    m_manipulator.setControl(request.withPosition(0.0));
+  private void manipulatorMedium() {
+    setManipulatorSpeed(-0.5);
+  }
+
+  private void manipulatorHoldPosition(boolean pullBack) {
+    m_manipulator.setControl(request.withPosition(pullBack ? 0 : 0));
   }
 
   private void setAlgae() {
     algaeMode = true;
+  }
+
+  private void clearAlgae() {
+    algaeMode = false;
   }
 
   public boolean isAlgaeMode() {
@@ -269,21 +285,22 @@ public class Doghouse extends SubsystemBase {
     return m_manipulator.getSupplyCurrent().getValueAsDouble() > 20.0;
   }
 
-  public Command autoLiftingElevatorFactory() {
+  public Command autoLiftingElevatorFactory(BooleanSupplier elevatorAboveDoghouse) {
     return new RunCommand(
         () -> {
           funnelBackwards();
-          manipulatorHoldPosition();
+          manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
         },
         this);
   }
 
-  public Command coralIntakeFactory(BooleanSupplier elevatorDown) {
+  public Command coralIntakeFactory(
+      BooleanSupplier elevatorDown, BooleanSupplier elevatorAboveDoghouse) {
     return new RunCommand(
         () -> {
           if (!algaeMode) {
             if (!elevatorDown.getAsBoolean() & !isBlocked()) {
-              manipulatorStop();
+              manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
               funnelBackwardsSlow();
               // maybe funnel slow backwards
             } else if (!elevatorDown.getAsBoolean() & isBlocked()) {
@@ -293,7 +310,7 @@ public class Doghouse extends SubsystemBase {
               manipulatorIn();
               funnelGo();
             } else if (hasCoral() & !isBlocked()) {
-              manipulatorHoldPosition();
+              manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
               funnelStop();
             } else if (isBlocked()) {
               manipulatorSlow();
@@ -365,6 +382,20 @@ public class Doghouse extends SubsystemBase {
             });
   }
 
+  public Command shootMedium(double delay) {
+    return new RunCommand(
+            () -> {
+              manipulatorMedium();
+              algaeMode = false;
+            },
+            this)
+        .withTimeout(delay)
+        .andThen(
+            () -> {
+              manipulatorStop();
+            });
+  }
+
   public Command shootAlgaeFactory() {
     return new RunCommand(
             () -> {
@@ -377,6 +408,10 @@ public class Doghouse extends SubsystemBase {
 
   public Command setAlgaeModeFactory() {
     return new InstantCommand(() -> setAlgae(), this);
+  }
+
+  public Command clearAlgaeMode() {
+    return new InstantCommand(() -> clearAlgae(), this);
   }
 
   @Override
@@ -393,6 +428,12 @@ public class Doghouse extends SubsystemBase {
     SmartDashboard.putBoolean("Doghouse/Is Blocked", isBlocked());
     SmartDashboard.putBoolean("Doghouse/Reef", m_reefRange.getIsDetected().getValue());
     SmartDashboard.putBoolean("isAlgae", algaeMode);
+    SmartDashboard.putNumber(
+        "Doghouse/manipulatorPosition", m_manipulator.getPosition().getValueAsDouble());
+    SmartDashboard.putNumber(
+        "Doghouse/manipulatorSpeed", m_manipulator.getPosition().getValueAsDouble());
+    SmartDashboard.putNumber(
+        "Doghouse/manipulatorVoltage", m_manipulator.getDutyCycle().getValueAsDouble());
   }
 
   public void zeroManipulator() {

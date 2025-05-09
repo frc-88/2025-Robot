@@ -19,7 +19,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Reef 9"
+            "name": "Reef 12"
           }
         },
         {
@@ -37,7 +37,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector5ToStation"
+                              "pathName": "Sector6ToLeftStation"
                             }
                           },
                           {
@@ -53,18 +53,6 @@
                             }
                           }
                         ]
-                      }
-                    },
-                    {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 0.01
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "Reef 8"
                       }
                     }
                   ]
@@ -88,7 +76,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Sector4ToStation"
+                              "pathName": "LeftStationToSector6"
                             }
                           },
                           {
@@ -107,15 +95,15 @@
                       }
                     },
                     {
-                      "type": "wait",
+                      "type": "named",
                       "data": {
-                        "waitTime": 0.01
+                        "name": "Set Algae Mode"
                       }
                     },
                     {
                       "type": "named",
                       "data": {
-                        "name": "Reef 7"
+                        "name": "Reef Algae Odd"
                       }
                     }
                   ]
@@ -131,19 +119,26 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Sector4ToStation"
+                  "pathName": "CenterToNetShot"
                 }
               },
               {
-                "type": "named",
+                "type": "sequential",
                 "data": {
-                  "name": "Stow"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Get Coral"
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 0.5
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "StowAlgae"
+                      }
+                    }
+                  ]
                 }
               }
             ]
@@ -152,7 +147,45 @@
         {
           "type": "named",
           "data": {
-            "name": "Reef 6"
+            "name": "Shoot Algae"
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "NetShotToSafe"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Clear Algae Mode"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 0.4
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Stow"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         }
       ]

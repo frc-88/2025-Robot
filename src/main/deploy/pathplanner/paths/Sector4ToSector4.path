@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 3.426,
-        "y": 2.267
+        "y": 5.783
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.710416620631813,
-        "y": 1.2293212450232482
+        "x": 2.7104193463737944,
+        "y": 6.820680634643429
       },
       "isLocked": false,
       "linkedName": null
@@ -17,15 +17,15 @@
     {
       "anchor": {
         "x": 1.3222602739726028,
-        "y": 0.764426369863014
+        "y": 7.286
       },
       "prevControl": {
-        "x": 1.5983232548753976,
-        "y": 0.5228712615730695
+        "x": 1.5984556052818983,
+        "y": 7.527671551827988
       },
       "nextControl": {
-        "x": 1.0818493150684931,
-        "y": 0.9747859589041092
+        "x": 1.081849589820359,
+        "y": 7.075640096957185
       },
       "isLocked": false,
       "linkedName": null
@@ -33,11 +33,11 @@
     {
       "anchor": {
         "x": 2.298929794520548,
-        "y": 1.5607876712328765
+        "y": 6.489
       },
       "prevControl": {
-        "x": 1.4574914383561648,
-        "y": 1.1550941780821913
+        "x": 1.4576139108756885,
+        "y": 6.894639721830678
       },
       "nextControl": null,
       "isLocked": false,
@@ -46,14 +46,14 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 1,
-      "rotationDegrees": 52.94938383006005
+      "waypointRelativePos": 1.0,
+      "rotationDegrees": -52.949
     }
   ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.9534333070244707,
+      "minWaypointRelativePos": 0.9502762430939281,
       "maxWaypointRelativePos": 2.0,
       "constraints": {
         "maxVelocity": 1.1,
@@ -77,13 +77,13 @@
   },
   "goalEndState": {
     "velocity": 4.0,
-    "rotation": 53.47045945604319
+    "rotation": -53.47
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 58.11977401286697
+    "rotation": -58.12
   },
   "useDefaultConstraints": false
 }
