@@ -215,6 +215,16 @@ public class Drive extends SubsystemBase {
         && modules[3].isReady();
   }
 
+  // Logging total drive current across all modules
+  @AutoLogOutput(key = "Drive/TotalDriveCurrent")
+  public double getTotalDriveCurrent() {
+    double sum = 0.0;
+    for (Module m : modules) {
+      sum += m.getDriveCurrent();
+    }
+    return sum;
+  }
+
   public boolean weAreRed() {
     return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
   }

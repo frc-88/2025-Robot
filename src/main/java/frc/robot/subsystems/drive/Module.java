@@ -23,6 +23,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 public class Module {
   private final ModuleIO io;
@@ -147,5 +148,17 @@ public class Module {
   /** Returns the module velocity in rotations/sec (Phoenix native units). */
   public double getFFCharacterizationVelocity() {
     return Units.radiansToRotations(inputs.driveVelocityRadPerSec);
+  }
+
+  /** current logging for drive motors. */
+  @AutoLogOutput(key = "Drive/Modules/" + name + "/DriveCurrent")
+  public double getDriveCurrent() {
+    return inputs.driveCurrentAmps;
+  }
+
+  /** current logging for steer motors. */
+  @AutoLogOutput(key = "Drive/Modules/" + name + "/SteerCurrent")
+  public double getSteerCurrent() {
+    return inputs.turnCurrentAmps;
   }
 }
