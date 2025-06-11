@@ -138,6 +138,20 @@ public class Doghouse extends SubsystemBase {
         && !isBlocked();
   }
 
+  // Motor current logging methods for all motors in this subsystem
+
+  // Funnel motor current logging
+  @AutoLogOutput(key = "DogHouse/FunnelMotorCurrent")
+  public double getFunnelCurrent() {
+    return m_funnel.getSupplyCurrent().getValueAsDouble();
+  }
+
+  // Manipulator motor current logging
+  @AutoLogOutput(key = "DogHouse/ManipulatorMotorCurrent")
+  public double getManipulatorCurrent() {
+    return m_manipulator.getSupplyCurrent().getValueAsDouble();
+  }
+
   @AutoLogOutput(key = "DogHouse/reefDetected")
   public boolean getIsReefDetected() {
     return m_reefRange.getIsDetected().getValue();

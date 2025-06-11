@@ -159,6 +159,20 @@ public class Climber extends SubsystemBase {
         && m_canRange.isConnected();
   }
 
+  // Motor current logging methods for all motors in this subsystem
+
+  // Gas Motor Logging
+  @AutoLogOutput(key = "Climber/GasMotorCurrent")
+  public double getGasMotorCurrent() {
+    return m_gasmotor.getSupplyCurrent().getValueAsDouble();
+  }
+
+  // Gripper Motor Logging
+  @AutoLogOutput(key = "Climber/GripperMotorCurrent")
+  public double getGripperMotorCurrent() {
+    return m_gripper.getSupplyCurrent().getValueAsDouble();
+  }
+
   public Trigger shouldGripperClose() {
     return shouldCloseTrigger;
   }

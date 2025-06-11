@@ -143,6 +143,26 @@ public class Armevator extends SubsystemBase {
         && isElevatorDown();
   }
 
+  // Motor current logging methods for all motors in this subsystem
+
+  // Elevator main motor current logging
+  @AutoLogOutput(key = "Armevator/elevatorMainCurrent")
+  public double getElevatorMainCurrent() {
+    return m_elevatorMain.getSupplyCurrent().getValueAsDouble();
+  }
+
+  // Elevator follower motor current logging
+  @AutoLogOutput(key = "Armevator/elevatorFollowerCurrent")
+  public double getElevatorFollowerCurrent() {
+    return m_elevatorFollower.getSupplyCurrent().getValueAsDouble();
+  }
+
+  // Arm motor current logging
+  @AutoLogOutput(key = "Armevator/armCurrent")
+  public double getArmCurrent() {
+    return m_arm.getSupplyCurrent().getValueAsDouble();
+  }
+
   @AutoLogOutput(key = "Armevator/armAngle")
   public double getArmAngle() {
     return m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES;
@@ -155,9 +175,13 @@ public class Armevator extends SubsystemBase {
   private void armCalibrate() {
     m_arm.setPosition(m_encoder.getAbsolutePosition().getValueAsDouble() * 48.0);
   }
-
+  
   private void elevatorCalibrate() {
-    m_elevatorMain.setPosition(0.0);
+    double ElevatorOldPositionInches = getElevatorPositionInches(); // Get current pos
+    m_elevatorMain.setPosition(0.0); // Zero the elevator
+    double ElevatorNewPositionInches = getElevatorPositionInches(); // Get new pos
+    double ElevatorCalibrateOffset = ElevatorNewPositionInches - ElevatorOldPositionInches; // Calculate offset
+    Logger.recordOutput("Elevator/CalibrateOffset", ElevatorCalibrateOffset); // Log the offset with timestamp
   }
 
   @AutoLogOutput(key = "Armevator/elevatorPosition")
