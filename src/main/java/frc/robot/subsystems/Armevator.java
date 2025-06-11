@@ -143,8 +143,6 @@ public class Armevator extends SubsystemBase {
         && isElevatorDown();
   }
 
-  // Motor current logging methods for all motors in this subsystem
-
   // Elevator main motor current logging
   @AutoLogOutput(key = "Armevator/elevatorMainCurrent")
   public double getElevatorMainCurrent() {
@@ -163,30 +161,34 @@ public class Armevator extends SubsystemBase {
     return m_arm.getSupplyCurrent().getValueAsDouble();
   }
 
+  // Arm angle logging in degrees
   @AutoLogOutput(key = "Armevator/armAngle")
   public double getArmAngle() {
     return m_arm.getPosition().getValueAsDouble() * Constants.ARM_ROTATIONS_TO_DEGREES;
+  }
+
+  // Elevator position logging in inches
+  @AutoLogOutput(key = "Armevator/elevatorPosition")
+  public double getElevatorPositionInches() {
+    return m_elevatorMain.getPosition().getValueAsDouble() * Constants.ELEVATOR_ROTATIONS_TO_INCHES;
   }
 
   public boolean onTarget(double position) {
     return Math.abs(getElevatorPositionInches() - position) < 1.0;
   }
 
+  // Calibrates the arm by setting its position based on the absolute encoder's reading
   private void armCalibrate() {
     m_arm.setPosition(m_encoder.getAbsolutePosition().getValueAsDouble() * 48.0);
   }
   
+  // Resets the zero position of the elevator and logs the offset
   private void elevatorCalibrate() {
     double ElevatorOldPositionInches = getElevatorPositionInches(); // Get current pos
     m_elevatorMain.setPosition(0.0); // Zero the elevator
     double ElevatorNewPositionInches = getElevatorPositionInches(); // Get new pos
     double ElevatorCalibrateOffset = ElevatorNewPositionInches - ElevatorOldPositionInches; // Calculate offset
     Logger.recordOutput("Elevator/CalibrateOffset", ElevatorCalibrateOffset); // Log the offset with timestamp
-  }
-
-  @AutoLogOutput(key = "Armevator/elevatorPosition")
-  public double getElevatorPositionInches() {
-    return m_elevatorMain.getPosition().getValueAsDouble() * Constants.ELEVATOR_ROTATIONS_TO_INCHES;
   }
 
   private void elevatorSetPosition(double position) {
