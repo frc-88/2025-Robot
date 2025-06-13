@@ -231,22 +231,27 @@ public class Armevator extends SubsystemBase {
   }
 
   private void armGoToTiltAngle() {
+    logger.getInstance().recordOutput("Armevator/armCommand", "TiltAngle");
     armSetAngle(p_armTiltAngle.getValue());
   }
 
   private void armGotoAlgaePickup() {
+    logger.getInstance().recordOutput("Armevator/armCommand", "AlgaePickup");
     armSetAngle(35.0);
   }
 
   private void armGotoPrefPosition() {
+    logger.getInstance().recordOutput("Armevator/armCommand", "PrefPosition");
     armSetAngle(p_armTargetDegrees.getValue());
   }
 
   private void armGoToZero() {
+    logger.getInstance().recordOutput("Armevator/armCommand", "Zero");
     armSetAngle(0.0);
   }
 
   private void armGoToAlgaeStow() {
+    logger.getInstance().recordOutput("Armevator/armCommand", "AlgaeStow");
     armSetAngle(Constants.ALGAE_STOW_ANGLE);
   }
 
