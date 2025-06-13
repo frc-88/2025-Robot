@@ -82,6 +82,9 @@ public class Robot extends LoggedRobot {
     // Start AdvantageKit logger
     Logger.start();
 
+    // Enable AdvantageKit’s HTTP log server on port 5800
+    new LogServer(5800);
+
     // Check for valid swerve config
     var modules =
         new SwerveModuleConstants[] {
@@ -102,8 +105,6 @@ public class Robot extends LoggedRobot {
     // and put our autonomous chooser on the dashboard.
     robotContainer = new RobotContainer();
 
-    // Enable AdvantageKit’s HTTP log server on port 5800
-    new LogServer(5800);
   }
 
   /** This function is called periodically during all modes. */
