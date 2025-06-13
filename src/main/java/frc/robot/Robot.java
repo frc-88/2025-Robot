@@ -26,6 +26,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+import org.littletonrobotics.advantagekit.LogServer;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -100,6 +101,9 @@ public class Robot extends LoggedRobot {
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our autonomous chooser on the dashboard.
     robotContainer = new RobotContainer();
+
+    // Enable AdvantageKit’s HTTP log server on port 5800
+    new LogServer(5800);
   }
 
   /** This function is called periodically during all modes. */
