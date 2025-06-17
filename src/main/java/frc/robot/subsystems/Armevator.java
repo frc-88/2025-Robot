@@ -256,6 +256,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void setL4() {
+    logger.getInstance().recordOutput("Armevator/elevatorCommand", "L4");
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 10.0)) {
       armSetAngle(Constants.ARM_L4_ANGLE);
@@ -265,6 +266,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void setL4Shoot() {
+    logger.getInstance().recordOutput("Armevator/elevatorCommand", "L4");
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
       armSetAngle(0);
@@ -272,11 +274,13 @@ public class Armevator extends SubsystemBase {
   }
 
   private void setL3() {
+    logger.getInstance().recordOutput("Armevator/elevatorCommand", "L3");
     elevatorSetPosition(Constants.ELEVATOR_L3_HEIGHT);
     armGoToTiltAngle();
   }
 
   private void setL2() {
+    logger.getInstance().recordOutput("Armevator/elevatorCommand", "L2");
     elevatorSetPosition(Constants.ELEVATOR_L2_HEIGHT);
     armGoToTiltAngle();
   }
@@ -299,10 +303,12 @@ public class Armevator extends SubsystemBase {
   }
 
   private void elevatorStop() {
+    logger.getInstance().recordOutput("Armevator/elevatorCommand", "Stop");
     m_elevatorMain.setControl(new DutyCycleOut(0.0));
   }
 
   private void armStop() {
+    logger.getInstance().recordOutput("Armevator/armCommand", "Stop");
     m_arm.setControl(new DutyCycleOut(0.0));
   }
 
@@ -355,14 +361,17 @@ public class Armevator extends SubsystemBase {
   }
 
   private void stowElevator() {
+    logger.getInstance().recordOutput("Armevator/elevatorCommand", "Stow");
     elevatorSetPosition(0.0);
   }
 
   private void stowElevatorAlgae() {
+    logger.getInstance().recordOutput("Armevator/elevatorCommand", "StowAlgae");
     elevatorSetPosition(11.0);
   }
 
   private void stowElevatorAlgaeProcessor() {
+    logger.getInstance().recordOutput("Armevator/elevatorCommand", "StowAlgaeProcessor");
     elevatorSetPositionSlow(0.0);
   }
 
@@ -371,6 +380,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void goToOneInch() {
+    logger.getInstance().recordOutput("Armevator/elevatorCommand", "OneInch");
     elevatorSetPosition(1.0);
   }
 
@@ -405,8 +415,10 @@ public class Armevator extends SubsystemBase {
   public void setAlgaeElevatorPosition(IntSupplier sector) {
     if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
       elevatorSetPosition(14.5);
+      logger.getInstance().recordOutput("Armevator/elevatorCommand", "HighReefAlgae");
     } else {
       elevatorSetPosition(7.0);
+      logger.getInstance().recordOutput("Armevator/elevatorCommand", "LowReefAlgae");
     }
   }
 
