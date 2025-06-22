@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.IntPreferenceConstant;
+import frc.robot.health.CANHealthMonitor;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -320,6 +321,12 @@ public class Lights extends SubsystemBase {
     if (m_setAnim) {
       m_candle.animate(m_toAnimate);
     }
+
+    // Update CAN status to healthMonitor
+
+    CANHealthMonitor.getInstance()
+        .updateStatus("Lights/CANdle", m_candle);
+
   }
 
   public InstantCommand spinLeftFactory() {

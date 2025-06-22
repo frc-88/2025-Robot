@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
+import frc.robot.health.CANHealthMonitor;
 import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 
@@ -434,7 +435,20 @@ public class Doghouse extends SubsystemBase {
         "Doghouse/manipulatorSpeed", m_manipulator.getPosition().getValueAsDouble());
     SmartDashboard.putNumber(
         "Doghouse/manipulatorVoltage", m_manipulator.getDutyCycle().getValueAsDouble());
-  }
+
+    // update device CAN statuses to HealthMonitor
+
+    CANHealthMonitor.getInstance()
+        .updateStatus("Doghouse/FunnelMotor", m_funnel.isConnected());
+    CANHealthMonitor.getInstance()
+        .updateStatus("Doghouse/ManipulatorMotor", m_manipulator.isConnected());
+    CANHealthMonitor.getInstance()
+        .updateStatus("Doghouse/DoghouseCANRange", m_doghousCANRange.isConnected());
+    CANHealthMonitor.getInstance()
+        .updateStatus("Doghouse/CoralCANRange", m_coralRange.isConnected());
+    CANHealthMonitor.getInstance()
+        .updateStatus("Doghouse/ReefCANRange", m_reefRange.isConnected());
+      }
 
   public void zeroManipulator() {
     m_manipulator.setPosition(0);

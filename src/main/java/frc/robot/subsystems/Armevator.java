@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
+import frc.robot.health.CANHealthMonitor;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -629,5 +630,17 @@ public class Armevator extends SubsystemBase {
   public void periodic() {
     SmartDashboard.putNumber("Elevator Positon", getElevatorPositionInches());
     SmartDashboard.putNumber("Arm Position", getArmAngle());
+
+    // Update CAN statuses to healthMonitor
+
+    CANHealthMonitor.getInstance()
+        .updateStatus("Armevator/ElevatorMain", m_elevatorMain.isConnected());
+    CANHealthMonitor.getInstance()
+        .updateStatus("Armevator/ElevatorFollower", m_elevatorFollower.isConnected());
+    CANHealthMonitor.getInstance()
+        .updateStatus("Armevator/Arm", m_arm.isConnected());
+    CANHealthMonitor.getInstance()
+        .updateStatus("Armevator/Encoder", m_encoder.isConnected());
+
   }
 }

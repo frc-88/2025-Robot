@@ -34,6 +34,7 @@ import frc.robot.Constants;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
+import frc.robot.health.CANHealthMonitor;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -468,5 +469,17 @@ public class Climber extends SubsystemBase {
     SmartDashboard.putBoolean("try to climb", shouldClose() && RobotState.isEnabled());
     SmartDashboard.putNumber("canrange distance", getCageDistance());
     Logger.recordOutput("BearClaw", shouldClose());
+
+    // Update CAN statuses to healthMonitor
+
+    CANHealthMonitor.getInstance()
+        .updateStatus("Climber/Gripper", m_gripper.isConnected());
+    CANHealthMonitor.getInstance()
+        .updateStatus("Climber/GasMotor", m_gasmotor.isConnected());
+    CANHealthMonitor.getInstance()
+        .updateStatus("Climber/Encoder", m_climberEncoder.isConnected());
+    CANHealthMonitor.getInstance()
+        .updateStatus("Climber/CANRange", m_canRange.isConnected());
+
   }
 }
