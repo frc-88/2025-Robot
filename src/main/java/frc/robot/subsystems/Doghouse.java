@@ -437,7 +437,6 @@ public class Doghouse extends SubsystemBase {
         "Doghouse/manipulatorVoltage", m_manipulator.getDutyCycle().getValueAsDouble());
 
     // update device CAN statuses to HealthMonitor
-
     CANHealthMonitor.getInstance()
         .updateStatus("Doghouse/FunnelMotor", m_funnel.isConnected());
     CANHealthMonitor.getInstance()

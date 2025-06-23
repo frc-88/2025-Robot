@@ -589,6 +589,9 @@ public class Drive extends SubsystemBase {
     odometryLock.lock(); // Prevents odometry updates while reading data
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Drive/Gyro", gyroInputs);
+
+    CANHealthMonitor.getInstance().updateStatus("Drive/Gyro", gyroInputs.connected); // Update CAN health monitor with gyro status
+   
     for (var module : modules) {
       module.periodic();
     }
@@ -679,7 +682,7 @@ public class Drive extends SubsystemBase {
           .updateStatus(keyBase + "TurnMotor",   turn.isConnected());
       CANHealthMonitor.getInstance()
           .updateStatus(keyBase + "TurnEncoder", encoder.isConnected());
-    }
+      }
   }
 
   /**
