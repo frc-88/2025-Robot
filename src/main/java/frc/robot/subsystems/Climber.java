@@ -221,6 +221,8 @@ public class Climber extends SubsystemBase {
   //   return forceCloseTrigger;
   // }
 
+  //Flag to indicate if the climber is on target
+  @autologoutput(key = "Climber/Flag/onTarget")
   public boolean onTarget() {
     return Math.abs(
             getPositionGasMotorRotations()
@@ -228,10 +230,14 @@ public class Climber extends SubsystemBase {
         < 1.0;
   }
 
+  //Flag to indicate if the climber is stopped
+  @autologoutput(key = "Climber/Flag/isStopped")
   public boolean isStopped() {
     return Math.abs(getGasMotorVelocity()) < 1.0;
   }
 
+  //Flag to indicate if the gripper is zeroed
+  @autologoutput(key = "Climber/Flag/isGripperZero")
   public boolean isGripperZero() {
     return Math.abs(getGripperPositionRotations()) < 3.0;
   }
@@ -256,29 +262,36 @@ public class Climber extends SubsystemBase {
     return RobotState.isDisabled();
   }
 
+  //Flag to indicate if the climber is powered for climbing
+  @autologoutput(key = "Climber/Flag/poweredClimb")
   public boolean poweredClimb() {
     return getPositionGasMotorRotations() < 40.0;
   }
 
   private void gasMotorBrakeMode() {
+    Logger.getInstance().recordOutput("Climber/gasMotor", "Brake Mode");
     m_gasmotor.setNeutralMode(NeutralModeValue.Brake);
   }
 
   private void gasMotorNeutralMode() {
+    Logger.getInstance().recordOutput("Climber/gasMotor", "Coast Mode");
     m_gasmotor.setNeutralMode(NeutralModeValue.Coast);
   }
 
   private void openGrabber() {
+    Logger.getInstance().recordOutput("Climber/gripper", "Open Grabber");
     setGripperAngle(p_gripperPosition.getValue());
     m_grabbed = false;
   }
 
   private void closeGrabber() {
+    Logger.getInstance().recordOutput("Climber/gripper", "Close Grabber");
     // setGripperAngle(-5.0);
     m_gripper.setControl(current);
   }
 
   private void stow() {
+    Logger.getInstance().recordOutput("Climber/gripper", "Stow Gripper");
     if (isCalibrated) {
       m_gripper.setControl(m_motionMagic.withPosition(0.0));
     } else {
