@@ -157,6 +157,7 @@ public class Doghouse extends SubsystemBase {
     return m_reefRange.getIsDetected().getValue();
   }
 
+  @AutoLogOutput(key = "DogHouse/hasCoralDebounced")
   public boolean hasCoralDebounced() {
     return m_algaeDebouncer.calculate(hasCoral());
   }
@@ -312,6 +313,8 @@ public class Doghouse extends SubsystemBase {
     return new RunCommand(() -> manipulatorAlgaeSlow(), this);
   }
 
+  //Flag to verify that we are holding algae
+  @AutoLogOutput(key = "DogHouse/Flags/AlgaeCaptured")
   public boolean hasAlgae() {
     return m_manipulator.getSupplyCurrent().getValueAsDouble() > 20.0;
   }
@@ -474,6 +477,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   public void zeroManipulator() {
+    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "Zero");
     m_manipulator.setPosition(0);
   }
 }
