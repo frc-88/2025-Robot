@@ -134,6 +134,7 @@ public class Armevator extends SubsystemBase {
     m_arm.setNeutralMode(NeutralModeValue.Brake);
   }
 
+  // isReady check that lights use to progress to the rainbow
   public boolean isReady() {
     return m_elevatorMain.isConnected()
         && m_elevatorFollower.isConnected()
@@ -259,8 +260,10 @@ public class Armevator extends SubsystemBase {
     logger.getInstance().recordOutput("Armevator/elevatorCommand", "L4");
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 10.0)) {
+      logger.getInstance().recordOutput("Armevator/armCommand", "L4 Angle"
       armSetAngle(Constants.ARM_L4_ANGLE);
     } else {
+      logger.getInstance().recordOutput("Armevator/armCommand", "L4 Safe Angle"
       armSetAngle(Constants.ARM_L4_SAFE_ANGLE);
     }
   }
@@ -269,6 +272,7 @@ public class Armevator extends SubsystemBase {
     logger.getInstance().recordOutput("Armevator/elevatorCommand", "L4");
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 2)) {
+      logger.getInstance().recordOutput("Armevator/armCommand", "L4 Shoot Angle");
       armSetAngle(0);
     }
   }
@@ -285,19 +289,27 @@ public class Armevator extends SubsystemBase {
     armGoToTiltAngle();
   }
 
+  // Flag to verify that we are at L2
+  @AutoLogOutput(key = "Armevator/Flags/atL2")
   public boolean atL2() {
     return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L2_HEIGHT) < 0.2;
   }
 
+  // Flag to verify that we are at L3
+  @AutoLogOutput(key = "Armevator/Flags/atL3")
   public boolean atL3() {
     return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L3_HEIGHT) < 0.2;
   }
 
+  // Flag to verify that we are at L4
+  @AutoLogOutput(key = "Armevator/Flags/atL4")
   public boolean atL4() {
     return Math.abs(getElevatorPositionInches() - Constants.ELEVATOR_L4_HEIGHT) < 0.2
         && Math.abs(getArmAngle() - Constants.ARM_L4_ANGLE) < 1.0;
   }
 
+  // Flag to verify that we are at shoot height
+  @AutoLogOutput(key = "Armevator/Flags/atShootHeight")
   public boolean atShootHeight() {
     return getElevatorPositionInches() > 20.0;
   }
@@ -312,22 +324,32 @@ public class Armevator extends SubsystemBase {
     m_arm.setControl(new DutyCycleOut(0.0));
   }
 
+  // Flag to verify that we are at Arm zero
+  @AutoLogOutput(key = "Armevator/Flags/isArmZero")
   public boolean isArmZero() {
     return Math.abs(getArmAngle()) < 1.2;
   }
 
+  // Flag to verify that we are at Arm starting position
+  @AutoLogOutput(key = "Armevator/Flags/isArmInStartingPosition")
   public boolean isArmInStartingPosition() {
     return Math.abs(getArmAngle()) < 5.0;
   }
 
+  // Flag to verify that we are at Arm on position
+  @AutoLogOutput(key = "Armevator/Flags/isArmOnPosition")
   public boolean isArmOnPosition() {
     return Math.abs(getArmAngle()) < 30.0;
   }
 
+  // Flag to verify that we are at Arm on algae position
+  @AutoLogOutput(key = "Armevator/Flags/isArmOnAlgaePosition")
   public boolean isArmOnAlgaePosition() {
     return Math.abs(getArmAngle() - Constants.ALGAE_STOW_ANGLE) < 1.0;
   }
 
+  // Flag to verify that Elevator limit switch is triggered
+  @AutoLogOutput(key = "Armevator/Flags/isElevatorDown")
   public boolean isElevatorDown() {
     return !m_magnetInput.get();
   }
@@ -389,14 +411,20 @@ public class Armevator extends SubsystemBase {
     stowElevator();
   }
 
+  //Flag to verify that the elevator is at processor position
+  @AutoLogOutput(key = "Armevator/Flags/elevatorAtProcessorPosition")
   public boolean elevatorAtProcessorPosition() {
     return Math.abs(getElevatorPositionInches() - 3.0) < 0.4;
   }
 
+  //Flag to verify that the elevator is above the doghouse
+  @AutoLogOutput(key = "Armevator/Flags/elevatorAboveDoghouse")
   public boolean elevatorAboveDoghouse() {
     return getElevatorPositionInches() > 24;
   }
 
+  //Flag to verify that the elevator is at zero
+  @AutoLogOutput(key = "Armevator/Flags/elevatorAtZero")
   public boolean elevatorAtZero() {
     return Math.abs(getElevatorPositionInches()) < 0.25;
   }
@@ -422,6 +450,8 @@ public class Armevator extends SubsystemBase {
     }
   }
 
+  //Flag to verify that the elevator is at algae position
+  @AutoLogOutput(key = "Armevator/Flags/elevatorAtAlgaePositon")
   public boolean elevatorAtAlgaePositon(IntSupplier sector) {
     if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
       return Math.abs(getElevatorPositionInches() - 14.5) < 0.2;
