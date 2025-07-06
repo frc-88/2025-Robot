@@ -161,13 +161,13 @@ public class Climber extends SubsystemBase {
 
   // Motor current logging methods for all motors in this subsystem
 
-  // Gas Motor Logging
+  // Gas Motor current Logging
   @AutoLogOutput(key = "Climber/GasMotorCurrent")
   public double getGasMotorCurrent() {
     return m_gasmotor.getSupplyCurrent().getValueAsDouble();
   }
 
-  // Gripper Motor Logging
+  // Gripper Motor current Logging
   @AutoLogOutput(key = "Climber/GripperMotorCurrent")
   public double getGripperMotorCurrent() {
     return m_gripper.getSupplyCurrent().getValueAsDouble();
@@ -189,16 +189,20 @@ public class Climber extends SubsystemBase {
     return m_gasmotor.getPosition().getValueAsDouble() * Constants.GAS_MOTOR_ROTATIONS_TO_LENGTH;
   }
 
+  // Returns the position of the gripper in ...verify unit...
   @AutoLogOutput(key = "Climber/GripperPosition")
   public double getGripperPositionRotations() {
     return m_gripper.getPosition().getValueAsDouble();
   }
 
+  // Returns the distance from the climber to the cage height in ...verify unit...
   @AutoLogOutput(key = "Climber/CageDistance")
   private double getCageDistance() {
     return m_canRange.getDistance().getValueAsDouble() * 100.0;
   }
 
+  // Flag to indicate if the sensor conditions are right to bear claw close on the cage
+  @autologoutput(key = "Climber/Flag/shouldClose")
   public boolean shouldClose() {
     boolean ret =
         !input.get()
@@ -208,11 +212,14 @@ public class Climber extends SubsystemBase {
     if (gripperDebouncer.calculate(ret)) holdBearClaw = true;
     return ret || holdBearClaw;
   }
-
+  // Flag to indicate if the sensor conditions are right to soft close on the cage
+  @autologoutput(key = "Climber/Flag/shouldSoftClose")
   public boolean shouldSoftClose() {
     return !input.get() && m_canRange.getDistance().getValueAsDouble() > 0.24 && !m_grabbed;
   }
 
+  // Flag to indicate if the climber should force close at the buzzer
+  @autologoutput(key = "Climber/Flag/forceClose")
   public boolean forceClose() {
     return RobotState.isDisabled() && !m_grabbed;
   }
@@ -221,7 +228,7 @@ public class Climber extends SubsystemBase {
   //   return forceCloseTrigger;
   // }
 
-  //Flag to indicate if the climber is on target
+  // Flag to indicate if the climber is on target
   @autologoutput(key = "Climber/Flag/onTarget")
   public boolean onTarget() {
     return Math.abs(
@@ -230,13 +237,13 @@ public class Climber extends SubsystemBase {
         < 1.0;
   }
 
-  //Flag to indicate if the climber is stopped
+  // Flag to indicate if the climber is stopped
   @autologoutput(key = "Climber/Flag/isStopped")
   public boolean isStopped() {
     return Math.abs(getGasMotorVelocity()) < 1.0;
   }
 
-  //Flag to indicate if the gripper is zeroed
+  // Flag to indicate if the gripper is zeroed
   @autologoutput(key = "Climber/Flag/isGripperZero")
   public boolean isGripperZero() {
     return Math.abs(getGripperPositionRotations()) < 3.0;
@@ -262,7 +269,7 @@ public class Climber extends SubsystemBase {
     return RobotState.isDisabled();
   }
 
-  //Flag to indicate if the climber is powered for climbing
+  // Flag to indicate if the climber is powered for climbing
   @autologoutput(key = "Climber/Flag/poweredClimb")
   public boolean poweredClimb() {
     return getPositionGasMotorRotations() < 40.0;
