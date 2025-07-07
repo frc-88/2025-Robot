@@ -174,6 +174,8 @@ public class Armevator extends SubsystemBase {
     return m_elevatorMain.getPosition().getValueAsDouble() * Constants.ELEVATOR_ROTATIONS_TO_INCHES;
   }
 
+  // Flag to indicate when the elevator is at its target position
+  @AutoLogOutput(key = "Armevator/Flags/elevatorOnTarget")
   public boolean onTarget(double position) {
     return Math.abs(getElevatorPositionInches() - position) < 1.0;
   }

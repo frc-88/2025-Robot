@@ -264,6 +264,8 @@ public class Climber extends SubsystemBase {
     return m_gasmotor.getVelocity().getValueAsDouble();
   }
 
+  // Flag to indicate the robot should endable neutral mode on disable
+  @autologoutput(key = "Climber/Flag/enableNeutralOnDisable")
   public boolean shouldEnableNeutralOnDisable() {
 
     return RobotState.isDisabled();
