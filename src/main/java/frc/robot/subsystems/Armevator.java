@@ -262,10 +262,10 @@ public class Armevator extends SubsystemBase {
     logger.getInstance().recordOutput("Armevator/elevatorCommand", "L4");
     elevatorSetPosition(Constants.ELEVATOR_L4_HEIGHT);
     if (getElevatorPositionInches() > (Constants.ELEVATOR_L4_HEIGHT - 10.0)) {
-      logger.getInstance().recordOutput("Armevator/armCommand", "L4 Angle"
+      logger.getInstance().recordOutput("Armevator/armCommand", "L4 Angle");
       armSetAngle(Constants.ARM_L4_ANGLE);
     } else {
-      logger.getInstance().recordOutput("Armevator/armCommand", "L4 Safe Angle"
+      logger.getInstance().recordOutput("Armevator/armCommand", "L4 Safe Angle");
       armSetAngle(Constants.ARM_L4_SAFE_ANGLE);
     }
   }
@@ -442,6 +442,7 @@ public class Armevator extends SubsystemBase {
     }
   }
 
+  // Sets the elevator position for algae pickup based on the sector
   public void setAlgaeElevatorPosition(IntSupplier sector) {
     if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {
       elevatorSetPosition(14.5);

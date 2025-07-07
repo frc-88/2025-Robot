@@ -275,9 +275,12 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void clearAlgae() {
+    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "ClearAlgae");
     algaeMode = false;
   }
 
+  //Flag to indicate that we are in algae mode
+  @AutoLogOutput(key = "DogHouse/Flags/AlgaeMode")
   public boolean isAlgaeMode() {
     return algaeMode;
   }
