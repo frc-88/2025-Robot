@@ -5,7 +5,14 @@ import java.util.List;
 
 /**
  * Central CAN health monitor for collecting device statuses and analyzing CAN bus health.
- *\n * Next steps: add deviceStatus map, status-update methods, and diagnostic utilities.
+ *
+ * Next steps:
+ *  - Add deviceStatus storage and updateStatus() method
+ *  - Implement diagnostic utilities: getBusStatus(), findBusBreakpoint(), etc.
+ *
+ * To define your physical CAN wiring topology, populate the wiringOrder map below.
+ * Each entry in the List must exactly match a key used in updateStatus calls,
+ * and the list should reflect the true, daisy-chain order of devices on that bus.
  */
 public class CANHealthMonitor {
     // Singleton instance
@@ -13,15 +20,49 @@ public class CANHealthMonitor {
 
     /**
      * Defines the physical wiring order for each CAN bus.
-     * Keys are bus names (as used in device constructors), values are the ordered list of
-     * device-status keys (matching those used in updateStatus calls).
+     *
+     * <busName> : List of device-status keys in the order they appear on the trunk.
+     * Device keys must match the strings passed to updateStatus(), e.g.:
+     *   "Drive/FrontLeft/DriveMotor"
+     *   "Drive/FrontLeft/TurnMotor"
+     *   ...
      */
     private final Map<String, List<String>> wiringOrder = Map.of(
+        // Primary roboRIO CAN bus (first trunk segment)
         "rio", List.of(
-            // TODO: Populate with device keys in physical order, e.g. "Drive/FrontLeft/DriveMotor"
+            // TODO: replace these examples with your actual device keys in wiring order:
+            "Climber/Gripper",
+            "Climber/GasMotor",
+            "Climber/Encoder",
+            "Climber/CANRange",
+            "Doghouse/FunnelMotor",
+            "Doghouse/ManipulatorMotor",
+            "Doghouse/DoghouseCANRange",
+            "Doghouse/CoralCANRange",
+            "Doghouse/ReefCANRange",
+            "Armevator/ElevatorMain",
+            "Armevator/ElevatorFollower",
+            "Armevator/Arm",
+            "Armevator/Encoder",
+            // ... more devices on 'rio' bus ...
         ),
-        "CANivore", List.of(
-            // TODO: Populate with device keys for second CAN bus
+        // Secondary CAN bus (e.g., on a CANivore or second trunk)
+        "Canivore", List.of(
+            "Drive/FrontRight/DriveMotor",
+            "Drive/FrontRight/TurnEncoder",
+            "Drive/FrontRight/TurnMotor",
+            "Drive/FrontLeft/DriveMotor",
+            "Drive/FrontLeft/TurnEncoder",
+            "Drive/FrontLeft/TurnMotor",
+            "Drive/BackLeft/DriveMotor",
+            "Drive/BackLeft/TurnEncoder",
+            "Drive/BackLeft/TurnMotor",
+            "Drive/BackRight/DriveMotor",
+            "Drive/BackRight/TurnEncoder",
+            "Drive/BackRight/TurnMotor",
+            "Drive/Gyro",
+            "Lights/CANdle",
+            // ... more devices on 'CANivore' bus ...
         )
     );
 
@@ -39,5 +80,9 @@ public class CANHealthMonitor {
         return instance;
     }
 
-    // TODO: Add deviceStatus storage, updateStatus(), and diagnostic methods
+    // TODO: Add:
+    //    - private Map<String, Boolean> deviceStatus;
+    //    - public void updateStatus(String key, boolean isReady)
+    //    - public Map<String, Boolean> getAllStatuses()
+    //    - diagnostics: getBusStatus(String busName), findBusBreakpoint(String busName)
 }
