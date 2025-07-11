@@ -184,14 +184,16 @@ public class Armevator extends SubsystemBase {
   private void armCalibrate() {
     m_arm.setPosition(m_encoder.getAbsolutePosition().getValueAsDouble() * 48.0);
   }
-  
+
   // Resets the zero position of the elevator and logs the offset
   private void elevatorCalibrate() {
     double ElevatorOldPositionInches = getElevatorPositionInches(); // Get current pos
     m_elevatorMain.setPosition(0.0); // Zero the elevator
     double ElevatorNewPositionInches = getElevatorPositionInches(); // Get new pos
-    double ElevatorCalibrateOffset = ElevatorNewPositionInches - ElevatorOldPositionInches; // Calculate offset
-    Logger.recordOutput("Elevator/CalibrateOffset", ElevatorCalibrateOffset); // Log the offset with timestamp
+    double ElevatorCalibrateOffset =
+        ElevatorNewPositionInches - ElevatorOldPositionInches; // Calculate offset
+    Logger.recordOutput(
+        "Elevator/CalibrateOffset", ElevatorCalibrateOffset); // Log the offset with timestamp
   }
 
   private void elevatorSetPosition(double position) {
@@ -413,19 +415,19 @@ public class Armevator extends SubsystemBase {
     stowElevator();
   }
 
-  //Flag to verify that the elevator is at processor position
+  // Flag to verify that the elevator is at processor position
   @AutoLogOutput(key = "Armevator/Flags/elevatorAtProcessorPosition")
   public boolean elevatorAtProcessorPosition() {
     return Math.abs(getElevatorPositionInches() - 3.0) < 0.4;
   }
 
-  //Flag to verify that the elevator is above the doghouse
+  // Flag to verify that the elevator is above the doghouse
   @AutoLogOutput(key = "Armevator/Flags/elevatorAboveDoghouse")
   public boolean elevatorAboveDoghouse() {
     return getElevatorPositionInches() > 24;
   }
 
-  //Flag to verify that the elevator is at zero
+  // Flag to verify that the elevator is at zero
   @AutoLogOutput(key = "Armevator/Flags/elevatorAtZero")
   public boolean elevatorAtZero() {
     return Math.abs(getElevatorPositionInches()) < 0.25;
@@ -453,7 +455,7 @@ public class Armevator extends SubsystemBase {
     }
   }
 
-  //Flag to verify that the elevator is at algae position
+  // Flag to verify that the elevator is at algae position
   @AutoLogOutput(key = "Armevator/Flags/elevatorAtAlgaePositon")
   public boolean elevatorAtAlgaePositon(IntSupplier sector) {
     if (sector.getAsInt() == 1 || sector.getAsInt() == 3 || sector.getAsInt() == 5) {

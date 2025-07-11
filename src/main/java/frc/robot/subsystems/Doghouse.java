@@ -269,7 +269,7 @@ public class Doghouse extends SubsystemBase {
     m_manipulator.setControl(request.withPosition(pullBack ? 0 : 0));
   }
 
-  @AutoLogOutput(key = "DogHouse/AlgaeMode");
+  @AutoLogOutput(key = "DogHouse/AlgaeMode")
   private void setAlgae() {
     algaeMode = true;
   }
@@ -279,7 +279,7 @@ public class Doghouse extends SubsystemBase {
     algaeMode = false;
   }
 
-  //Flag to indicate that we are in algae mode
+  // Flag to indicate that we are in algae mode
   @AutoLogOutput(key = "DogHouse/Flags/AlgaeMode")
   public boolean isAlgaeMode() {
     return algaeMode;
@@ -316,7 +316,7 @@ public class Doghouse extends SubsystemBase {
     return new RunCommand(() -> manipulatorAlgaeSlow(), this);
   }
 
-  //Flag to verify that we are holding algae
+  // Flag to verify that we are holding algae
   @AutoLogOutput(key = "DogHouse/Flags/AlgaeCaptured")
   public boolean hasAlgae() {
     return m_manipulator.getSupplyCurrent().getValueAsDouble() > 20.0;
@@ -337,16 +337,19 @@ public class Doghouse extends SubsystemBase {
         () -> {
           if (!algaeMode) {
             if (!elevatorDown.getAsBoolean() & !isBlocked()) {
-              Logger.getInstance().recordOutput("Doghouse/CoralIntakeState", "HoldPos+FunnelBackSlow");
+              Logger.getInstance()
+                  .recordOutput("Doghouse/CoralIntakeState", "HoldPos+FunnelBackSlow");
               manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
               funnelBackwardsSlow();
               // maybe funnel slow backwards
             } else if (!elevatorDown.getAsBoolean() & isBlocked()) {
-              Logger.getInstance().recordOutput("Doghouse/CoralIntakeState", "ManipulatorSlow+FunnelBackSlow");
+              Logger.getInstance()
+                  .recordOutput("Doghouse/CoralIntakeState", "ManipulatorSlow+FunnelBackSlow");
               manipulatorSlow();
               funnelBackwardsSlow();
             } else if (!hasCoral()) {
-              Logger.getInstance().recordOutput("Doghouse/CoralIntakeState", "ManipulatorIn+FunnelGo");
+              Logger.getInstance()
+                  .recordOutput("Doghouse/CoralIntakeState", "ManipulatorIn+FunnelGo");
               manipulatorIn();
               funnelGo();
             } else if (hasCoral() & !isBlocked()) {
@@ -354,7 +357,8 @@ public class Doghouse extends SubsystemBase {
               manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
               funnelStop();
             } else if (isBlocked()) {
-              Logger.getInstance().recordOutput("Doghouse/CoralIntakeState", "ManipulatorSlow+FunnelGo");
+              Logger.getInstance()
+                  .recordOutput("Doghouse/CoralIntakeState", "ManipulatorSlow+FunnelGo");
               manipulatorSlow();
               funnelGo();
             }
