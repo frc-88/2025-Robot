@@ -151,13 +151,13 @@ public class Module {
   }
 
   /** current logging for drive motors. */
-  @AutoLogOutput(key = "Drive/Modules/" + name + "/DriveCurrent")
+  @AutoLogOutput(key = "Drive/Modules/{name}/DriveCurrent")
   public double getDriveCurrent() {
     return inputs.driveCurrentAmps;
   }
 
   /** current logging for steer motors. */
-  @AutoLogOutput(key = "Drive/Modules/" + name + "/SteerCurrent")
+  @AutoLogOutput(key = "Drive/Modules/{name}/SteerCurrent")
   public double getSteerCurrent() {
     return inputs.turnCurrentAmps;
   }

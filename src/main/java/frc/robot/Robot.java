@@ -78,9 +78,6 @@ public class Robot extends LoggedRobot {
         break;
     }
 
-    // Start the RLOG HTTP server on port 5800
-    Logger.addDataReceiver(new RLogServer());
-
     // Start AdvantageKit logger
     Logger.start();
 

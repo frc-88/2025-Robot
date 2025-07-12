@@ -28,6 +28,7 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 public class Doghouse extends SubsystemBase {
   private final TalonFX m_funnel = new TalonFX(Constants.DOGHOUSE_FUNNEL_MOTOR, "rio");
@@ -188,84 +189,84 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void funnelStop() {
-    Logger.getInstance().recordOutput("DogHouse/FunnelCommand", "Stop");
+    Logger.recordOutput("DogHouse/FunnelCommand", "Stop");
     setFunnelSpeed(0.0);
   }
 
   private void funnelGo() {
-    Logger.getInstance().recordOutput("DogHouse/FunnelCommand", "Go");
+    Logger.recordOutput("DogHouse/FunnelCommand", "Go");
     setFunnelSpeed(p_funnelSpeed.getValue());
   }
 
   private void funnelSlow() {
-    Logger.getInstance().recordOutput("DogHouse/FunnelCommand", "Slow");
+    Logger.recordOutput("DogHouse/FunnelCommand", "Slow");
     setFunnelSpeed(0.1);
   }
 
   private void funnelBackwards() {
-    Logger.getInstance().recordOutput("DogHouse/FunnelCommand", "Backwards");
+    Logger.recordOutput("DogHouse/FunnelCommand", "Backwards");
     setFunnelSpeed(-1.0);
   }
 
   private void funnelBackwardsSlow() {
-    Logger.getInstance().recordOutput("DogHouse/FunnelCommand", "BackwardsSlow");
+    Logger.recordOutput("DogHouse/FunnelCommand", "BackwardsSlow");
     setFunnelSpeed(-0.2);
   }
 
   private void manipulatorStop() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "Stop");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "Stop");
     setManipulatorSpeed(0.0);
   }
 
   private void manipulatorIn() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "In");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "In");
     setManipulatorSpeed(p_manipulatorInSpeed.getValue());
   }
 
   private void manipulatorShoot() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "Shoot");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "Shoot");
     setManipulatorSpeed(p_manipulatorShootSpeed.getValue());
   }
 
   private void manipulatorSlow() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "Slow");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "Slow");
     setManipulatorSpeed(-0.1, true);
   }
 
   private void manipulatorAlgaeSlow() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "AlgaeSlow");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "AlgaeSlow");
     setManipulatorSpeed(0.4);
   }
 
   private void algaePickup() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "AlgaePickup");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "AlgaePickup");
     // setManipulatorSpeed(-0.15);
     m_manipulator.setControl(m_algaePickupRequest);
     funnelBackwards();
   }
 
   private void algaeShoot() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "AlgaeShoot");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "AlgaeShoot");
     setManipulatorSpeed(1.0);
   }
 
   private void manipulatorFullSpeed() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "FullSpeed");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "FullSpeed");
     setManipulatorSpeed(-1.0);
   }
 
   private void manipulatorL1Speed() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "L1Speed");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "L1Speed");
     setManipulatorSpeed(-0.25);
   }
 
   private void manipulatorMedium() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "Medium");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "Medium");
     setManipulatorSpeed(-0.5);
   }
 
   private void manipulatorHoldPosition(boolean pullBack) {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "HoldPosition");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "HoldPosition");
     m_manipulator.setControl(request.withPosition(pullBack ? 0 : 0));
   }
 
@@ -275,7 +276,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void clearAlgae() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "ClearAlgae");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "ClearAlgae");
     algaeMode = false;
   }
 
@@ -337,33 +338,29 @@ public class Doghouse extends SubsystemBase {
         () -> {
           if (!algaeMode) {
             if (!elevatorDown.getAsBoolean() & !isBlocked()) {
-              Logger.getInstance()
-                  .recordOutput("Doghouse/CoralIntakeState", "HoldPos+FunnelBackSlow");
+              Logger.recordOutput("Doghouse/CoralIntakeState", "HoldPos+FunnelBackSlow");
               manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
               funnelBackwardsSlow();
               // maybe funnel slow backwards
             } else if (!elevatorDown.getAsBoolean() & isBlocked()) {
-              Logger.getInstance()
-                  .recordOutput("Doghouse/CoralIntakeState", "ManipulatorSlow+FunnelBackSlow");
+              Logger.recordOutput("Doghouse/CoralIntakeState", "ManipulatorSlow+FunnelBackSlow");
               manipulatorSlow();
               funnelBackwardsSlow();
             } else if (!hasCoral()) {
-              Logger.getInstance()
-                  .recordOutput("Doghouse/CoralIntakeState", "ManipulatorIn+FunnelGo");
+              Logger.recordOutput("Doghouse/CoralIntakeState", "ManipulatorIn+FunnelGo");
               manipulatorIn();
               funnelGo();
             } else if (hasCoral() & !isBlocked()) {
-              Logger.getInstance().recordOutput("Doghouse/CoralIntakeState", "HoldPos+FunnelStop");
+              Logger.recordOutput("Doghouse/CoralIntakeState", "HoldPos+FunnelStop");
               manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
               funnelStop();
             } else if (isBlocked()) {
-              Logger.getInstance()
-                  .recordOutput("Doghouse/CoralIntakeState", "ManipulatorSlow+FunnelGo");
+              Logger.recordOutput("Doghouse/CoralIntakeState", "ManipulatorSlow+FunnelGo");
               manipulatorSlow();
               funnelGo();
             }
           } else {
-            Logger.getInstance().recordOutput("Doghouse/CoralIntakeState", "AlgaePickup");
+            Logger.recordOutput("Doghouse/CoralIntakeState", "AlgaePickup");
             algaePickup();
           }
         },
@@ -484,7 +481,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   public void zeroManipulator() {
-    Logger.getInstance().recordOutput("DogHouse/ManipulatorCommand", "Zero");
+    Logger.recordOutput("DogHouse/ManipulatorCommand", "Zero");
     m_manipulator.setPosition(0);
   }
 }
