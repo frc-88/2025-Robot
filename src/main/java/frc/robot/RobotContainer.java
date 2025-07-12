@@ -173,8 +173,8 @@ public class RobotContainer {
                     && m_doghouse.isAlgaeMode()
                     && drive.shouldShootAlgae()
                     && drive.isFacingForward());
-    shouldStow =
-        new Trigger(() -> DriverStation.isTeleop() && drive.shouldShootAlgae() && shootingAlgae);
+    // shouldStow =
+    //    new Trigger(() -> DriverStation.isTeleop() && drive.shouldShootAlgae() && shootingAlgae);
 
     registerNamedCommands();
     // Set up auto routines
@@ -222,7 +222,9 @@ public class RobotContainer {
     NamedCommands.registerCommand("Shoot", shootCommand(0.5));
     NamedCommands.registerCommand("NetFling", netflingCommand());
     NamedCommands.registerCommand(
-        "Get Coral", m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()));
+        "Get Coral",
+        m_doghouse.coralIntakeFactory(
+            m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse));
     NamedCommands.registerCommand(
         "Arm Go To Zero", m_armevator.armGoToZeroFactory().withTimeout(0.5));
     NamedCommands.registerCommand("L4", m_armevator.L4Factory().withTimeout(1.25));
@@ -277,14 +279,20 @@ public class RobotContainer {
                         .andThen(
                             new InstantCommand(
                                 () -> controller.setRumble(RumbleType.kBothRumble, 0))))
+                .alongWith(m_doghouse.stopAllFactory()))
+        .onFalse(
+            climber
+                .softCloseFactory()
+                .alongWith(
+                    new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, 0)))
                 .alongWith(m_doghouse.stopAllFactory()));
 
     climber.shouldSoftCloseTrigger.onTrue(
         climber.softCloseFactory().alongWith(m_doghouse.stopAllFactory()));
     m_armevator.m_shouldCalibrate.onTrue(m_armevator.elevatorCalibrateFactory());
     shouldShootAlgae.onTrue(new InstantCommand(() -> shootingAlgae = true).andThen(shootInNet()));
-    shouldStow.onFalse(
-        new InstantCommand(() -> shootingAlgae = false).andThen(m_armevator.stowFactory()));
+    // shouldStow.onFalse(
+    //     new InstantCommand(() -> shootingAlgae = false).andThen(m_armevator.stowFactory()));
     // atL2.onTrue(m_doghouse.shootFactory());
     // .onFalse(climber.setNotGrabbed());
     // climber.forceCloseOnDisable().onTrue(climber.climbOnDisable().ignoringDisable(true));
@@ -390,7 +398,11 @@ public class RobotContainer {
         .onTrue(
             m_doghouse
                 .shootAlgaeFactory()
-                .andThen(m_armevator.stowFactory())
+                .andThen(
+                    new ParallelCommandGroup(
+                        m_armevator.stowFactory(),
+                        m_doghouse.coralIntakeFactory(
+                            m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)))
                 .alongWith(
                     new InstantCommand(() -> Logger.recordOutput("AlgaeShot", drive.getPose()))))
         .onFalse(drive.getDefaultCommand());
@@ -444,7 +456,9 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     m_armevator.setDefaultCommand(m_armevator.defaultCommand(() -> getAlgae));
-    m_doghouse.setDefaultCommand(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()));
+    m_doghouse.setDefaultCommand(
+        m_doghouse.coralIntakeFactory(
+            m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse));
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(autoAim());
@@ -460,7 +474,12 @@ public class RobotContainer {
     controller
         .a()
         .onTrue(DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
-        .onFalse(driverControl());
+        .onFalse(
+            new ParallelCommandGroup(
+                driverControl(),
+                m_armevator.stowFactory(),
+                m_doghouse.coralIntakeFactory(
+                    m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)));
 
     controller.y().toggleOnTrue(driverControl());
 
@@ -514,7 +533,8 @@ public class RobotContainer {
     return new SequentialCommandGroup(
             new ParallelDeadlineGroup(
                 drive.pathFind(odd),
-                m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
+                m_doghouse.coralIntakeFactory(
+                    m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)),
             new ParallelDeadlineGroup(
                 new ConditionalCommand(
                     new WaitUntilCommand(
@@ -526,7 +546,8 @@ public class RobotContainer {
                     () -> mode == 4),
                 drive.scoreOnReef(odd),
                 m_armevator.scoreAll(() -> mode),
-                m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
+                m_doghouse.coralIntakeFactory(
+                    m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)),
             shootCommand(1.0))
         .beforeStarting(() -> reefDebouncer.calculate(false));
   }
@@ -565,7 +586,7 @@ public class RobotContainer {
             new ConditionalCommand(
                 m_doghouse.shootL1(),
                 new ConditionalCommand(
-                    m_doghouse.shootFullSpeedFactory(delay),
+                    m_doghouse.shootFactory(delay),
                     m_doghouse.shootFactory(delay),
                     () -> mode == 4),
                 () -> mode == 1),
@@ -644,7 +665,9 @@ public class RobotContainer {
             .andThen(m_armevator.AlgaestowFactory()),
         m_doghouse
             .setAlgaeModeFactory()
-            .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
+            .andThen(
+                m_doghouse.coralIntakeFactory(
+                    m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)));
   }
 
   private Command L2AlgaePickupFactory() {
@@ -654,7 +677,9 @@ public class RobotContainer {
             .andThen(m_armevator.AlgaestowFactory()),
         m_doghouse
             .setAlgaeModeFactory()
-            .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
+            .andThen(
+                m_doghouse.coralIntakeFactory(
+                    m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)));
   }
 
   private Command L3AlgaePickupFactory() {
@@ -664,7 +689,9 @@ public class RobotContainer {
             .andThen(m_armevator.AlgaestowFactory()),
         m_doghouse
             .setAlgaeModeFactory()
-            .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
+            .andThen(
+                m_doghouse.coralIntakeFactory(
+                    m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)));
   }
 
   public Command shootInNet() {
@@ -683,7 +710,8 @@ public class RobotContainer {
             new ParallelCommandGroup(
                 m_armevator.stowFactory(),
                 driverControl(),
-                m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
+                m_doghouse.coralIntakeFactory(
+                    m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)));
   }
 
   public Command shootInNetAuto() {
@@ -697,12 +725,13 @@ public class RobotContainer {
                             new InstantCommand(
                                 () -> Logger.recordOutput("AlgaeShot", drive.getPose())))),
             m_armevator.shootInNetFactory(),
-            DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
+            DriveCommands.driveMoving(() -> 1.3, () -> 0.0, () -> Rotation2d.kZero, drive))
         .andThen(
             new ParallelCommandGroup(
                     m_armevator.stowFactory(),
-                    DriveCommands.driveMoving(() -> -1.5, () -> 0.0, () -> Rotation2d.kZero, drive),
-                    m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
+                    DriveCommands.driveMoving(() -> -1.3, () -> 0.0, () -> Rotation2d.kZero, drive),
+                    m_doghouse.coralIntakeFactory(
+                        m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse))
                 .until(() -> m_armevator.isElevatorDown()));
   }
 
@@ -712,9 +741,7 @@ public class RobotContainer {
   }
 
   private Command getCoralFactory() {
-    return new ParallelDeadlineGroup(
-        m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()),
-        m_armevator.armGoToZeroFactory());
+    return m_doghouse.clearAlgaeMode();
   }
 
   private boolean hasCoralDebounced() {
@@ -727,13 +754,17 @@ public class RobotContainer {
         m_armevator.algae(() -> drive.getTargetSectorNow()),
         m_doghouse
             .setAlgaeModeFactory()
-            .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
+            .andThen(
+                m_doghouse.coralIntakeFactory(
+                    m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)));
   }
 
   public Command shootAlgae() {
     return m_doghouse
         .shootAlgaeFactory()
-        .andThen(m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
+        .andThen(
+            m_doghouse.coralIntakeFactory(
+                m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse))
         .alongWith(autoAim());
   }
 
@@ -801,7 +832,8 @@ public class RobotContainer {
                 () -> mode == 4),
 
             /*new WaitUntilCommand(drive::isElevatorDistance).andThen(m_armevator.scoreAll(() -> mode))*/
-            m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())),
+            m_doghouse.coralIntakeFactory(
+                m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)),
         shootCommand(delay));
   }
 
@@ -809,13 +841,14 @@ public class RobotContainer {
     return new SequentialCommandGroup(
         new ParallelDeadlineGroup(
             new WaitUntilCommand(
-                () ->
-                    (m_armevator.atMode(() -> mode)
-                            || (!m_doghouse.hasCoral() && !m_doghouse.isBlocked()))
-                        && drive.isAtTarget(odd)),
+                    () ->
+                        (m_armevator.atMode(() -> mode)
+                                || (!m_doghouse.hasCoral() && !m_doghouse.isBlocked()))
+                            && drive.isAtTarget(odd))
+                .withTimeout(3.0),
             reefCommand,
             m_doghouse
-                .coralIntakeFactory(() -> m_armevator.isElevatorDown())
+                .coralIntakeFactory(m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)
                 .until(
                     () ->
                         drive.isElevatorDistance(2.4)
@@ -824,7 +857,9 @@ public class RobotContainer {
                 .andThen(
                     m_armevator
                         .scoreAll(() -> mode)
-                        .alongWith(m_doghouse.autoLiftingElevatorFactory()))),
+                        .alongWith(
+                            m_doghouse.autoLiftingElevatorFactory(
+                                m_armevator::elevatorAboveDoghouse)))),
         // teleop ? shootCommand(delay) : shootCommandAuto(delay));
         shootCommand(delay).unless(() -> !m_doghouse.hasCoral() && !m_doghouse.isBlocked()));
   }
@@ -854,7 +889,8 @@ public class RobotContainer {
             drive.reef(odd, () -> mode),
             new WaitUntilCommand(drive::isElevatorDistance)
                 .andThen(m_armevator.scoreAll(() -> mode)),
-            m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown())));
+            m_doghouse.coralIntakeFactory(
+                m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)));
   }
 
   private Command reefMoving(boolean odd) {
@@ -888,7 +924,8 @@ public class RobotContainer {
         new ParallelCommandGroup(
                 m_armevator.stowFactory(),
                 autoAim(),
-                m_doghouse.coralIntakeFactory(() -> m_armevator.isElevatorDown()))
+                m_doghouse.coralIntakeFactory(
+                    m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse))
             .withTimeout(2.0),
         () -> getAlgae);
   }
