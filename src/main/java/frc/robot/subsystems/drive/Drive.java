@@ -217,6 +217,26 @@ public class Drive extends SubsystemBase {
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
   }
 
+  // Logging total drive current across all modules
+  @AutoLogOutput(key = "Drive/TotalDriveCurrent")
+  public double getTotalDriveCurrent() {
+    double sum = 0.0;
+    for (Module m : modules) {
+      sum += m.getDriveCurrent();
+    }
+    return sum;
+  }
+
+  // Logging total steer current across all modules
+  @AutoLogOutput(key = "Drive/TotalSteerCurrent")
+  public double getTotalSteerCurrent() {
+    double sum = 0.0;
+    for (Module m : modules) {
+      sum += m.getSteerCurrent();
+    }
+    return sum;
+  }
+
   /**
    * Runs the drive at the desired velocity.
    *
