@@ -43,7 +43,7 @@ public class CANHealthMonitor {
             "Armevator/ElevatorMain",
             "Armevator/ElevatorFollower",
             "Armevator/Arm",
-            "Armevator/Encoder",
+            "Armevator/Encoder"
             // ... more devices on 'rio' bus ...
         ),
         // Secondary CAN bus (e.g., on a CANivore or second trunk)
@@ -61,7 +61,7 @@ public class CANHealthMonitor {
             "Drive/BackRight/TurnEncoder",
             "Drive/BackRight/TurnMotor",
             "Drive/Gyro",
-            "Lights/CANdle",
+            "Lights/CANdle"
             // ... more devices on 'CANivore' bus ...
         )
     );
