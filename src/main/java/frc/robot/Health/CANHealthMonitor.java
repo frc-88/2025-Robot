@@ -1,5 +1,9 @@
 package frc.robot.Health;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.DriverStation;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +20,9 @@ import java.util.Map;
 public class CANHealthMonitor {
   // Singleton instance
   private static CANHealthMonitor instance;
+
+  // remember last state for each device
+  private final Map<String, Boolean> lastState = new HashMap<>();
 
   /**
    * Defines the physical wiring order for each CAN bus.
@@ -76,9 +83,27 @@ public class CANHealthMonitor {
     return instance;
   }
 
+   /*
+   * Update the health of a CAN device. 
+   * Only logs when the status actually changes. 
+   */
+  public void updateStatus(String key, boolean connected) {
+    Boolean previous = lastState.get(key);
+    if (previous == null || previous != connected) {
+      lastState.put(key, connected);
+      // print/log exactly once on change
+      DriverStation.reportWarning(
+          "CAN health changed: " + key + " → " + (connected ? "OK" : "FAILED"), 
+          false);
+    }
+    // always publish current status to Shuffleboard/DS dashboard
+    // SmartDashboard.putBoolean("CANHealth/" + key, connected);
+
   // TODO: Add:
   //    - private Map<String, Boolean> deviceStatus;
   //    - public void updateStatus(String key, boolean isReady)
   //    - public Map<String, Boolean> getAllStatuses()
   //    - diagnostics: getBusStatus(String busName), findBusBreakpoint(String busName)
+  }
 }
+
