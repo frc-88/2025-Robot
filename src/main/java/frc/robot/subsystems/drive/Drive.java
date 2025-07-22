@@ -208,9 +208,6 @@ public class Drive extends SubsystemBase {
     }
   }
 
-
-
-
   public boolean isReady() {
     return gyroInputs.connected
         && modules[0].isReady()
@@ -642,8 +639,6 @@ public class Drive extends SubsystemBase {
         "Error y", Math.abs(REEF_CORAL_POSES.get(5).getY() - flipIfRed(getPose()).getY()));
     m_odomPose.setRobotPose(getPose());
     SmartDashboard.putData("Odometry Pose", m_odomPose);
-
-
   }
 
   /**
