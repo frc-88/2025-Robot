@@ -16,8 +16,6 @@ package frc.robot.subsystems.drive;
 import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.CANBus;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.hardware.CANcoder;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
@@ -64,7 +62,6 @@ import frc.robot.util.ReefTrax;
 import frc.robot.health.CANHealthMonitor;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Map.entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
@@ -211,28 +208,7 @@ public class Drive extends SubsystemBase {
     }
   }
 
-  // Map each CAN ID to the human-readable module location. Used for CAN health monitoring.
-  private static final Map<Integer, String> kModuleNames = Map.ofEntries(
-    // Front Left module IDs from TunerConstants.FrontLeft
-    entry(TunerConstants.FrontLeft.DriveMotorId,  "FrontLeft"),
-    entry(TunerConstants.FrontLeft.SteerMotorId,   "FrontLeft"),
-    entry(TunerConstants.FrontLeft.EncoderId,      "FrontLeft"),
 
-    // Front Right module
-    entry(TunerConstants.FrontRight.DriveMotorId, "FrontRight"),
-    entry(TunerConstants.FrontRight.SteerMotorId,  "FrontRight"),
-    entry(TunerConstants.FrontRight.EncoderId,     "FrontRight"),
-
-    // Back Left module
-    entry(TunerConstants.BackLeft.DriveMotorId,   "BackLeft"),
-    entry(TunerConstants.BackLeft.SteerMotorId,    "BackLeft"),
-    entry(TunerConstants.BackLeft.EncoderId,       "BackLeft"),
-
-    // Back Right module
-    entry(TunerConstants.BackRight.DriveMotorId,  "BackRight"),
-    entry(TunerConstants.BackRight.SteerMotorId,   "BackRight"),
-    entry(TunerConstants.BackRight.EncoderId,      "BackRight")
-  );
 
 
   public boolean isReady() {
@@ -667,22 +643,7 @@ public class Drive extends SubsystemBase {
     m_odomPose.setRobotPose(getPose());
     SmartDashboard.putData("Odometry Pose", m_odomPose);
 
-    // Update CAN status to send to the healthMonitor
-    for (Module module : modules) {
-      var drive   = module.getDriveMotor();
-      var turn    = module.getTurnMotor();
-      var encoder = module.getTurnEncoder();
-    
-      String name    = kModuleNames.get(drive.getDeviceID());
-      String keyBase = "Drive/" + name + "/";
-    
-      CANHealthMonitor.getInstance()
-          .updateStatus(keyBase + "DriveMotor",  drive.isConnected());
-      CANHealthMonitor.getInstance()
-          .updateStatus(keyBase + "TurnMotor",   turn.isConnected());
-      CANHealthMonitor.getInstance()
-          .updateStatus(keyBase + "TurnEncoder", encoder.isConnected());
-      }
+
   }
 
   /**

@@ -41,6 +41,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.generated.TunerConstants;
+import frc.robot.health.CANHealthMonitor;
 import java.util.Queue;
 
 /**
@@ -226,6 +227,14 @@ public class ModuleIOTalonFX implements ModuleIO {
     timestampQueue.clear();
     drivePositionQueue.clear();
     turnPositionQueue.clear();
+
+    // Report CAN health status using CAN IDs
+    CANHealthMonitor.getInstance()
+        .updateStatus("CANID_" + constants.DriveMotorId, inputs.driveConnected);
+    CANHealthMonitor.getInstance()
+        .updateStatus("CANID_" + constants.SteerMotorId, inputs.turnConnected);
+    CANHealthMonitor.getInstance()
+        .updateStatus("CANID_" + constants.EncoderId, inputs.turnEncoderConnected);
   }
 
   @Override

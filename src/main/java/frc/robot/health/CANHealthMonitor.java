@@ -1,38 +1,42 @@
 package frc.robot.health;
 
-import java.util.Map;
-import java.util.List;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.littletonrobotics.junction.Logger;
+import frc.robot.generated.TunerConstants;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Central CAN health monitor for collecting device statuses and analyzing CAN bus health.
- *
- * Next steps:
- *  - Add deviceStatus storage and updateStatus() method
- *  - Implement diagnostic utilities: getBusStatus(), findBusBreakpoint(), etc.
- *
- * To define your physical CAN wiring topology, populate the wiringOrder map below.
- * Each entry in the List must exactly match a key used in updateStatus calls,
- * and the list should reflect the true, daisy-chain order of devices on that bus.
+ * 
+ * This singleton class provides real-time monitoring of CAN device connectivity,
+ * generates alerts for various failure patterns, and integrates with logging systems.
  */
 public class CANHealthMonitor {
     // Singleton instance
     private static CANHealthMonitor instance;
 
+    // Alert timing constants (in seconds)
+    private static final double IMMEDIATE_ALERT_THRESHOLD = 1.0;
+    private static final double SUSTAINED_ALERT_THRESHOLD = 3.0;
+    private static final double INTERMITTENT_WINDOW = 10.0;
+    private static final int INTERMITTENT_THRESHOLD = 3; // 3+ disconnects in 10 seconds
+
+    // Thread-safe storage for device statuses and events
+    private final Map<String, Boolean> currentDeviceStatus = new ConcurrentHashMap<>();
+    private final Map<String, Queue<StatusEvent>> deviceEvents = new ConcurrentHashMap<>();
+    private final Map<String, ActiveAlert> activeAlerts = new ConcurrentHashMap<>();
+
     /**
      * Defines the physical wiring order for each CAN bus.
-     *
-     * <busName> : List of device-status keys in the order they appear on the trunk.
-     * Device keys must match the strings passed to updateStatus(), e.g.:
-     *   "Drive/FrontLeft/DriveMotor"
-     *   "Drive/FrontLeft/TurnMotor"
-     *   ...
+     * Device keys must match the strings passed to updateStatus().
      */
     private final Map<String, List<String>> wiringOrder = Map.of(
-        // Primary roboRIO CAN bus (first trunk segment)
         "rio", List.of(
-            // TODO: replace these examples with your actual device keys in wiring order:
             "Climber/Gripper",
-            "Climber/GasMotor",
+            "Climber/GasMotor", 
             "Climber/Encoder",
             "Climber/CANRange",
             "Doghouse/FunnelMotor",
@@ -43,13 +47,12 @@ public class CANHealthMonitor {
             "Armevator/ElevatorMain",
             "Armevator/ElevatorFollower",
             "Armevator/Arm",
-            "Armevator/Encoder"
-            // ... more devices on 'rio' bus ...
+            "Armevator/Encoder",
+            "Lights/CANdle"
         ),
-        // Secondary CAN bus (e.g., on a CANivore or second trunk)
         "Canivore", List.of(
             "Drive/FrontRight/DriveMotor",
-            "Drive/FrontRight/TurnEncoder",
+            "Drive/FrontRight/TurnEncoder", 
             "Drive/FrontRight/TurnMotor",
             "Drive/FrontLeft/DriveMotor",
             "Drive/FrontLeft/TurnEncoder",
@@ -60,14 +63,127 @@ public class CANHealthMonitor {
             "Drive/BackRight/DriveMotor",
             "Drive/BackRight/TurnEncoder",
             "Drive/BackRight/TurnMotor",
-            "Drive/Gyro",
-            "Lights/CANdle"
-            // ... more devices on 'CANivore' bus ...
+            "Drive/Gyro"
         )
     );
 
+    /**
+     * Maps CAN IDs to human-readable device names.
+     * Auto-generated from TunerConstants to stay in sync with CAN ID changes.
+     */
+    private static final Map<Integer, String> CAN_ID_TO_DEVICE_NAME = buildCanIdMap();
+
+    private static Map<Integer, String> buildCanIdMap() {
+        Map<Integer, String> map = new HashMap<>();
+        
+        // Auto-generate from TunerConstants
+        map.put(TunerConstants.FrontLeft.DriveMotorId, "Drive/FrontLeft/DriveMotor");
+        map.put(TunerConstants.FrontLeft.SteerMotorId, "Drive/FrontLeft/TurnMotor");
+        map.put(TunerConstants.FrontLeft.EncoderId, "Drive/FrontLeft/TurnEncoder");
+        
+        map.put(TunerConstants.FrontRight.DriveMotorId, "Drive/FrontRight/DriveMotor");
+        map.put(TunerConstants.FrontRight.SteerMotorId, "Drive/FrontRight/TurnMotor");
+        map.put(TunerConstants.FrontRight.EncoderId, "Drive/FrontRight/TurnEncoder");
+        
+        map.put(TunerConstants.BackLeft.DriveMotorId, "Drive/BackLeft/DriveMotor");
+        map.put(TunerConstants.BackLeft.SteerMotorId, "Drive/BackLeft/TurnMotor");
+        map.put(TunerConstants.BackLeft.EncoderId, "Drive/BackLeft/TurnEncoder");
+        
+        map.put(TunerConstants.BackRight.DriveMotorId, "Drive/BackRight/DriveMotor");
+        map.put(TunerConstants.BackRight.SteerMotorId, "Drive/BackRight/TurnMotor");
+        map.put(TunerConstants.BackRight.EncoderId, "Drive/BackRight/TurnEncoder");
+        
+        // Add gyro CAN ID if available in TunerConstants
+        map.put(TunerConstants.DrivetrainConstants.Pigeon2Id, "Drive/Gyro");
+        
+        return map;
+    }
+
+    /**
+     * Represents a status change event for a CAN device.
+     */
+    private static class StatusEvent {
+        public final double timestamp;
+        public final boolean connected;
+
+        public StatusEvent(boolean connected) {
+            this.timestamp = RobotController.getFPGATime() / 1e6; // Convert microseconds to seconds
+            this.connected = connected;
+        }
+    }
+
+    /**
+     * Represents an active alert for a CAN device.
+     */
+    public static class ActiveAlert {
+        public final String deviceKey;
+        public final AlertType alertType;
+        public final double startTime;
+        public double lastSeen;
+        public boolean cleared;
+
+        public ActiveAlert(String deviceKey, AlertType alertType) {
+            this.deviceKey = deviceKey;
+            this.alertType = alertType;
+            this.startTime = RobotController.getFPGATime() / 1e6; // Convert microseconds to seconds
+            this.lastSeen = this.startTime;
+            this.cleared = false;
+        }
+
+        public void updateLastSeen() {
+            this.lastSeen = RobotController.getFPGATime() / 1e6; // Convert microseconds to seconds
+        }
+
+        public double getDuration() {
+            return (RobotController.getFPGATime() / 1e6) - startTime; // Convert microseconds to seconds
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s: %s (%.1fs)", deviceKey, alertType, getDuration());
+        }
+    }
+
+    /**
+     * Types of alerts that can be generated.
+     */
+    public enum AlertType {
+        IMMEDIATE("Device disconnected"),
+        SUSTAINED("Device offline for extended period"), 
+        INTERMITTENT("Device connection unstable");
+
+        public final String description;
+
+        AlertType(String description) {
+            this.description = description;
+        }
+    }
+
+    /**
+     * Alert severity levels for dashboard display.
+     */
+    public enum AlertLevel {
+        NONE("All CAN devices OK"),
+        LOW("Minor CAN issues detected"),
+        MEDIUM("CAN device problems detected"),
+        HIGH("Critical CAN failures detected");
+
+        public final String description;
+
+        AlertLevel(String description) {
+            this.description = description;
+        }
+    }
+
     // Private constructor to enforce singleton pattern
     private CANHealthMonitor() {
+        // Initialize empty queues for all known devices
+        for (List<String> devices : wiringOrder.values()) {
+            for (String device : devices) {
+                deviceEvents.put(device, new LinkedList<>());
+                currentDeviceStatus.put(device, false); // Start assuming disconnected
+            }
+        }
     }
 
     /**
@@ -80,9 +196,310 @@ public class CANHealthMonitor {
         return instance;
     }
 
-    // TODO: Add:
-    //    - private Map<String, Boolean> deviceStatus;
-    //    - public void updateStatus(String key, boolean isReady)
-    //    - public Map<String, Boolean> getAllStatuses()
-    //    - diagnostics: getBusStatus(String busName), findBusBreakpoint(String busName)
+    /**
+     * Updates the connection status for a CAN device.
+     * This should be called from each subsystem's periodic() method.
+     *
+     * @param deviceKey Unique identifier for the device (e.g., "Drive/FrontLeft/DriveMotor" or "CANID_1")
+     * @param isConnected Current connection status of the device
+     */
+    public void updateStatus(String deviceKey, boolean isConnected) {
+        // Translate CAN ID keys to human names
+        if (deviceKey.startsWith("CANID_")) {
+            int canId = Integer.parseInt(deviceKey.substring(6));
+            String humanName = CAN_ID_TO_DEVICE_NAME.get(canId);
+            if (humanName != null) {
+                deviceKey = humanName;
+            }
+        }
+        Boolean previousStatus = currentDeviceStatus.get(deviceKey);
+        
+        // Initialize device if not seen before
+        if (previousStatus == null) {
+            deviceEvents.put(deviceKey, new LinkedList<>());
+            previousStatus = false;
+        }
+
+        // Update current status
+        currentDeviceStatus.put(deviceKey, isConnected);
+
+        // Record event if status changed
+        if (previousStatus != isConnected) {
+            Queue<StatusEvent> events = deviceEvents.get(deviceKey);
+            events.offer(new StatusEvent(isConnected));
+            
+            // Clean up old events (keep only last 10 seconds)
+            cleanupOldEvents(events);
+            
+            // Log status change
+            Logger.recordOutput("CANHealth/Events/" + deviceKey.replace("/", "_"), isConnected);
+            
+            // Check for new alerts
+            checkForAlerts(deviceKey, events);
+        }
+
+        // Update existing alerts
+        updateExistingAlerts(deviceKey, isConnected);
+    }
+
+    /**
+     * Updates the connection status for a device that uses Phoenix 6 BaseStatusSignal.
+     */
+    public void updateStatus(String deviceKey, Object device) {
+        if (device instanceof com.ctre.phoenix.led.CANdle) {
+            // CANdle doesn't have isConnected method, assume connected if object exists
+            updateStatus(deviceKey, device != null);
+        } else {
+            // For other Phoenix devices, try to call isConnected() via reflection
+            try {
+                java.lang.reflect.Method method = device.getClass().getMethod("isConnected");
+                boolean isConnected = (boolean) method.invoke(device);
+                updateStatus(deviceKey, isConnected);
+            } catch (Exception e) {
+                // If reflection fails, assume connected
+                updateStatus(deviceKey, true);
+            }
+        }
+    }
+
+    /**
+     * Removes old events from the queue to keep memory usage bounded.
+     */
+    private void cleanupOldEvents(Queue<StatusEvent> events) {
+        double currentTime = RobotController.getFPGATime() / 1e6; // Convert microseconds to seconds
+        while (!events.isEmpty() && 
+               (currentTime - events.peek().timestamp) > INTERMITTENT_WINDOW) {
+            events.poll();
+        }
+    }
+
+    /**
+     * Analyzes recent events to detect alert conditions.
+     */
+    private void checkForAlerts(String deviceKey, Queue<StatusEvent> events) {
+        double currentTime = RobotController.getFPGATime() / 1e6; // Convert microseconds to seconds
+        
+        // Count recent disconnect events
+        int disconnectCount = 0;
+        for (StatusEvent event : events) {
+            if (!event.connected && (currentTime - event.timestamp) <= INTERMITTENT_WINDOW) {
+                disconnectCount++;
+            }
+        }
+
+        // Check for intermittent connection issues
+        if (disconnectCount >= INTERMITTENT_THRESHOLD) {
+            createAlert(deviceKey, AlertType.INTERMITTENT);
+        }
+        
+        // Check for immediate disconnect
+        StatusEvent latestEvent = ((LinkedList<StatusEvent>) events).peekLast();
+        if (latestEvent != null && !latestEvent.connected) {
+            createAlert(deviceKey, AlertType.IMMEDIATE);
+        }
+    }
+
+    /**
+     * Updates timing on existing alerts and promotes immediate alerts to sustained.
+     */
+    private void updateExistingAlerts(String deviceKey, boolean isConnected) {
+        ActiveAlert alert = activeAlerts.get(deviceKey);
+        if (alert != null && !alert.cleared) {
+            alert.updateLastSeen();
+            
+            // Promote immediate alert to sustained if device still disconnected
+            if (alert.alertType == AlertType.IMMEDIATE && !isConnected &&
+                alert.getDuration() >= SUSTAINED_ALERT_THRESHOLD) {
+                
+                activeAlerts.remove(deviceKey);
+                createAlert(deviceKey, AlertType.SUSTAINED);
+            }
+        }
+    }
+
+    /**
+     * Creates a new alert for a device.
+     */
+    private void createAlert(String deviceKey, AlertType alertType) {
+        ActiveAlert existingAlert = activeAlerts.get(deviceKey);
+        
+        // Don't create duplicate alerts or downgrade alert severity
+        if (existingAlert != null && !existingAlert.cleared) {
+            if (existingAlert.alertType == AlertType.SUSTAINED || 
+                existingAlert.alertType == AlertType.INTERMITTENT) {
+                return; // Don't downgrade from sustained/intermittent to immediate
+            }
+        }
+
+        ActiveAlert newAlert = new ActiveAlert(deviceKey, alertType);
+        activeAlerts.put(deviceKey, newAlert);
+        
+        // Log alert creation
+        Logger.recordOutput("CANHealth/Alerts/" + deviceKey.replace("/", "_") + "_" + alertType, true);
+        
+        // Update dashboard
+        updateDashboard();
+    }
+
+    /**
+     * Returns the highest severity level among all active alerts.
+     */
+    public AlertLevel getCurrentMaxSeverity() {
+        AlertLevel maxLevel = AlertLevel.NONE;
+        
+        for (ActiveAlert alert : activeAlerts.values()) {
+            if (alert.cleared) continue;
+            
+            AlertLevel alertLevel = switch (alert.alertType) {
+                case IMMEDIATE -> AlertLevel.MEDIUM;
+                case SUSTAINED -> AlertLevel.HIGH;
+                case INTERMITTENT -> AlertLevel.LOW;
+            };
+            
+            if (alertLevel.ordinal() > maxLevel.ordinal()) {
+                maxLevel = alertLevel;
+            }
+        }
+        
+        return maxLevel;
+    }
+
+    /**
+     * Returns a description of the most severe current alert.
+     */
+    public String getCurrentMaxAlert() {
+        AlertLevel maxLevel = getCurrentMaxSeverity();
+        if (maxLevel == AlertLevel.NONE) {
+            return "All CAN devices operational";
+        }
+        
+        // Find the alert that corresponds to max severity
+        for (ActiveAlert alert : activeAlerts.values()) {
+            if (alert.cleared) continue;
+            
+            AlertLevel alertLevel = switch (alert.alertType) {
+                case IMMEDIATE -> AlertLevel.MEDIUM;
+                case SUSTAINED -> AlertLevel.HIGH; 
+                case INTERMITTENT -> AlertLevel.LOW;
+            };
+            
+            if (alertLevel == maxLevel) {
+                return alert.toString();
+            }
+        }
+        
+        return maxLevel.description;
+    }
+
+    /**
+     * Returns all currently active (uncleared) alerts.
+     */
+    public List<ActiveAlert> getAllActiveAlerts() {
+        return activeAlerts.values().stream()
+            .filter(alert -> !alert.cleared)
+            .sorted((a, b) -> Double.compare(b.startTime, a.startTime)) // Most recent first
+            .toList();
+    }
+
+    /**
+     * Returns current connection status for all monitored devices.
+     */
+    public Map<String, Boolean> getAllDeviceStatus() {
+        return new HashMap<>(currentDeviceStatus);
+    }
+
+    /**
+     * Manually clears an alert. Used by pit crew to acknowledge issues.
+     */
+    public void clearAlert(String deviceKey) {
+        ActiveAlert alert = activeAlerts.get(deviceKey);
+        if (alert != null) {
+            alert.cleared = true;
+            Logger.recordOutput("CANHealth/AlertsCleared/" + deviceKey.replace("/", "_"), true);
+            updateDashboard();
+        }
+    }
+
+    /**
+     * Clears all active alerts.
+     */
+    public void clearAllAlerts() {
+        for (ActiveAlert alert : activeAlerts.values()) {
+            alert.cleared = true;
+        }
+        Logger.recordOutput("CANHealth/AllAlertsCleared", RobotController.getFPGATime() / 1e6);
+        updateDashboard();
+    }
+
+    /**
+     * Updates SmartDashboard with current status for driver display.
+     */
+    private void updateDashboard() {
+        AlertLevel severity = getCurrentMaxSeverity();
+        String maxAlert = getCurrentMaxAlert();
+        
+        SmartDashboard.putString("CAN/Status", severity.name());
+        SmartDashboard.putString("CAN/MaxAlert", maxAlert);
+        SmartDashboard.putNumber("CAN/ActiveAlertCount", getAllActiveAlerts().size());
+        
+        // Detailed status for pit dashboard
+        SmartDashboard.putNumber("CAN/DeviceCount", currentDeviceStatus.size());
+        SmartDashboard.putNumber("CAN/ConnectedCount", 
+            (int) currentDeviceStatus.values().stream().mapToInt(b -> b ? 1 : 0).sum());
+    }
+
+    /**
+     * Periodic method to be called from Robot.java to update logging and dashboard.
+     * This handles any maintenance tasks that need to run regularly.
+     */
+    public void periodic() {
+        // Log overall health metrics
+        AlertLevel severity = getCurrentMaxSeverity();
+        Logger.recordOutput("CANHealth/OverallSeverity", severity.name());
+        Logger.recordOutput("CANHealth/ActiveAlertCount", getAllActiveAlerts().size());
+        
+        // Log device connection counts by bus
+        for (Map.Entry<String, List<String>> bus : wiringOrder.entrySet()) {
+            int connected = 0;
+            int total = bus.getValue().size();
+            
+            for (String device : bus.getValue()) {
+                if (currentDeviceStatus.getOrDefault(device, false)) {
+                    connected++;
+                }
+            }
+            
+            Logger.recordOutput("CANHealth/Bus_" + bus.getKey() + "/Connected", connected);
+            Logger.recordOutput("CANHealth/Bus_" + bus.getKey() + "/Total", total);
+        }
+        
+        updateDashboard();
+    }
+
+    /**
+     * Returns diagnostic information about a specific CAN bus.
+     * This can be used for advanced troubleshooting.
+     */
+    public String getBusStatus(String busName) {
+        List<String> devices = wiringOrder.get(busName);
+        if (devices == null) {
+            return "Unknown bus: " + busName;
+        }
+        
+        StringBuilder status = new StringBuilder();
+        status.append("Bus: ").append(busName).append("\n");
+        
+        int connected = 0;
+        for (String device : devices) {
+            boolean isConnected = currentDeviceStatus.getOrDefault(device, false);
+            status.append("  ").append(device).append(": ")
+                  .append(isConnected ? "OK" : "DISCONNECTED").append("\n");
+            if (isConnected) connected++;
+        }
+        
+        status.append("Total: ").append(connected).append("/").append(devices.size())
+              .append(" connected");
+        
+        return status.toString();
+    }
 }
