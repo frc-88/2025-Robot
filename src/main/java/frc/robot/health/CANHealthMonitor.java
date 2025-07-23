@@ -431,21 +431,281 @@ public class CANHealthMonitor {
         updateDashboard();
     }
 
+    // ====== PHASE 2: ENHANCED DASHBOARD METHODS ======
+
     /**
-     * Updates SmartDashboard with current status for driver display.
+     * Gets a simple status message appropriate for driver display during matches.
+     * Designed to be minimally distracting while conveying critical information.
+     */
+    public String getDriverDisplayStatus() {
+        AlertLevel severity = getCurrentMaxSeverity();
+        return switch(severity) {
+            case NONE -> "CAN OK";
+            case LOW -> "CAN MINOR";
+            case MEDIUM -> "CAN WARN";
+            case HIGH -> "CAN CRIT";
+        };
+    }
+
+    /**
+     * Returns whether the driver dashboard should prominently display a CAN alert.
+     * Only shows alerts for medium+ severity to avoid distracting drivers with minor issues.
+     */
+    public boolean shouldShowDriverAlert() {
+        return getCurrentMaxSeverity().ordinal() >= AlertLevel.MEDIUM.ordinal();
+    }
+
+    /**
+     * Gets a brief message describing the most critical current issue for drivers.
+     */
+    public String getDriverAlertMessage() {
+        if (!shouldShowDriverAlert()) {
+            return "";
+        }
+        
+        // Find the highest priority active alert
+        ActiveAlert criticalAlert = null;
+        AlertLevel maxSeverity = AlertLevel.NONE;
+        
+        for (ActiveAlert alert : activeAlerts.values()) {
+            if (alert.cleared) continue;
+            
+            AlertLevel alertLevel = switch (alert.alertType) {
+                case IMMEDIATE -> AlertLevel.MEDIUM;
+                case SUSTAINED -> AlertLevel.HIGH;
+                case INTERMITTENT -> AlertLevel.LOW;
+            };
+            
+            if (alertLevel.ordinal() > maxSeverity.ordinal()) {
+                maxSeverity = alertLevel;
+                criticalAlert = alert;
+            }
+        }
+        
+        if (criticalAlert == null) {
+            return "";
+        }
+        
+        // Return a brief, driver-friendly message
+        String subsystem = criticalAlert.deviceKey.split("/")[0];
+        return switch (criticalAlert.alertType) {
+            case SUSTAINED -> subsystem + " offline";
+            case IMMEDIATE -> subsystem + " disconnected";  
+            case INTERMITTENT -> subsystem + " unstable";
+        };
+    }
+
+    /**
+     * Returns detailed alert information formatted for pit crew analysis.
+     */
+    public List<String> getDetailedAlertList() {
+        return getAllActiveAlerts().stream()
+            .map(alert -> String.format("[%s] %s - %s (%.1fs active)", 
+                alert.alertType.name(), 
+                alert.deviceKey, 
+                alert.alertType.description, 
+                alert.getDuration()))
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Returns a comprehensive device status summary for pit diagnostics.
+     */
+    public Map<String, String> getDeviceStatusSummary() {
+        Map<String, String> summary = new HashMap<>();
+        
+        for (Map.Entry<String, Boolean> entry : currentDeviceStatus.entrySet()) {
+            String deviceKey = entry.getKey();
+            boolean isConnected = entry.getValue();
+            ActiveAlert alert = activeAlerts.get(deviceKey);
+            
+            String status;
+            if (isConnected) {
+                status = "OK";
+            } else {
+                status = "DISCONNECTED";
+            }
+            
+            // Add alert information if present
+            if (alert != null && !alert.cleared) {
+                status += " (" + alert.alertType.name() + ")";
+            }
+            
+            summary.put(deviceKey, status);
+        }
+        
+        return summary;
+    }
+
+    /**
+     * Groups active alerts by subsystem for organized pit display.
+     */
+    public Map<String, List<ActiveAlert>> getAlertsBySubsystem() {
+        return getAllActiveAlerts().stream()
+            .collect(java.util.stream.Collectors.groupingBy(alert -> 
+                alert.deviceKey.split("/")[0])); // Group by first part of device key
+    }
+
+    /**
+     * Returns alerts specific to a subsystem.
+     */
+    public List<ActiveAlert> getAlertsForSubsystem(String subsystem) {
+        return getAllActiveAlerts().stream()
+            .filter(alert -> alert.deviceKey.startsWith(subsystem + "/"))
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Determines if any critical devices have alerts.
+     */
+    public boolean hasCriticalAlerts() {
+        List<String> criticalDevices = List.of(
+            "Drive/FrontLeft/DriveMotor", "Drive/FrontRight/DriveMotor",
+            "Drive/BackLeft/DriveMotor", "Drive/BackRight/DriveMotor", 
+            "Drive/Gyro",
+            "Armevator/ElevatorMain"
+        );
+        
+        return getAllActiveAlerts().stream()
+            .anyMatch(alert -> criticalDevices.contains(alert.deviceKey));
+    }
+
+    /**
+     * Enhanced dashboard update method that publishes to both driver and pit contexts.
      */
     private void updateDashboard() {
+        updateDriverDashboard();
+        updatePitDashboard();
+        handleDashboardCommands();
+    }
+
+    /**
+     * Updates NetworkTables keys for driver dashboard display.
+     */
+    private void updateDriverDashboard() {
         AlertLevel severity = getCurrentMaxSeverity();
-        String maxAlert = getCurrentMaxAlert();
         
-        SmartDashboard.putString("CAN/Status", severity.name());
-        SmartDashboard.putString("CAN/MaxAlert", maxAlert);
+        SmartDashboard.putString("CAN/Driver/Status", getDriverDisplayStatus());
+        SmartDashboard.putString("CAN/Driver/Alert", getDriverAlertMessage());
+        SmartDashboard.putBoolean("CAN/Driver/ShowAlert", shouldShowDriverAlert());
+        SmartDashboard.putBoolean("CAN/Driver/HasCriticalAlerts", hasCriticalAlerts());
+        
+        // Add color coding hints for dashboard
+        SmartDashboard.putString("CAN/Driver/Color", switch(severity) {
+            case NONE -> "green";
+            case LOW -> "yellow"; 
+            case MEDIUM -> "orange";
+            case HIGH -> "red";
+        });
+    }
+
+    /**
+     * Updates NetworkTables keys for detailed pit crew dashboard.
+     */
+    private void updatePitDashboard() {
+        // Detailed alert information
+        List<String> alertDetails = getDetailedAlertList();
+        SmartDashboard.putStringArray("CAN/Pit/AllAlerts", 
+            alertDetails.toArray(new String[0]));
+        SmartDashboard.putNumber("CAN/Pit/AlertCount", alertDetails.size());
+        
+        // Individual device statuses for detailed view
+        Map<String, String> deviceStatus = getDeviceStatusSummary();
+        for (Map.Entry<String, String> entry : deviceStatus.entrySet()) {
+            // Replace slashes with underscores for NetworkTables key compatibility
+            String ntKey = "CAN/Pit/Devices/" + entry.getKey().replace("/", "_");
+            SmartDashboard.putString(ntKey, entry.getValue());
+        }
+        
+        // Subsystem-level summaries
+        Map<String, List<ActiveAlert>> alertsBySubsystem = getAlertsBySubsystem();
+        for (String subsystem : List.of("Drive", "Armevator", "Climber", "Doghouse", "Lights")) {
+            List<ActiveAlert> subsystemAlerts = alertsBySubsystem.getOrDefault(subsystem, List.of());
+            SmartDashboard.putNumber("CAN/Pit/Subsystems/" + subsystem + "/AlertCount", 
+                subsystemAlerts.size());
+            
+            // Find max severity for this subsystem
+            AlertLevel maxSeverity = subsystemAlerts.stream()
+                .map(alert -> switch (alert.alertType) {
+                    case IMMEDIATE -> AlertLevel.MEDIUM;
+                    case SUSTAINED -> AlertLevel.HIGH;
+                    case INTERMITTENT -> AlertLevel.LOW;
+                })
+                .max(java.util.Comparator.comparing(Enum::ordinal))
+                .orElse(AlertLevel.NONE);
+            
+            SmartDashboard.putString("CAN/Pit/Subsystems/" + subsystem + "/Status", 
+                maxSeverity.name());
+        }
+        
+        // Bus-level summaries
+        for (Map.Entry<String, List<String>> bus : wiringOrder.entrySet()) {
+            String busName = bus.getKey();
+            List<String> devices = bus.getValue();
+            
+            int connected = 0;
+            int withAlerts = 0;
+            
+            for (String device : devices) {
+                if (currentDeviceStatus.getOrDefault(device, false)) {
+                    connected++;
+                }
+                ActiveAlert alert = activeAlerts.get(device);
+                if (alert != null && !alert.cleared) {
+                    withAlerts++;
+                }
+            }
+            
+            SmartDashboard.putString("CAN/Pit/Bus/" + busName + "/Summary", 
+                connected + "/" + devices.size() + " connected");
+            SmartDashboard.putNumber("CAN/Pit/Bus/" + busName + "/AlertCount", withAlerts);
+            SmartDashboard.putBoolean("CAN/Pit/Bus/" + busName + "/AllOK", 
+                connected == devices.size() && withAlerts == 0);
+        }
+        
+        // Overall statistics
+        SmartDashboard.putBoolean("CAN/Pit/HasCriticalAlerts", hasCriticalAlerts());
+        SmartDashboard.putString("CAN/Pit/OverallStatus", getCurrentMaxSeverity().name());
+        
+        // Legacy Phase 1 keys for backwards compatibility
+        SmartDashboard.putString("CAN/Status", getCurrentMaxSeverity().name());
+        SmartDashboard.putString("CAN/MaxAlert", getCurrentMaxAlert());
         SmartDashboard.putNumber("CAN/ActiveAlertCount", getAllActiveAlerts().size());
-        
-        // Detailed status for pit dashboard
         SmartDashboard.putNumber("CAN/DeviceCount", currentDeviceStatus.size());
         SmartDashboard.putNumber("CAN/ConnectedCount", 
             (int) currentDeviceStatus.values().stream().mapToInt(b -> b ? 1 : 0).sum());
+    }
+
+    /**
+     * Handles commands sent from dashboard (like clear alert buttons).
+     */
+    private void handleDashboardCommands() {
+        // Check for clear all alerts command
+        if (SmartDashboard.getBoolean("CAN/Pit/Commands/ClearAll", false)) {
+            clearAllAlerts();
+            SmartDashboard.putBoolean("CAN/Pit/Commands/ClearAll", false); // Reset button
+            Logger.recordOutput("CANHealth/Commands/ClearAllTriggered", 
+                RobotController.getFPGATime() / 1e6);
+        }
+        
+        // Check for individual device alert clearing
+        for (String deviceKey : new HashSet<>(activeAlerts.keySet())) {
+            String commandKey = "CAN/Pit/Commands/Clear_" + deviceKey.replace("/", "_");
+            if (SmartDashboard.getBoolean(commandKey, false)) {
+                clearAlert(deviceKey);
+                SmartDashboard.putBoolean(commandKey, false); // Reset button
+                Logger.recordOutput("CANHealth/Commands/ClearDevice", deviceKey);
+            }
+        }
+        
+        // Publish available clear commands for dashboard to create buttons
+        Set<String> clearableDevices = activeAlerts.entrySet().stream()
+            .filter(entry -> !entry.getValue().cleared)
+            .map(entry -> entry.getKey().replace("/", "_"))
+            .collect(java.util.stream.Collectors.toSet());
+        
+        SmartDashboard.putStringArray("CAN/Pit/Commands/ClearableDevices", 
+            clearableDevices.toArray(new String[0]));
     }
 
     /**
