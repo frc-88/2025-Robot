@@ -41,6 +41,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.generated.TunerConstants;
+import frc.robot.Health.CANHealthMonitor;
 import java.util.Queue;
 
 /**
@@ -94,6 +95,9 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
   private final Debouncer turnEncoderConnectedDebounce = new Debouncer(0.5);
 
+  // Module name for CAN health monitoring
+  private final String moduleName;
+
   public ModuleIOTalonFX(
       SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
           constants) {
@@ -101,6 +105,19 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveTalon = new TalonFX(constants.DriveMotorId, TunerConstants.DrivetrainConstants.CANBusName);
     turnTalon = new TalonFX(constants.SteerMotorId, TunerConstants.DrivetrainConstants.CANBusName);
     cancoder = new CANcoder(constants.EncoderId, TunerConstants.DrivetrainConstants.CANBusName);
+
+    // Determine module name based on drive motor ID for CAN health monitoring
+    if (constants.DriveMotorId == TunerConstants.FrontLeft.DriveMotorId) {
+      moduleName = "FrontLeft";
+    } else if (constants.DriveMotorId == TunerConstants.FrontRight.DriveMotorId) {
+      moduleName = "FrontRight";
+    } else if (constants.DriveMotorId == TunerConstants.BackLeft.DriveMotorId) {
+      moduleName = "BackLeft";
+    } else if (constants.DriveMotorId == TunerConstants.BackRight.DriveMotorId) {
+      moduleName = "BackRight";
+    } else {
+      moduleName = "Unknown";
+    }
 
     // Configure drive motor
     var driveConfig = constants.DriveMotorInitialConfigs;
@@ -211,6 +228,12 @@ public class ModuleIOTalonFX implements ModuleIO {
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble());
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
     inputs.turnCurrentAmps = turnCurrent.getValueAsDouble();
+
+    // Update CAN health monitoring
+    String keyBase = "Drive/" + moduleName + "/";
+    CANHealthMonitor.getInstance().updateStatus(keyBase + "DriveMotor", inputs.driveConnected);
+    CANHealthMonitor.getInstance().updateStatus(keyBase + "TurnMotor", inputs.turnConnected);
+    CANHealthMonitor.getInstance().updateStatus(keyBase + "TurnEncoder", inputs.turnEncoderConnected);
 
     // Update odometry inputs
     inputs.odometryTimestamps =

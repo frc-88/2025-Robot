@@ -14,7 +14,6 @@
 package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.*;
-import static java.util.Map.entry;
 
 import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -161,29 +160,6 @@ public class Drive extends SubsystemBase {
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
   }
 
-  // Map each CAN ID to the human-readable module location. Used for CAN health monitoring.
-  private static final Map<Integer, String> kModuleNames =
-      Map.ofEntries(
-          // Front Left module IDs from TunerConstants.FrontLeft
-          entry(TunerConstants.FrontLeft.DriveMotorId, "FrontLeft"),
-          entry(TunerConstants.FrontLeft.SteerMotorId, "FrontLeft"),
-          entry(TunerConstants.FrontLeft.EncoderId, "FrontLeft"),
-
-          // Front Right module
-          entry(TunerConstants.FrontRight.DriveMotorId, "FrontRight"),
-          entry(TunerConstants.FrontRight.SteerMotorId, "FrontRight"),
-          entry(TunerConstants.FrontRight.EncoderId, "FrontRight"),
-
-          // Back Left module
-          entry(TunerConstants.BackLeft.DriveMotorId, "BackLeft"),
-          entry(TunerConstants.BackLeft.SteerMotorId, "BackLeft"),
-          entry(TunerConstants.BackLeft.EncoderId, "BackLeft"),
-
-          // Back Right module
-          entry(TunerConstants.BackRight.DriveMotorId, "BackRight"),
-          entry(TunerConstants.BackRight.SteerMotorId, "BackRight"),
-          entry(TunerConstants.BackRight.EncoderId, "BackRight"));
-
   @Override
   public void periodic() {
     odometryLock.lock(); // Prevents odometry updates while reading data
@@ -244,20 +220,6 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
-
-    // Update CAN status to send to the healthMonitor
-    for (Module module : modules) {
-      var drive = module.getDriveMotor();
-      var turn = module.getTurnMotor();
-      var encoder = module.getTurnEncoder();
-
-      String name = kModuleNames.get(drive.getDeviceID());
-      String keyBase = "Drive/" + name + "/";
-
-      CANHealthMonitor.getInstance().updateStatus(keyBase + "DriveMotor", drive.isConnected());
-      CANHealthMonitor.getInstance().updateStatus(keyBase + "TurnMotor", turn.isConnected());
-      CANHealthMonitor.getInstance().updateStatus(keyBase + "TurnEncoder", encoder.isConnected());
-    }
   }
 
   /**
