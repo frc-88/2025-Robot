@@ -40,8 +40,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
-import frc.robot.generated.TunerConstants;
 import frc.robot.Health.CANHealthMonitor;
+import frc.robot.generated.TunerConstants;
 import java.util.Queue;
 
 /**
@@ -233,7 +233,8 @@ public class ModuleIOTalonFX implements ModuleIO {
     String keyBase = "Drive/" + moduleName + "/";
     CANHealthMonitor.getInstance().updateStatus(keyBase + "DriveMotor", inputs.driveConnected);
     CANHealthMonitor.getInstance().updateStatus(keyBase + "TurnMotor", inputs.turnConnected);
-    CANHealthMonitor.getInstance().updateStatus(keyBase + "TurnEncoder", inputs.turnEncoderConnected);
+    CANHealthMonitor.getInstance()
+        .updateStatus(keyBase + "TurnEncoder", inputs.turnEncoderConnected);
 
     // Update odometry inputs
     inputs.odometryTimestamps =
