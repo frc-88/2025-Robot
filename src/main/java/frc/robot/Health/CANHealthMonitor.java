@@ -222,9 +222,6 @@ public class CANHealthMonitor {
 
       Logger.recordOutput("CANHealth/Bus_" + bus.getKey() + "/Connected", connected);
       Logger.recordOutput("CANHealth/Bus_" + bus.getKey() + "/Total", total);
-      Logger.recordOutput(
-          "CANHealth/Bus_" + bus.getKey() + "/PercentConnected",
-          total > 0 ? (connected * 100.0 / total) : 0.0);
     }
 
     // Log overall health metrics
@@ -233,10 +230,6 @@ public class CANHealthMonitor {
 
     Logger.recordOutput("CANHealth/Overall/Connected", totalConnected);
     Logger.recordOutput("CANHealth/Overall/Total", totalDevices);
-    Logger.recordOutput(
-        "CANHealth/Overall/PercentConnected",
-        totalDevices > 0 ? (totalConnected * 100.0 / totalDevices) : 0.0);
-
     // Update SmartDashboard for basic driver display
     updateDashboard();
   }
