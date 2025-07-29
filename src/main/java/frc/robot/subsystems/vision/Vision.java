@@ -29,6 +29,7 @@ import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import java.util.LinkedList;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
+import frc.robot.health.CANHealthMonitor;
 
 // thank you very much
 // to Littleton Robotics
@@ -81,6 +82,10 @@ public class Vision extends SubsystemBase {
     for (int i = 0; i < io.length; i++) {
       io[i].updateInputs(inputs[i]);
       Logger.processInputs("Vision/Camera" + Integer.toString(i), inputs[i]);
+      
+      // Feed connection status to health monitor
+      CANHealthMonitor.getInstance()
+          .updateStatus("Vision/Camera" + i, inputs[i].connected);
     }
 
     // Initialize logging values

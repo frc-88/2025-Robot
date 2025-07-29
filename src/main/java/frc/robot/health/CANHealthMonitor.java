@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.littletonrobotics.junction.Logger;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.vision.VisionConstants;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -98,6 +99,17 @@ public class CANHealthMonitor {
         
         return map;
     }
+
+    /**
+     * Maps generic device keys to human-readable names from constants.
+     * Used for better device identification in alerts and diagnostics.
+     */
+    private static final Map<String, String> DEVICE_NAME_MAPPINGS = Map.of(
+        // Vision cameras - map to VisionConstants names
+        "Vision/Camera0", VisionConstants.camera0Name,  // "limelight-back"
+        "Vision/Camera1", VisionConstants.camera1Name   // "limelight-front"
+        // Could add more mappings here for other subsystems if needed
+    );
 
     /**
      * Represents a status change event for a CAN device.
@@ -197,6 +209,13 @@ public class CANHealthMonitor {
     }
 
     /**
+     * Returns a human-readable device name, using constants-based mapping if available.
+     */
+    private String getDisplayName(String deviceKey) {
+        return DEVICE_NAME_MAPPINGS.getOrDefault(deviceKey, deviceKey);
+    }
+
+    /**
      * Updates the connection status for a CAN device.
      * This should be called from each subsystem's periodic() method.
      *
@@ -231,8 +250,9 @@ public class CANHealthMonitor {
             // Clean up old events (keep only last 10 seconds)
             cleanupOldEvents(events);
             
-            // Log status change
-            Logger.recordOutput("CANHealth/Events/" + deviceKey.replace("/", "_"), isConnected);
+            // Log status change using display name for better readability
+            String displayName = getDisplayName(deviceKey);
+            Logger.recordOutput("CANHealth/Events/" + displayName.replace("/", "_").replace("-", "_"), isConnected);
             
             // Check for new alerts
             checkForAlerts(deviceKey, events);
@@ -334,8 +354,9 @@ public class CANHealthMonitor {
         ActiveAlert newAlert = new ActiveAlert(deviceKey, alertType);
         activeAlerts.put(deviceKey, newAlert);
         
-        // Log alert creation
-        Logger.recordOutput("CANHealth/Alerts/" + deviceKey.replace("/", "_") + "_" + alertType, true);
+        // Log alert creation using display name
+        String displayName = getDisplayName(deviceKey);
+        Logger.recordOutput("CANHealth/Alerts/" + displayName.replace("/", "_").replace("-", "_") + "_" + alertType, true);
         
         // Update dashboard
         updateDashboard();
@@ -384,7 +405,8 @@ public class CANHealthMonitor {
             };
             
             if (alertLevel == maxLevel) {
-                return alert.toString();
+                String displayName = getDisplayName(alert.deviceKey);
+                return String.format("%s: %s (%.1fs)", displayName, alert.alertType, alert.getDuration());
             }
         }
         
@@ -415,7 +437,8 @@ public class CANHealthMonitor {
         ActiveAlert alert = activeAlerts.get(deviceKey);
         if (alert != null) {
             alert.cleared = true;
-            Logger.recordOutput("CANHealth/AlertsCleared/" + deviceKey.replace("/", "_"), true);
+            String displayName = getDisplayName(deviceKey);
+            Logger.recordOutput("CANHealth/AlertsCleared/" + displayName.replace("/", "_").replace("-", "_"), true);
             updateDashboard();
         }
     }
