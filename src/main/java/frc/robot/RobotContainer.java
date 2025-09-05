@@ -52,6 +52,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Armevator;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Doghouse;
+import frc.robot.subsystems.GroundIntake;
 import frc.robot.subsystems.Lights;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -90,6 +91,7 @@ public class RobotContainer {
   public Doghouse m_doghouse = new Doghouse();
   public Armevator m_armevator = new Armevator(() -> !m_doghouse.isBlocked());
   public Climber climber = new Climber();
+  public GroundIntake m_groundIntake = new GroundIntake();
 
   public LocalADStarAK pathFinder = new LocalADStarAK();
 

@@ -129,13 +129,13 @@ public class Doghouse extends SubsystemBase {
   }
 
   public boolean isReady() {
-    return m_funnel.isConnected()
-        && m_manipulator.isConnected()
-        && m_doghousCANRange.isConnected()
+    return m_manipulator.isConnected()
+        // && m_funnel.isConnected()
+        // && m_doghousCANRange.isConnected()
         && m_coralRange.isConnected()
         && m_reefRange.isConnected()
-        && hasCoral()
-        && !isBlocked();
+        && hasCoral();
+    // && !isBlocked();
   }
 
   @AutoLogOutput(key = "DogHouse/reefDetected")
@@ -204,6 +204,11 @@ public class Doghouse extends SubsystemBase {
     setManipulatorSpeed(p_manipulatorShootSpeed.getValue());
   }
 
+  private void manipulatorForward() {
+    double coralIntakeOffset = 4.1; // Inches of offset
+    m_manipulator.setControl(request.withPosition(coralIntakeOffset / (4 * Math.PI)));
+  }
+
   private void manipulatorSlow() {
     setManipulatorSpeed(-0.1, true);
   }
@@ -235,7 +240,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorHoldPosition(boolean pullBack) {
-    m_manipulator.setControl(request.withPosition(pullBack ? 0 : 0));
+    m_manipulator.setControl(request.withPosition(true ? 0 : 0));
   }
 
   private void setAlgae() {
@@ -311,6 +316,7 @@ public class Doghouse extends SubsystemBase {
               funnelGo();
             } else if (hasCoral() & !isBlocked()) {
               manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
+              manipulatorForward();
               funnelStop();
             } else if (isBlocked()) {
               manipulatorSlow();

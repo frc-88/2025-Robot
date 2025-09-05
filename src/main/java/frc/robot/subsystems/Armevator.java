@@ -217,7 +217,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void armGoToZero() {
-    armSetAngle(0.0);
+    armSetAngle(2.0);
   }
 
   private void armGoToAlgaeStow() {
@@ -309,6 +309,7 @@ public class Armevator extends SubsystemBase {
 
   private void stowArm() {
     armGoToZero();
+    // armSetAngle(0.0);
   }
 
   private void stowArmAlgae() {

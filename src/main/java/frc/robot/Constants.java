@@ -61,6 +61,7 @@ public final class Constants {
 
   public static final double ELEVATOR_ROTATIONS_TO_INCHES = ((2.256 * Math.PI) / 8.0);
   public static final double ARM_ROTATIONS_TO_DEGREES = (360.0 / 48.0);
+  public static final double INTAKE_ROTATIONS_TO_DEGREES = (360.0 / 78.75);
 
   // DOGHOUSE
   public static final int DOGHOUSE_FUNNEL_MOTOR = 6;
@@ -74,6 +75,11 @@ public final class Constants {
   public static final double GRIPPER_MOTOR_ROTATIONS_TO_ANGLE = (360 / 21.0);
   public static final double GAS_MOTOR_ROTATIONS_TO_LENGTH = (8.0 / 180.0);
   public static final double CLIMBER_ENCODER_ROTATIONS_TO_ANGLE = 360;
+
+  // GROUND INTAKE
+  public static final int INTAKE_PIVOT_MOTOR = 12;
+  public static final int INTAKE_ROLLER_MOTOR = 7;
+  public static final int INTAKE_ENCODER = 7;
 
   // LIGHTS
   public static final int CANDLE_ID = 0;
