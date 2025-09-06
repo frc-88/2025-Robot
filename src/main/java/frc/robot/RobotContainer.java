@@ -214,6 +214,8 @@ public class RobotContainer {
     // "Drive SysId (Dynamic Reverse)",
     // drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+    m_groundIntake.setDefaultCommand(m_groundIntake.stowFactory());
+
     // Configure the button bindings
     configureButtonBindings();
     configureDashboardButtons();
@@ -390,9 +392,9 @@ public class RobotContainer {
     buttons.button(20).onTrue(m_armevator.stowProcessor().alongWith(driverControl()));
     controller.povRight().onTrue(reefMoving(true));
     controller.povLeft().onTrue(reefMoving(false));
-    controller
-        .povUp()
-        .onTrue(DriveCommands.driveThenScore(() -> drive.getTargetPoseFromSector(true), drive));
+    // controller
+    //     .povUp()
+    //     .onTrue(DriveCommands.driveThenScore(() -> drive.getTargetPoseFromSector(true), drive));
     controller.povDown().onTrue(reefMoving(true));
     controller.rightTrigger().onTrue(shootCommand(0.5).andThen(onShoot()));
     controller
@@ -483,7 +485,8 @@ public class RobotContainer {
                 m_doghouse.coralIntakeFactory(
                     m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)));
 
-    controller.y().toggleOnTrue(driverControl());
+    controller.y().whileTrue(m_groundIntake.groundIntakeFactory());
+    controller.povUp().onTrue(driverControl());
 
     controller
         .b()

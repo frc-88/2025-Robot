@@ -315,7 +315,7 @@ public class Doghouse extends SubsystemBase {
               manipulatorIn();
               funnelGo();
             } else if (hasCoral() & !isBlocked()) {
-              manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
+              // manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
               manipulatorForward();
               funnelStop();
             } else if (isBlocked()) {
