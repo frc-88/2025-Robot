@@ -89,7 +89,10 @@ public class GroundIntake extends SubsystemBase {
   private void intakeGoToGround() {
     intakeSetAngle(115);
   }
-  ;
+
+  private void intakeGoToScore() {
+    intakeSetAngle(20.0);
+  }
 
   private void intakeGoToStow() {
     intakeSetAngle(0);
@@ -98,12 +101,14 @@ public class GroundIntake extends SubsystemBase {
   private void intakeRollerInFast() {
     setRollerSpeed(-.5);
   }
-  ;
+
+  private void intakeRollerOut() {
+    setRollerSpeed(.3);
+  }
 
   private void intakeRollerStop() {
     setRollerSpeed(0);
   }
-  ;
 
   private void setRollerSpeed(double output, boolean slowRamp) {
     OpenLoopRampsConfigs config = new OpenLoopRampsConfigs();
@@ -115,7 +120,6 @@ public class GroundIntake extends SubsystemBase {
   private void setRollerSpeed(double output) {
     setRollerSpeed(output, false);
   }
-  ;
 
   private void intakeCalibrate() {
     m_pivot_motor.setPosition(
@@ -133,10 +137,29 @@ public class GroundIntake extends SubsystemBase {
 
   public Command groundIntakeFactory() {
     return new RunCommand(
+            () -> {
+              intakeGoToGround();
+              intakeRollerInFast();
+            },
+            this)
+        .until(() -> m_roller_motor.getSupplyCurrent().getValueAsDouble() > 25.0);
+  }
+
+  public Command goToScoreFactory() {
+    return new RunCommand(
         () -> {
-          intakeGoToGround();
-          intakeRollerInFast();
+          intakeGoToScore();
+          intakeRollerStop();
         },
         this);
+  }
+
+  public Command intakeShoot() {
+    return new RunCommand(
+            () -> {
+              intakeRollerOut();
+            },
+            this)
+        .withTimeout(0.7);
   }
 }

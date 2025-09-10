@@ -12,8 +12,6 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.ForwardLimitSourceValue;
-import com.ctre.phoenix6.signals.ForwardLimitTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
@@ -60,6 +58,9 @@ public class Doghouse extends SubsystemBase {
 
   private boolean m_coralCaptured = false;
   private boolean m_algaeCaptured = false;
+
+  private double manipulatorPosition = 0.0;
+
   private Debouncer m_algaeDebouncer = new Debouncer(1.0);
 
   private PositionVoltage request = new PositionVoltage(0.0);
@@ -83,14 +84,14 @@ public class Doghouse extends SubsystemBase {
     manipulatorConfiguration.Slot0.kI = p_manipulatorPID.getKI().getValue();
     manipulatorConfiguration.Slot0.kD = p_manipulatorPID.getKD().getValue();
     manipulatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
-    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitAutosetPositionEnable = true;
-    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitAutosetPositionValue = 0;
-    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitType =
-        ForwardLimitTypeValue.NormallyOpen;
-    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitSource =
-        ForwardLimitSourceValue.RemoteCANrange;
-    manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitRemoteSensorID =
-        Constants.DOGHOUSE_CANRANGE;
+    // manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitAutosetPositionEnable = true;
+    // manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitAutosetPositionValue = 0;
+    // manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitType =
+    //     ForwardLimitTypeValue.NormallyOpen;
+    // manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitSource =
+    //     ForwardLimitSourceValue.RemoteCANrange;
+    // manipulatorConfiguration.HardwareLimitSwitch.ForwardLimitRemoteSensorID =
+    //     Constants.DOGHOUSE_CANRANGE;
     m_manipulator.getConfigurator().apply(manipulatorConfiguration);
     m_manipulator.setNeutralMode(NeutralModeValue.Brake);
     configureCANrange();
@@ -205,7 +206,7 @@ public class Doghouse extends SubsystemBase {
   }
 
   private void manipulatorForward() {
-    double coralIntakeOffset = 4.1; // Inches of offset
+    double coralIntakeOffset = 4.1; // Inches
     m_manipulator.setControl(request.withPosition(coralIntakeOffset / (4 * Math.PI)));
   }
 
@@ -303,25 +304,26 @@ public class Doghouse extends SubsystemBase {
       BooleanSupplier elevatorDown, BooleanSupplier elevatorAboveDoghouse) {
     return new RunCommand(
         () -> {
+          SmartDashboard.putNumber("storedmanipulatorposition", manipulatorPosition);
+          SmartDashboard.putNumber(
+              "manipulatorPosition", m_manipulator.getPosition().getValueAsDouble());
           if (!algaeMode) {
-            if (!elevatorDown.getAsBoolean() & !isBlocked()) {
-              manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
-              funnelBackwardsSlow();
-              // maybe funnel slow backwards
-            } else if (!elevatorDown.getAsBoolean() & isBlocked()) {
-              manipulatorSlow();
-              funnelBackwardsSlow();
-            } else if (!hasCoral()) {
+            if (!hasCoral()) {
               manipulatorIn();
-              funnelGo();
-            } else if (hasCoral() & !isBlocked()) {
+              m_coralCaptured = false;
+            } else if (hasCoral() & !m_coralCaptured) {
               // manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
-              manipulatorForward();
-              funnelStop();
-            } else if (isBlocked()) {
+              manipulatorStop();
+              m_coralCaptured = true;
+              manipulatorPosition = m_manipulator.getPosition().getValueAsDouble();
+            } else if (hasCoral()
+                & Math.abs(manipulatorPosition - m_manipulator.getPosition().getValueAsDouble())
+                    < 1.75) {
               manipulatorSlow();
-              funnelGo();
+            } else {
+              manipulatorStop();
             }
+
           } else {
             algaePickup();
           }

@@ -35,7 +35,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -465,7 +464,8 @@ public class RobotContainer {
             m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse));
 
     // Default command, normal field-relative drive
-    drive.setDefaultCommand(autoAim());
+    // drive.setDefaultCommand(autoAim());
+    drive.setDefaultCommand(driverControl());
 
     // Switch to X pattern when X button is pressed
     controller
@@ -475,28 +475,30 @@ public class RobotContainer {
 
     // Reset gyro to 0° when B button is pressed
 
-    controller
-        .a()
-        .onTrue(DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
-        .onFalse(
-            new ParallelCommandGroup(
-                driverControl(),
-                m_armevator.stowFactory(),
-                m_doghouse.coralIntakeFactory(
-                    m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)));
+    // controller
+    //     .a()
+    //     .onTrue(DriveCommands.driveMoving(() -> 1.0, () -> 0.0, () -> Rotation2d.kZero, drive))
+    //     .onFalse(
+    //         new ParallelCommandGroup(
+    //             driverControl(),
+    //             m_armevator.stowFactory(),
+    //             m_doghouse.coralIntakeFactory(
+    //                 m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse)));
 
     controller.y().whileTrue(m_groundIntake.groundIntakeFactory());
-    controller.povUp().onTrue(driverControl());
+    controller.povUp().onTrue(m_groundIntake.intakeShoot());
 
     controller
-        .b()
+        .a()
         .onTrue(
-            Commands.runOnce(
+            new InstantCommand(
                     () ->
                         drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                            new Pose2d(drive.getPose().getTranslation(), Rotation2d.fromDegrees(180))),
                     drive)
                 .ignoringDisable(true));
+
+    controller.b().onTrue(m_groundIntake.goToScoreFactory());
   }
 
   private Command driverControl() {
