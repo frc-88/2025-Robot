@@ -944,6 +944,7 @@ public class RobotContainer {
     new SequentialCommandGroup(climber.calibrateFactory(), climber.calibrateGripperFactory())
         .schedule();
     getAlgae = false;
+    m_doghouse.teleopInit();
   }
 
   public void disableInit() {}
@@ -959,5 +960,6 @@ public class RobotContainer {
 
   public void autoInit() {
     m_doghouse.zeroManipulator();
+    m_doghouse.autoInit();
   }
 }
