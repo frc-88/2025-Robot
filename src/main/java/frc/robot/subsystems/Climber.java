@@ -186,13 +186,8 @@ public class Climber extends SubsystemBase {
   }
 
   public boolean shouldClose() {
-    boolean ret =
-        !input.get()
-            && m_canRange.getDistance().getValueAsDouble() > 0.225
-            && m_canRange.getDistance().getValueAsDouble() < 0.235;
-
-    if (gripperDebouncer.calculate(ret)) holdBearClaw = true;
-    return ret || holdBearClaw;
+    boolean ret = !input.get();
+    return ret;
   }
 
   public boolean shouldSoftClose() {
@@ -238,7 +233,6 @@ public class Climber extends SubsystemBase {
   }
 
   public boolean shouldEnableNeutralOnDisable() {
-
     return RobotState.isDisabled();
   }
 
@@ -256,7 +250,7 @@ public class Climber extends SubsystemBase {
 
   private void openGrabber() {
     setGripperAngle(p_gripperPosition.getValue());
-    m_grabbed = false;
+    // m_grabbed = false;
   }
 
   private void closeGrabber() {
@@ -422,6 +416,17 @@ public class Climber extends SubsystemBase {
         .andThen(gasMotorBrakeModeFactory());
   }
 
+  public Command climbEarly() {
+    return gasMotorNeutralModeFactory()
+        .andThen(
+            new RunCommand(
+                () -> {
+                  closeGrabber();
+                  stopGasMotor();
+                },
+                this));
+  }
+
   public Command climbOnDisable() {
     return new InstantCommand(() -> m_gripper.setNeutralMode(NeutralModeValue.Coast))
         .andThen(new WaitCommand(1.0))
@@ -435,7 +440,6 @@ public class Climber extends SubsystemBase {
   public Command prepClimber() {
     return new RunCommand(
             () -> {
-              holdBearClaw = false;
               setGasMotorPositionRotations(p_gasmotorPositionRotations.getValue());
               // openGrabber();
             },

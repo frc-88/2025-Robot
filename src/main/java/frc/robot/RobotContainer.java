@@ -290,8 +290,8 @@ public class RobotContainer {
                     new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, 0)))
                 .alongWith(m_doghouse.stopAllFactory()));
 
-    climber.shouldSoftCloseTrigger.onTrue(
-        climber.softCloseFactory().alongWith(m_doghouse.stopAllFactory()));
+    // climber.shouldSoftCloseTrigger.onTrue(
+    //     climber.softCloseFactory().alongWith(m_doghouse.stopAllFactory()));
     m_armevator.m_shouldCalibrate.onTrue(m_armevator.elevatorCalibrateFactory());
     shouldShootAlgae.onTrue(new InstantCommand(() -> shootingAlgae = true).andThen(shootInNet()));
     // shouldStow.onFalse(
@@ -380,9 +380,7 @@ public class RobotContainer {
     buttons.button(9).onTrue(L2AlgaePickupFactory());
     // buttons.button(12).onTrue(shootInNet());
     buttons.button(13).onTrue(shootInNet());
-    buttons
-        .button(6)
-        .onTrue(climber.gasMotorNeutralModeFactory().andThen(climber.stopGasMotorFactory()));
+    buttons.button(6).onTrue(climber.climbEarly());
     buttons
         .button(12)
         .onTrue(new InstantCommand(() -> getAlgae = true))
@@ -395,7 +393,11 @@ public class RobotContainer {
     //     .povUp()
     //     .onTrue(DriveCommands.driveThenScore(() -> drive.getTargetPoseFromSector(true), drive));
     controller.povDown().onTrue(reefMoving(true));
-    controller.rightTrigger().onTrue(shootCommand(0.5).andThen(onShoot()));
+    controller
+        .rightTrigger()
+        .onTrue(
+            new ParallelCommandGroup(
+                shootCommand(0.5).andThen(onShoot()), m_groundIntake.intakeShoot()));
     controller
         .leftTrigger()
         .onTrue(
@@ -494,7 +496,8 @@ public class RobotContainer {
             new InstantCommand(
                     () ->
                         drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), Rotation2d.fromDegrees(180))),
+                            new Pose2d(
+                                drive.getPose().getTranslation(), Rotation2d.fromDegrees(180))),
                     drive)
                 .ignoringDisable(true));
 

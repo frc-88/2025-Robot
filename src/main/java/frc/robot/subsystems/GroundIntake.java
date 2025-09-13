@@ -10,6 +10,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -41,6 +42,7 @@ public class GroundIntake extends SubsystemBase {
   private final DoublePreferenceConstant p_intakeJerk =
       new DoublePreferenceConstant("GroundIntake/PivotMotor/MotionMagicJerk", 0.0);
   private final DutyCycleOut m_rollerRequest = new DutyCycleOut(0.0);
+  private final Debouncer intakeDebouncer = new Debouncer(0.5);
 
   public GroundIntake() {
     CANcoderConfiguration intakeCANcoderConfiguration = new CANcoderConfiguration();
@@ -142,7 +144,10 @@ public class GroundIntake extends SubsystemBase {
               intakeRollerInFast();
             },
             this)
-        .until(() -> m_roller_motor.getSupplyCurrent().getValueAsDouble() > 25.0);
+        .until(
+            () ->
+                intakeDebouncer.calculate(
+                    m_roller_motor.getSupplyCurrent().getValueAsDouble() > 25.0));
   }
 
   public Command goToScoreFactory() {
