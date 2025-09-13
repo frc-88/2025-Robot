@@ -5,12 +5,14 @@ import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -35,14 +37,19 @@ public class GroundIntake extends SubsystemBase {
   private final MotionMagicVoltage motionmagicrequest = new MotionMagicVoltage(0.0);
   private final PIDPreferenceConstants intakePID =
       new PIDPreferenceConstants("GroundIntake/PivotMotor/PID", 0.5, 0, 0, 0.12, 0, 0, 0, 0);
+  private final PIDPreferenceConstants rollerPID =
+      new PIDPreferenceConstants("GroundIntake/RollerMotor/PID", 0.5, 0, 0, 0.12, 0, 0, 0, 0);
   private final DoublePreferenceConstant p_intakeMaxVelocity =
       new DoublePreferenceConstant("GroundIntake/PivotMotor/MotionMagicVelocity", 40.0);
   private final DoublePreferenceConstant p_intakeMaxAcceleration =
       new DoublePreferenceConstant("GroundIntake/PivotMotor/MotionMagicAcceleration", 80.0);
   private final DoublePreferenceConstant p_intakeJerk =
       new DoublePreferenceConstant("GroundIntake/PivotMotor/MotionMagicJerk", 0.0);
+  private final DoublePreferenceConstant p_rollerSpeed =
+      new DoublePreferenceConstant("GroundIntake/RollerMotor/Speed", 0.0);
   private final DutyCycleOut m_rollerRequest = new DutyCycleOut(0.0);
   private final Debouncer intakeDebouncer = new Debouncer(0.5);
+  private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0.0);
 
   public GroundIntake() {
     CANcoderConfiguration intakeCANcoderConfiguration = new CANcoderConfiguration();
@@ -75,6 +82,10 @@ public class GroundIntake extends SubsystemBase {
     rollerMotorConfiguration.CurrentLimits.SupplyCurrentLimit =
         p_rollerMotorCurrentLimit.getValue();
     rollerMotorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
+    rollerMotorConfiguration.Slot0.kP = rollerPID.getKP().getValue();
+    rollerMotorConfiguration.Slot0.kI = rollerPID.getKI().getValue();
+    rollerMotorConfiguration.Slot0.kD = rollerPID.getKD().getValue();
+
     m_roller_motor.getConfigurator().apply(rollerMotorConfiguration);
 
     m_roller_motor.setNeutralMode(NeutralModeValue.Brake);
@@ -86,7 +97,13 @@ public class GroundIntake extends SubsystemBase {
   private void intakeSetAngle(double angle) {
     m_pivot_motor.setControl(
         motionmagicrequest.withPosition(angle / Constants.INTAKE_ROTATIONS_TO_DEGREES));
+
   }
+
+  private void rollerSetSpeed(double speed) {
+    m_roller_motor.setControl(
+        m_velocityRequest.withVelocity(speed));
+  }      
 
   private void intakeGoToGround() {
     intakeSetAngle(115);
@@ -162,7 +179,7 @@ public class GroundIntake extends SubsystemBase {
   public Command intakeShoot() {
     return new RunCommand(
             () -> {
-              intakeRollerOut();
+              rollerSetSpeed(p_rollerSpeed.getValue());
             },
             this)
         .withTimeout(0.7);
