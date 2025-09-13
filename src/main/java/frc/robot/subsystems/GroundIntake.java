@@ -12,7 +12,6 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -97,13 +96,11 @@ public class GroundIntake extends SubsystemBase {
   private void intakeSetAngle(double angle) {
     m_pivot_motor.setControl(
         motionmagicrequest.withPosition(angle / Constants.INTAKE_ROTATIONS_TO_DEGREES));
-
   }
 
   private void rollerSetSpeed(double speed) {
-    m_roller_motor.setControl(
-        m_velocityRequest.withVelocity(speed));
-  }      
+    m_roller_motor.setControl(m_velocityRequest.withVelocity(speed));
+  }
 
   private void intakeGoToGround() {
     intakeSetAngle(115);
@@ -180,6 +177,7 @@ public class GroundIntake extends SubsystemBase {
     return new RunCommand(
             () -> {
               rollerSetSpeed(p_rollerSpeed.getValue());
+              // intakeRollerOut();
             },
             this)
         .withTimeout(0.7);

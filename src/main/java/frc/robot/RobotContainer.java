@@ -396,8 +396,9 @@ public class RobotContainer {
     controller
         .rightTrigger()
         .onTrue(
-            new ParallelCommandGroup(
-                shootCommand(0.5).andThen(onShoot()), m_groundIntake.intakeShoot()));
+            new ParallelDeadlineGroup(
+                shootCommand(0.5).andThen(onShoot()),
+                m_groundIntake.intakeShoot().andThen(m_groundIntake.stowFactory())));
     controller
         .leftTrigger()
         .onTrue(
@@ -933,7 +934,7 @@ public class RobotContainer {
             m_doghouse.setAlgaeModeFactory().andThen(m_doghouse.algae())),
         new ParallelCommandGroup(
                 m_armevator.stowFactory(),
-                autoAim(),
+                new ConditionalCommand(driverControl(), autoAim(), () -> mode == 1),
                 m_doghouse.coralIntakeFactory(
                     m_armevator::isElevatorDown, m_armevator::elevatorAboveDoghouse))
             .withTimeout(2.0),
