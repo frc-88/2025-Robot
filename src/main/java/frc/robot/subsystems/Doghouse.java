@@ -318,7 +318,7 @@ public class Doghouse extends SubsystemBase {
               manipulatorPosition = m_manipulator.getPosition().getValueAsDouble();
             } else if (hasCoral()
                 & Math.abs(manipulatorPosition - m_manipulator.getPosition().getValueAsDouble())
-                    < 1.75) {
+                    < 1.5) {
               manipulatorSlow();
             } else {
               manipulatorStop();
