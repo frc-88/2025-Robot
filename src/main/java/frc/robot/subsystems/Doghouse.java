@@ -57,6 +57,7 @@ public class Doghouse extends SubsystemBase {
   private boolean algaeMode = false;
 
   private boolean m_coralCaptured = false;
+  private boolean hasInit = false;
   private boolean m_algaeCaptured = false;
 
   private double manipulatorPosition = 0.0;
@@ -446,5 +447,19 @@ public class Doghouse extends SubsystemBase {
 
   public void zeroManipulator() {
     m_manipulator.setPosition(0);
+  }
+
+  public void teleopInit() {
+    if (!hasInit) {
+      m_coralCaptured = hasCoral();
+      manipulatorPosition = m_manipulator.getPosition().getValueAsDouble() - 1.8; 
+      // get manipulator to not move
+    }
+  }
+
+  public void autoInit() {
+    m_coralCaptured = hasCoral();
+    manipulatorPosition = m_manipulator.getPosition().getValueAsDouble() - 1.8; 
+    hasInit = true;
   }
 }
