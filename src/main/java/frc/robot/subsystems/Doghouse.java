@@ -452,14 +452,14 @@ public class Doghouse extends SubsystemBase {
   public void teleopInit() {
     if (!hasInit) {
       m_coralCaptured = hasCoral();
-      manipulatorPosition = m_manipulator.getPosition().getValueAsDouble() - 1.8; 
+      manipulatorPosition = m_manipulator.getPosition().getValueAsDouble() - 1.8;
       // get manipulator to not move
     }
   }
 
   public void autoInit() {
     m_coralCaptured = hasCoral();
-    manipulatorPosition = m_manipulator.getPosition().getValueAsDouble() - 1.8; 
+    manipulatorPosition = m_manipulator.getPosition().getValueAsDouble() - 1.8;
     hasInit = true;
   }
 }

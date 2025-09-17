@@ -395,9 +395,33 @@ public class Drive extends SubsystemBase {
     return angle;
   }
 
+  private double aimAtReefIntake() {
+    double angle = getAngleToReef(nextPose());
+    if (angle < 30.0 && angle > -30.0) {
+      angle = weAreRed() ? 180.0 : 0.0;
+    } else if (angle > 30.0 && angle < 90.0) {
+      angle = weAreRed() ? -120.0 : 60.0;
+    } else if (angle > 90.0 && angle < 150.0) {
+      angle = weAreRed() ? -60.0 : 120.0;
+    } else if (angle > 150.0 || angle < -150.0) {
+      angle = weAreRed() ? 0.0 : 180.0;
+    } else if (angle > -90.0 && angle < -150.0) {
+      angle = weAreRed() ? -120.0 : 60.0;
+    } else if (angle > -30.0 && angle < -90.0) {
+      angle = weAreRed() ? 120.0 : -60.0;
+    }
+    return angle;
+  }
+
   public double aimAtReefCenter() {
     double angle = getAngleToReef(getPose());
     angle = weAreRed() ? angle : angle + 180.0;
+    return angle;
+  }
+
+  public double aimAtReefCenterIntake() {
+    double angle = getAngleToReef(getPose());
+    angle = weAreRed() ? angle + 180 : angle;
     return angle;
   }
 

@@ -275,7 +275,7 @@ public class RobotContainer {
         .shouldGripperClose()
         .onTrue(
             climber
-                .closeGrabberFactory()
+                .closeThenClimb()
                 .alongWith(
                     new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, 1))
                         .andThen(new WaitCommand(2.0))
@@ -502,7 +502,9 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    controller.b().onTrue(m_groundIntake.goToScoreFactory());
+    controller
+        .b()
+        .onTrue(new ParallelCommandGroup(m_groundIntake.goToScoreFactory(), autoAimIntake()));
   }
 
   private Command driverControl() {
@@ -519,6 +521,14 @@ public class RobotContainer {
         () -> -controller.getLeftY(),
         () -> -controller.getLeftX(),
         () -> Rotation2d.fromDegrees(drive.aimAtExpectedTarget(() -> m_doghouse.hasCoral())));
+  }
+
+  private Command autoAimIntake() {
+    return DriveCommands.joystickDriveAtAngle(
+        drive,
+        () -> -controller.getLeftY(),
+        () -> -controller.getLeftX(),
+        () -> Rotation2d.fromDegrees(drive.aimAtReefCenterIntake()));
   }
 
   private Command getAutoPath(String pathName) {
@@ -611,7 +621,9 @@ public class RobotContainer {
                                     DriveCommands.driveToPose(
                                         () -> drive.getTargetAlgaePoseFromSector(), drive))
                                 .andThen(driverControl())),
-                        new ParallelCommandGroup(m_armevator.stowFactory(), autoAim()),
+                        new ParallelCommandGroup(
+                            m_armevator.stowFactory(),
+                            new ConditionalCommand(driverControl(), autoAim(), () -> mode == 1)),
                         () -> getAlgae)),
             new InstantCommand(() -> drive.enableAutoAim()),
             new InstantCommand(() -> Logger.recordOutput("ShotPose", drive.getPose()))),

@@ -61,6 +61,9 @@ public class GroundIntake extends SubsystemBase {
     TalonFXConfiguration pivotMotorConfiguration = new TalonFXConfiguration();
     pivotMotorConfiguration.CurrentLimits.SupplyCurrentLimit = p_pivotMotorCurrentLimit.getValue();
     pivotMotorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
+    // pivotMotorConfiguration.Feedback.FeedbackRemoteSensorID = 7;
+    // pivotMotorConfiguration.Feedback.FeedbackSensorSource =
+    // FeedbackSensorSourceValue.FusedCANcoder;
 
     pivotMotorConfiguration.Slot0.kP = intakePID.getKP().getValue();
     pivotMotorConfiguration.Slot0.kI = intakePID.getKI().getValue();
@@ -103,7 +106,7 @@ public class GroundIntake extends SubsystemBase {
   }
 
   private void intakeGoToGround() {
-    intakeSetAngle(115);
+    intakeSetAngle(118);
   }
 
   private void intakeGoToScore() {
