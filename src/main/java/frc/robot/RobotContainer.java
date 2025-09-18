@@ -528,7 +528,7 @@ public class RobotContainer {
         drive,
         () -> -controller.getLeftY(),
         () -> -controller.getLeftX(),
-        () -> Rotation2d.fromDegrees(drive.aimAtReefCenterIntake()));
+        () -> Rotation2d.fromDegrees(drive.aimAtReefIntake()));
   }
 
   private Command getAutoPath(String pathName) {
