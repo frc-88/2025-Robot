@@ -17,115 +17,13 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "Reef 12"
-          }
-        },
-        {
-          "type": "deadline",
-          "data": {
-            "commands": [
-              {
-                "type": "sequential",
-                "data": {
-                  "commands": [
-                    {
-                      "type": "deadline",
-                      "data": {
-                        "commands": [
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "Sector6ToLeftStation"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Stow"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Get Coral"
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "deadline",
-          "data": {
-            "commands": [
-              {
-                "type": "sequential",
-                "data": {
-                  "commands": [
-                    {
-                      "type": "deadline",
-                      "data": {
-                        "commands": [
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "LeftStationToSector6"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Stow"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Get Coral"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "Set Algae Mode"
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "Reef Algae Odd"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.0
-          }
-        },
-        {
           "type": "deadline",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CenterToNetShot"
+                  "pathName": "LeftHeadStart"
                 }
               },
               {
@@ -135,13 +33,13 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.5
+                        "waitTime": 0.75
                       }
                     },
                     {
                       "type": "named",
                       "data": {
-                        "name": "StowAlgae"
+                        "name": "Go To L4"
                       }
                     }
                   ]
@@ -153,7 +51,97 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot Algae"
+            "name": "Reef 9"
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "deadline",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "Sector5ToSector4Funnel"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Stow"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Get Coral"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Reef 7"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "deadline",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "Sector4ToSector4Funnel"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Stow"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Get Coral"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Reef 8"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         },
         {
@@ -163,35 +151,34 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "NetShotToSafe"
+                  "pathName": "Sector4ToSector3"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "Clear Algae Mode"
+                  "name": "Stow"
                 }
               },
               {
-                "type": "sequential",
+                "type": "named",
                 "data": {
-                  "commands": [
-                    {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 0.4
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "Stow"
-                      }
-                    }
-                  ]
+                  "name": "Get Coral"
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "L4 Mode"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Reef 6"
           }
         }
       ]

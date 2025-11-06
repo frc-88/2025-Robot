@@ -23,12 +23,6 @@
           }
         },
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.5
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "Reef Algae Even"
@@ -73,65 +67,9 @@
           }
         },
         {
-          "type": "deadline",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "NetShotToStation"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Clear Algae Mode"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Stow"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Get Coral"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "deadline",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "LeftStationToSector6"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Get Coral"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Stow"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Reef 11"
+            "pathName": "Algae Block"
           }
         }
       ]

@@ -63,7 +63,7 @@ public class Armevator extends SubsystemBase {
       new DoublePreferenceConstant("Armevator/Arm/TiltAngle", 5.0);
 
   private final DoublePreferenceConstant p_armEncoderOffset =
-      new DoublePreferenceConstant("Armevator/Arm/EncoderOffset", -0.154785);
+      new DoublePreferenceConstant("Armevator/Arm/EncoderOffset", 0.288574); // -0.154785);
   private final DoublePreferenceConstant p_armAngleNet =
       new DoublePreferenceConstant("Armevator/Arm/NetAngle", -30.0);
 
@@ -276,7 +276,7 @@ public class Armevator extends SubsystemBase {
   }
 
   public boolean isArmZero() {
-    return Math.abs(getArmAngle()) < 1.2;
+    return Math.abs(getArmAngle()) < 3.2;
   }
 
   public boolean isArmInStartingPosition() {
@@ -309,6 +309,7 @@ public class Armevator extends SubsystemBase {
 
   private void stowArm() {
     armGoToZero();
+    // armSetAngle(5.0);
   }
 
   private void stowArmAlgae() {
