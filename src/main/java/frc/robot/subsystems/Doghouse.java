@@ -42,7 +42,7 @@ public class Doghouse extends SubsystemBase {
   private final DoublePreferenceConstant p_funnelCurrentLimit =
       new DoublePreferenceConstant("Doghouse/Funnel/CurrentLimit", 20);
   private final DoublePreferenceConstant p_manipulatorInSpeed =
-      new DoublePreferenceConstant("Doghouse/Manipulator/InSpeed", -0.2);
+      new DoublePreferenceConstant("Doghouse/Manipulator/InSpeed", -0.4);
   private final DoublePreferenceConstant p_manipulatorShootSpeed =
       new DoublePreferenceConstant("Doghouse/Manipulator/ShootSpeed", -0.3);
   private final DoublePreferenceConstant p_manipulatorCurrentLimit =
@@ -58,11 +58,14 @@ public class Doghouse extends SubsystemBase {
 
   private boolean m_coralCaptured = false;
   private boolean hasInit = false;
+  private boolean hasAutoInit = false;
+  private boolean hasAutoCoral = false;
   private boolean m_algaeCaptured = false;
 
   private double manipulatorPosition = 0.0;
 
   private Debouncer m_algaeDebouncer = new Debouncer(1.0);
+  private Debouncer m_coralDebouncer = new Debouncer(0.4001);
 
   private PositionVoltage request = new PositionVoltage(0.0);
   // who made the doghouse?
@@ -292,37 +295,32 @@ public class Doghouse extends SubsystemBase {
     return m_manipulator.getSupplyCurrent().getValueAsDouble() > 20.0;
   }
 
-  public Command autoLiftingElevatorFactory(BooleanSupplier elevatorAboveDoghouse) {
-    return new RunCommand(
-        () -> {
-          funnelBackwards();
-          manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
-        },
-        this);
-  }
-
   public Command coralIntakeFactory(
       BooleanSupplier elevatorDown, BooleanSupplier elevatorAboveDoghouse) {
     return new RunCommand(
         () -> {
-          SmartDashboard.putNumber("storedmanipulatorposition", manipulatorPosition);
-          SmartDashboard.putNumber(
-              "manipulatorPosition", m_manipulator.getPosition().getValueAsDouble());
           if (!algaeMode) {
-            if (!hasCoral()) {
+            if (hasAutoCoral) {
+              manipulatorStop(); // redundancy
+              System.out.println("Have auto coral");
+            } else if (m_coralDebouncer.calculate(!hasCoral())) {
               manipulatorIn();
               m_coralCaptured = false;
+              System.out.println("intaking");
             } else if (hasCoral() & !m_coralCaptured) {
               // manipulatorHoldPosition(elevatorAboveDoghouse.getAsBoolean());
               manipulatorStop();
               m_coralCaptured = true;
               manipulatorPosition = m_manipulator.getPosition().getValueAsDouble();
+              System.out.println("justcaptured");
             } else if (hasCoral()
                 & Math.abs(manipulatorPosition - m_manipulator.getPosition().getValueAsDouble())
-                    < 1.5) {
+                    < 1.25) {
               manipulatorSlow();
+              System.out.println("adjusting");
             } else {
               manipulatorStop();
+              System.out.println("done adjusting");
             }
 
           } else {
@@ -354,6 +352,7 @@ public class Doghouse extends SubsystemBase {
             () -> {
               manipulatorShoot();
               algaeMode = false;
+              hasAutoCoral = false;
             },
             this)
         .withTimeout(delay)
@@ -368,6 +367,7 @@ public class Doghouse extends SubsystemBase {
             () -> {
               manipulatorFullSpeed();
               algaeMode = false;
+              hasAutoCoral = false;
             },
             this)
         .withTimeout(delay)
@@ -382,6 +382,7 @@ public class Doghouse extends SubsystemBase {
             () -> {
               manipulatorL1Speed();
               algaeMode = false;
+              hasAutoCoral = false;
             },
             this)
         .withTimeout(1.0)
@@ -396,6 +397,7 @@ public class Doghouse extends SubsystemBase {
             () -> {
               manipulatorMedium();
               algaeMode = false;
+              hasAutoCoral = false;
             },
             this)
         .withTimeout(delay)
@@ -410,6 +412,7 @@ public class Doghouse extends SubsystemBase {
             () -> {
               algaeShoot();
               algaeMode = false;
+              hasAutoCoral = false;
             },
             this)
         .withTimeout(0.5);
@@ -443,23 +446,32 @@ public class Doghouse extends SubsystemBase {
         "Doghouse/manipulatorSpeed", m_manipulator.getPosition().getValueAsDouble());
     SmartDashboard.putNumber(
         "Doghouse/manipulatorVoltage", m_manipulator.getDutyCycle().getValueAsDouble());
+    SmartDashboard.putNumber("storedmanipulatorposition", manipulatorPosition);
+    SmartDashboard.putNumber("manipulatorPosition", m_manipulator.getPosition().getValueAsDouble());
   }
 
   public void zeroManipulator() {
     m_manipulator.setPosition(0);
   }
 
+  public void disableInit() { // assuming this does not run auto->teleop
+    hasAutoInit = false;
+    System.out.println(
+        "DISABLEINIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!!!!!!!!!!!!!");
+  }
+
   public void teleopInit() {
-    if (!hasInit) {
+    if (!hasAutoInit) {
       m_coralCaptured = hasCoral();
-      manipulatorPosition = m_manipulator.getPosition().getValueAsDouble() - 1.8;
-      // get manipulator to not move
+      manipulatorPosition =
+          m_manipulator.getPosition().getValueAsDouble() - 3.0; // this is NOT the offset
     }
   }
 
   public void autoInit() {
-    m_coralCaptured = hasCoral();
-    manipulatorPosition = m_manipulator.getPosition().getValueAsDouble() - 1.8;
-    hasInit = true;
+    hasAutoInit = true;
+    hasAutoCoral = true; // assume preloaded with coral in auto
+    m_coralCaptured = true;
+    manipulatorPosition = m_manipulator.getPosition().getValueAsDouble() - 3.0; // neither is this
   }
 }

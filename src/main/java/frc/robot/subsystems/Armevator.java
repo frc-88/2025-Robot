@@ -63,7 +63,7 @@ public class Armevator extends SubsystemBase {
       new DoublePreferenceConstant("Armevator/Arm/TiltAngle", 5.0);
 
   private final DoublePreferenceConstant p_armEncoderOffset =
-      new DoublePreferenceConstant("Armevator/Arm/EncoderOffset", -0.154785);
+      new DoublePreferenceConstant("Armevator/Arm/EncoderOffset", 0.288574); // -0.154785);
   private final DoublePreferenceConstant p_armAngleNet =
       new DoublePreferenceConstant("Armevator/Arm/NetAngle", -30.0);
 
@@ -217,7 +217,7 @@ public class Armevator extends SubsystemBase {
   }
 
   private void armGoToZero() {
-    armSetAngle(3.0);
+    armSetAngle(0.0);
   }
 
   private void armGoToAlgaeStow() {

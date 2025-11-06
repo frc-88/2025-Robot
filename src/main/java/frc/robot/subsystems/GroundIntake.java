@@ -106,7 +106,7 @@ public class GroundIntake extends SubsystemBase {
   }
 
   private void intakeGoToGround() {
-    intakeSetAngle(118);
+    intakeSetAngle(125);
   }
 
   private void intakeGoToScore() {
@@ -164,7 +164,8 @@ public class GroundIntake extends SubsystemBase {
         .until(
             () ->
                 intakeDebouncer.calculate(
-                    m_roller_motor.getSupplyCurrent().getValueAsDouble() > 25.0));
+                    m_roller_motor.getSupplyCurrent().getValueAsDouble() > 30.0))
+        .beforeStarting(() -> intakeDebouncer.calculate(false));
   }
 
   public Command goToScoreFactory() {

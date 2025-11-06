@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.623,
-        "y": 7.4658818493150685
+        "x": 1.5210000000000001,
+        "y": 7.31075
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.1923363364512465,
-        "y": 5.231986450875366
+        "x": 2.090336336451246,
+        "y": 5.0768546015602976
       },
       "isLocked": false,
       "linkedName": "LeftCoralStation"
