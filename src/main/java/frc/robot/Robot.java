@@ -20,6 +20,10 @@ import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
+import frc.robot.util.LogServer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -36,6 +40,10 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot {
   private Command autonomousCommand;
   private RobotContainer robotContainer;
+
+  private static final int LOG_SERVER_PORT = 5800;
+  private LogServer m_logServer;
+  private Thread m_logServerThread;
 
   public Robot() {
     // Record metadata
@@ -123,6 +131,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void disabledInit() {
     robotContainer.disableInit();
+    startLogServerIfNeeded();
   }
 
   /** This function is called periodically when disabled. */
@@ -132,6 +141,7 @@ public class Robot extends LoggedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
+    stopLogServer();
     robotContainer.autoInit();
     autonomousCommand = robotContainer.getAutonomousCommand();
 
@@ -148,6 +158,7 @@ public class Robot extends LoggedRobot {
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
+    stopLogServer();
     // This makes sure that the autonomous stops running when
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove
@@ -165,6 +176,7 @@ public class Robot extends LoggedRobot {
   /** This function is called once when test mode is enabled. */
   @Override
   public void testInit() {
+    stopLogServer();
     // Cancels all running commands at the start of test mode.
     CommandScheduler.getInstance().cancelAll();
   }
@@ -180,4 +192,39 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {}
+
+  private Path selectLogDirForServer() {
+    try {
+      Path usb = Paths.get("/U/logs");
+      if (Files.isDirectory(usb)) return usb;
+    } catch (Exception ignored) {
+    }
+    return Paths.get("/home/lvuser/logs");
+  }
+
+  private void startLogServerIfNeeded() {
+    if (m_logServerThread != null && m_logServerThread.isAlive()) return;
+    Path logDir = selectLogDirForServer();
+    m_logServer = new LogServer(LOG_SERVER_PORT, logDir);
+    m_logServerThread = new Thread(m_logServer, "LogServer");
+    m_logServerThread.setDaemon(true);
+    m_logServerThread.start();
+  }
+
+  private void stopLogServer() {
+    LogServer srv = m_logServer;
+    Thread t = m_logServerThread;
+    m_logServer = null;
+    m_logServerThread = null;
+    if (srv != null)
+      try {
+        srv.stop();
+      } catch (Exception ignored) {
+      }
+    if (t != null)
+      try {
+        t.join(200);
+      } catch (InterruptedException ignored) {
+      }
+  }
 }
