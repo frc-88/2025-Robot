@@ -26,6 +26,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+import frc.robot.util.PreferenceLogger;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -132,6 +133,7 @@ public class Robot extends LoggedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
+    PreferenceLogger.logAllPreferences("autoInit");
     robotContainer.autoInit();
     autonomousCommand = robotContainer.getAutonomousCommand();
 
@@ -155,6 +157,7 @@ public class Robot extends LoggedRobot {
     // if (autonomousCommand != null) {
     //   autonomousCommand.cancel();
     // }
+    PreferenceLogger.logAllPreferences("teleopInit");
     robotContainer.teleopInit();
   }
 
