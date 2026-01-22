@@ -32,6 +32,7 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -48,6 +49,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Vision vision;
+  private final Intake intake;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -105,6 +107,9 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
+
+    // Intake subsystem (same for all modes)
+    intake = new Intake(20); // TODO: Update CAN ID if needed
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -167,6 +172,21 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
+
+    // Intake controls - right trigger forward, left trigger backward
+    // Both are momentary (stop when released)
+    controller
+        .rightTrigger()
+        .whileTrue(Commands.run(() -> intake.forward(), intake))
+        .onFalse(Commands.runOnce(() -> intake.stop(), intake));
+
+    controller
+        .leftTrigger()
+        .whileTrue(Commands.run(() -> intake.backward(), intake))
+        .onFalse(Commands.runOnce(() -> intake.stop(), intake));
+
+    // Default command to stop intake when no triggers are pressed
+    intake.setDefaultCommand(Commands.run(() -> intake.stop(), intake));
   }
 
   /**
