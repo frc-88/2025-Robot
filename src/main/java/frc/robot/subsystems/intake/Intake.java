@@ -20,6 +20,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
 
 public class Intake extends SubsystemBase {
   private final TalonFX motor;
@@ -128,5 +129,13 @@ public class Intake extends SubsystemBase {
     double voltage = motor.getMotorVoltage().getValueAsDouble();
     double powerWatts = currentAmps * voltage;
     SmartDashboard.putNumber("Intake/PowerDraw", Math.round(powerWatts * 100.0) / 100.0);
+
+    // Log to AdvantageKit
+    Logger.recordOutput("Intake/Status", statusString);
+    Logger.recordOutput("Intake/Power", powerWatts);
+    
+    // Calculate motor duty cycle from applied voltage (duty cycle = voltage / 12V)
+    double motorDutyCycle = voltage / 12.0;
+    Logger.recordOutput("Intake/MotorDutyCycle", motorDutyCycle);
   }
 }
