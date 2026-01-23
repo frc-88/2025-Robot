@@ -51,6 +51,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Vision vision;
+  private final Intake intake;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -108,7 +109,7 @@ public class RobotContainer {
         break;
     }
 
-    // Intake subsystem (same for all modes)
+    // Instantiate intake subsystem (same for all modes)
     intake = new Intake(20); // TODO: Update CAN ID if needed
 
     // Set up auto routines
@@ -177,9 +178,8 @@ public class RobotContainer {
                 .ignoringDisable(true));
 
     controller.y().onTrue(quest.resetQuestPose(vision::getPose));
-  }
 
- // Intake controls - right trigger forward, left trigger backward
+    // Intake controls - right trigger forward, left trigger backward
     // Both are momentary (stop when released)
     controller
         .rightTrigger()
