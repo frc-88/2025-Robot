@@ -108,11 +108,12 @@ public class RobotContainer {
         break;
     }
 
+    // Intake subsystem (same for all modes)
+    intake = new Intake(20); // TODO: Update CAN ID if needed
+
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
-    // Intake subsystem (same for all modes)
-    intake = new Intake(20); // TODO: Update CAN ID if needed
 
     // Set up SysId routines
     autoChooser.addOption(
@@ -176,6 +177,22 @@ public class RobotContainer {
                 .ignoringDisable(true));
 
     controller.y().onTrue(quest.resetQuestPose(vision::getPose));
+  }
+
+ // Intake controls - right trigger forward, left trigger backward
+    // Both are momentary (stop when released)
+    controller
+        .rightTrigger()
+        .whileTrue(Commands.run(() -> intake.forward(), intake))
+        .onFalse(Commands.runOnce(() -> intake.stop(), intake));
+
+    controller
+        .leftTrigger()
+        .whileTrue(Commands.run(() -> intake.backward(), intake))
+        .onFalse(Commands.runOnce(() -> intake.stop(), intake));
+
+    // Default command to stop intake when no triggers are pressed
+    intake.setDefaultCommand(Commands.run(() -> intake.stop(), intake));
   }
 
   /**
