@@ -56,9 +56,7 @@ public class Intake extends SubsystemBase {
     SmartDashboard.putNumber("Intake/BackwardDutyCycle", 0.1);
   }
 
-  /**
-   * Drives the intake forward at the duty cycle set in preferences.
-   */
+  /** Drives the intake forward at the duty cycle set in preferences. */
   public void forward() {
     double dutyCycle = Preferences.getDouble(FORWARD_DUTY_CYCLE_KEY, 0.1);
     // Duty cycle is a percentage, so multiply by 12V to get voltage
@@ -67,9 +65,7 @@ public class Intake extends SubsystemBase {
     currentStatus = Status.FORWARD;
   }
 
-  /**
-   * Drives the intake backwards at the duty cycle set in preferences.
-   */
+  /** Drives the intake backwards at the duty cycle set in preferences. */
   public void backward() {
     double dutyCycle = Preferences.getDouble(BACKWARD_DUTY_CYCLE_KEY, 0.1);
     // Duty cycle is a percentage, so multiply by 12V to get voltage (negative for reverse)
@@ -78,9 +74,7 @@ public class Intake extends SubsystemBase {
     currentStatus = Status.BACKWARDS;
   }
 
-  /**
-   * Stops the intake motor.
-   */
+  /** Stops the intake motor. */
   public void stop() {
     motor.setControl(voltageRequest.withOutput(0.0));
     currentStatus = Status.STOPPED;
@@ -93,8 +87,10 @@ public class Intake extends SubsystemBase {
     double currentBackwardDutyCycle = Preferences.getDouble(BACKWARD_DUTY_CYCLE_KEY, 0.1);
 
     // Read from SmartDashboard (users can edit these values)
-    double dashboardForward = SmartDashboard.getNumber("Intake/ForwardDutyCycle", currentForwardDutyCycle);
-    double dashboardBackward = SmartDashboard.getNumber("Intake/BackwardDutyCycle", currentBackwardDutyCycle);
+    double dashboardForward =
+        SmartDashboard.getNumber("Intake/ForwardDutyCycle", currentForwardDutyCycle);
+    double dashboardBackward =
+        SmartDashboard.getNumber("Intake/BackwardDutyCycle", currentBackwardDutyCycle);
 
     // Update preferences if SmartDashboard values changed
     if (Math.abs(dashboardForward - currentForwardDutyCycle) > 0.001) {
@@ -105,8 +101,10 @@ public class Intake extends SubsystemBase {
     }
 
     // Update SmartDashboard to show current preference values (in case they were loaded from flash)
-    SmartDashboard.putNumber("Intake/ForwardDutyCycle", Preferences.getDouble(FORWARD_DUTY_CYCLE_KEY, 0.1));
-    SmartDashboard.putNumber("Intake/BackwardDutyCycle", Preferences.getDouble(BACKWARD_DUTY_CYCLE_KEY, 0.1));
+    SmartDashboard.putNumber(
+        "Intake/ForwardDutyCycle", Preferences.getDouble(FORWARD_DUTY_CYCLE_KEY, 0.1));
+    SmartDashboard.putNumber(
+        "Intake/BackwardDutyCycle", Preferences.getDouble(BACKWARD_DUTY_CYCLE_KEY, 0.1));
 
     // Report status
     String statusString;
@@ -133,7 +131,7 @@ public class Intake extends SubsystemBase {
     // Log to AdvantageKit
     Logger.recordOutput("Intake/Status", statusString);
     Logger.recordOutput("Intake/Power", powerWatts);
-    
+
     // Calculate motor duty cycle from applied voltage (duty cycle = voltage / 12V)
     double motorDutyCycle = voltage / 12.0;
     Logger.recordOutput("Intake/MotorDutyCycle", motorDutyCycle);
